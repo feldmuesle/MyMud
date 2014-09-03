@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+    <head>
+            <title>Node Authentication</title>
+            <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+            <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+            <style>
+                    body 		{ padding-top:80px; }
+            </style>
+            <link rel="stylesheet" href="styles.css">
+    </head>
+<body>
+<div id="wrapper">
+    <div id="topBar">
+        
+        <div id="greeting"><span class="fa fa-user">Hello <% /*user.email*/ %></span>
+        <a href="/logout" class=" btn btn-default btn-sm">Logout</a>
+        </div>
+    </div>
+    <div id="pseudoSet" class="container">
+        <div class="col-sm-6 col-sm-offset-3">
+
+                <h1><span class="fa fa-sign-in"></span> almost there</h1>
+                <button id="loadGame" type="button" class="btn btn-info btn-lg">Load former game</button>
+                <button id="newGame" type="button" class="btn btn-info btn-lg">Play new game</button>
+                <!-- LOGIN FORM -->
+                <!--<form action="/start" method="post">-->
+                        <div class="form-group">
+                                <label>Nickname</label>
+                                <input id="pseudoInput" type="text" class="form-control" name="email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Choose guild</label>
+                            <select id="playerclass" class="form-control">
+                                <%for( var i=0; i<guilds.length; i++){%>
+                                    <option value="<%=guilds[i].name%>"><%=guilds[i].name%></option>
+                                <%}%>
+                            </select>
+                        </div>
+
+                        <button id="btnPseudoSet" type="submit" class="btn btn-info btn-lg">Signup</button>
+                <!--</form>-->
+
+                <hr>
+
+                <p>Already have an account? <a href="/login">Login</a></p>
+                <p>Or go <a href="/">home</a>.</p>
+
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/socket.js"></script>
+<script src="/chat_functions.js"></script>
+<script src="/command_functions.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+	<title>Welcome</title>
+        <!--
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+        -->
+        <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="wrapper">
+    <div id="topBar">
+        
+        <div id="greeting"><span class="fa fa-user">Hello <%= user.email %></span>
+        <a href="/logout" class="button">Logout</a>
+        </div>
+    </div>
+        
+        <section id="container" class="text-center">
+             <div id="pseudoSet">
+                <button id="loadGame">Load former game</button>
+                <h3>Start new game</h3>
+                <p>Choose a type of character and a nickname and start the game!</p>
+                <select id="playerclass">
+                    <%for( var i=0; i<guilds.length; i++){%>
+                        <option value="<%=guilds[i].name%>"><%=guilds[i].name%></option>
+                    <%}%>
+                </select>
+
+                <input type="text" id="pseudoInput">
+                <button id="btnPseudoSet" class="button">Go!</button>
+            </div>   
+            <aside id="sidebar">
+                <ul id="profile"><li>playerstats</li></ul>
+                <ul id="playerlist"><li>player</li></ul>
+                <ul id="roomPlayerlist"><li>player</li></ul>                 
+            </aside>
+            <div id="chatWrapper">
+                <ul id="chatEntries"></ul>
+                <div id="chatControls">
+                    <input id="chatInput" autocomplete="off" />
+                    <button id="btnChatSubmit">Send</button>
+                </div>
+            </div>
+        </section>
+
+</div>
+<script>  
+    var user = <%-JSON.stringify(user)%>;
+</script>
+<script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/socket.js"></script>
+<script src="/chat_functions.js"></script>
+<script src="/command_functions.js"></script>
+
+
+
+</body>
+</html>
