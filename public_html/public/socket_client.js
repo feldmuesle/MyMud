@@ -21,6 +21,10 @@ $(document).ready(function(){
   
     // socket-events recieving from server //
     
+    socket.on('output', function(data){
+        appendToChat('info', data['message']);
+    });
+    
     // greeting-message when new user logs on
     socket.on('login', function(data){
         room = data ['room'];

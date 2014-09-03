@@ -51,6 +51,7 @@ PlayerSchema.methods.init = function(socket){
     // set up listener
     self.on('write', function(data){
         console.log('hello from player.write-listener: '+data['message']);
+        socket.emit('output', data);
     });       
 };
 

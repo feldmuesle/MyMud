@@ -13,7 +13,7 @@ var db = require('mongoose');
 var passport = require ('passport');
 var flash = require ('connect-flash');
 var io = require('socket.io').listen(server);
-var game = require('./app/controllers/socket.js');
+var game = require('./app/controllers/socket_server.js');
 var path = require('path');
 
 var morgan = require('morgan');

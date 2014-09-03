@@ -51,9 +51,8 @@ module.exports.response = function(socket){
             // set all the players properties
             newPlayer.attributes['hp'] = newGuild.hp;
             newPlayer.attributes['sp'] = newGuild.sp;
-            // call init-function, set default-values and set-up eventlisteners;
             
-//          console.log('player.getAttributes'+newPlayer.getAttributes('hp'));
+            // call init-function, set default-values and set-up eventlisteners;
             newPlayer.init(socket);
             newPlayer.write('Here is a written message!');
             console.log(newPlayer);
