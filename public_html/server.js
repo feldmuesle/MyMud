@@ -58,15 +58,16 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 
 /*********** configure game ***********/
 var Guild = require('./app/models/guilds.js');
+var Room = require('./app/models/room.js');
 
+
+/**************************************************************************************************/
 
 /********** game ********/
 io.sockets.on('connection', function(socket){
     console.log('connection works');
     game.response(socket);
 });
-
-
 
 /*********** routes *************/
 require('./app/controllers/routes.js')(app, passport); // load the routes and pass in our app and fully configured passport

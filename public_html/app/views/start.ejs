@@ -21,26 +21,29 @@
         <div class="col-sm-6 col-sm-offset-3">
 
                 <h1><span class="fa fa-sign-in"></span> almost there</h1>
+                <!-- show any messages that come back with authentication -->
+                <% if (message.length > 0) { %>
+                        <div class="alert alert-danger"><%= message %></div>
+                <% } %>
                 <button id="loadGame" type="button" class="btn btn-info btn-lg">Load former game</button>
                 <button id="newGame" type="button" class="btn btn-info btn-lg">Play new game</button>
                 <!-- LOGIN FORM -->
-                <!--<form action="/start" method="post">-->
-                        <div class="form-group">
-                                <label>Nickname</label>
-                                <input id="pseudoInput" type="text" class="form-control" name="email">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Choose guild</label>
-                            <select id="playerclass" class="form-control">
-                                <%for( var i=0; i<guilds.length; i++){%>
-                                    <option value="<%=guilds[i].name%>"><%=guilds[i].name%></option>
-                                <%}%>
-                            </select>
-                        </div>
+                <form action="/start" method="post">
+                    <div class="form-group">
+                            <label>Nickname</label>
+                            <input id="pseudoInput" type="text" class="form-control" name="nickname">
+                    </div>
 
-                        <button id="btnPseudoSet" type="submit" class="btn btn-info btn-lg">Signup</button>
-                <!--</form>-->
+                    <div class="form-group">
+                        <label>Choose guild</label>
+                        <select id="playerclass" class="form-control" name="guild">
+                            <%for( var i=0; i<guilds.length; i++){%>
+                                <option value="<%=guilds[i].name%>"><%=guilds[i].name%></option>
+                            <%}%>
+                        </select>
+                    </div>
+                    <button id="btnNewGame" type="submit" class="btn btn-info btn-lg">Start new game</button>
+                </form>
 
                 <hr>
 
@@ -50,9 +53,13 @@
         </div>
     </div>
 </div>
+<script>  
+    var user = <%-JSON.stringify(user)%>;
+    console.log(user);
+</script>
 <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
-<script src="/socket.js"></script>
+<script src="/socket_client.js"></script>
 <script src="/chat_functions.js"></script>
 <script src="/command_functions.js"></script>
 </body>

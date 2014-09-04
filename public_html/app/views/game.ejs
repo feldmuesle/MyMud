@@ -18,19 +18,7 @@
     </div>
         
         <section id="container" class="text-center">
-             <div id="pseudoSet">
-                <button id="loadGame">Load former game</button>
-                <h3>Start new game</h3>
-                <p>Choose a type of character and a nickname and start the game!</p>
-                <select id="playerclass">
-                    <%for( var i=0; i<guilds.length; i++){%>
-                        <option value="<%=guilds[i].name%>"><%=guilds[i].name%></option>
-                    <%}%>
-                </select>
-
-                <input type="text" id="pseudoInput">
-                <button id="btnPseudoSet" class="button">Go!</button>
-            </div>   
+              
             <aside id="sidebar">
                 <ul id="profile"><li>playerstats</li></ul>
                 <ul id="playerlist"><li>player</li></ul>
@@ -48,6 +36,7 @@
 </div>
 <script>  
     var user = <%-JSON.stringify(user)%>;
+    console.log(user);
 </script>
 <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>

@@ -16,14 +16,18 @@ var hitHow = ['hit', 'kick', 'bite', 'knock'];
 
 $(document).ready(function(){   
     
-    // here was commands
-    
   
-    // socket-events recieving from server //
+/******** socket-events recieving from server **************/
     
+    // simply output a message to the client
     socket.on('output', function(data){
         appendToChat('info', data['message']);
     });
+    
+    socket.on('nickname exists', function(data){
+       console.log('the nickname'+data['nickname']+' already exists'); 
+    });
+    
     
     // greeting-message when new user logs on
     socket.on('login', function(data){

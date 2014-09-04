@@ -18,40 +18,43 @@ module.exports = function(app, passport){
     
     // process the login form
     app.post('/login', passport.authenticate('local-login',{
-        successRedirect: '/game',
+        successRedirect: '/start',
         failureRedirect: '/login',
         failureFlash: true
     }));
     
     // show the signup-form and pass in any flash data if it exists
     app.get('/signup', function(req, res){
+        
         console.log('Hello from route get signup');
        res.render('signup.ejs', {message: req.flash('signupMessage')}); 
        
     });
-    app.post('/signup', function(req, res, next){
-       console.log('the name of this dude is '+ req.body.nickname); 
-       next();
-    });
     
     // process the signup form
     app.post('/signup',passport.authenticate('local-signup',{
-        successRedirect: '/game', // if everything worked redirect to user-profile
+        successRedirect: '/start', // if everything worked redirect to user-profile
         failureRedirect: '/index', // if something went wrong, redirect to singup
         failureFlash: true // allow flash-messages
     }));
     
     // show start-screen for game
-    app.get('/start', function (req, res){
+    app.get('/start', isLoggedIn, function (req, res){
         var GuildModel = require('../models/guilds.js');
-        var PlayerModel = require('../models/plalyer.js');
+        console.log('hello from start-routes');
         GuildModel.find(function(err, guilds){
             if(err){ return console.log(err);}
             res.render('start.ejs', {
-               guilds : guilds
+               guilds   :   guilds,
+               user     :   req.user,
+               message  :   ''
            }); 
         });
-    });    
+    });  
+    
+    app.post('/start', checkNickname, function(req, res){
+        // check middleware to see whats going on :)        
+    });
     
     
     // show the game 
@@ -61,7 +64,6 @@ module.exports = function(app, passport){
         var currentUser = req.user;
         //showGuilds(currentUser, res);
         var GuildModel = require('../models/guilds.js');
-        var PlayerModel = require('../models/player.js');
         var UserModel = require('../models/user.js');
         GuildModel.find(function(err, guilds){
             if(err){ return console.log(err);}
@@ -89,6 +91,37 @@ module.exports = function(app, passport){
     });
 };
 
+//middelware to check if nickname exists
+function checkNickname(req, res){
+    var User = require('../models/user.js');
+    User.findOne({'nickname': req.body.nickname}, function(err, user){
+        if(err){console.error(err); return;}
+        
+        // if there's already a user with this nickname, prompt user to choose another one
+        if(user){
+            
+            var GuildModel = require('../models/guilds.js');
+            GuildModel.find(function(err, guilds){
+                if(err){ return console.log(err);}
+
+                // show form again to user
+                res.render('start.ejs', {
+                   guilds   :   guilds,
+                   user     :   req.user,
+                   message  :   'this nickname is already taken, please choose a different nickname.'
+               }); 
+            });
+
+        }else{
+            console.log('there is no player called '+req.body.nickname+' yet');
+            User.findOneAndUpdate({_id : req.user._id}, {nickname : req.body.nickname}, function(err, user){
+               if(err){console.error(err); return;}
+            }); 
+            res.redirect('/game');
+        }              
+    });
+}
+
 
 //middleware to get guild-model and render it
 function showGuilds(user, res){
@@ -102,7 +135,7 @@ function showGuilds(user, res){
     });
 
 }
-// route midleware to make sure a user is logged in
+// route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next){
     if(req.isAuthenticated()){
         console.log('Yes your are authenticated');

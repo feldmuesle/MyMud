@@ -1,0 +1,146 @@
+//Rooms we create!
+// functions to use in bottom of doc
+
+/**************************************************************************************************
+***** Lobby -  RoomId = 0 - Start here *******************************************************************************/
+
+//exits
+    var ladder = {keyword   : 'ladder',
+                description : 'There\'s a ladder going upstairs',
+                exitId      : 1,
+                action      : 'You climb up the ladder',
+                goodbye     : 'climbs up a ladder'};
+            
+    var hatch = {keyword    : 'hatch',
+                description : 'There\'s a hatch in the floor',
+                exitId      : 2,
+                action      : 'You open up the hatch and climb down the stairs',
+                goodbye     : 'leaves through the hatch in the floor'};
+            
+    var door = {keyword     : 'door',
+                description : 'Only visible if you really look, there\'s a tiny door in the wall',
+                exitId      : 3,
+                goodbye     : 'leaves through a tiny door in the wall'};
+   
+    var exits = [ladder, hatch, west];
+
+// room
+    var lobby = {
+        title       : 'Lobby',
+        id          : 0,
+        description : 'You are standing in the middle of the lobby with a giant gnome'    
+    }
+
+    // example on inserting a new room
+    Room.insertRoom(lobby, function (room_id){
+       if(room_id == 0){
+           console.log('Room_id = 0');
+           return;
+       } 
+       Room.insertExits(room_id, exits, function(err){
+           if(err){
+               console.log(err);
+               return;
+           }
+       });
+    }); 
+
+/**************************************************************************************************
+***** Loft -  RoomId = 1 **************************************************************************/
+
+//exits
+    var ladder = {keyword   : 'ladder',
+                description : 'Don\'t fall down the hole with the ladder leading downstairs.',
+                exitId      : 0,
+                action      : 'You climb down the ladder',
+                goodbye     : 'climbs down the ladder'};
+
+    var window = {keyword   : 'window',
+                description : 'There\'s a small dirty window. It\'s just big enough to squeeze through',
+                exitId      : 1,
+                action      : 'You open the window and climb through',
+                goodbye     : 'climbs through window'};
+            
+    var closet = {keyword    : 'closet',
+                description : 'There\'s a huge closet standing in the middle of the room',
+                exitId      : 2,
+                action      : 'You enter the closet. It is dark.',
+                goodbye     : 'enters the closet'};
+   
+    var exits = [ladder,window, closet];
+
+// room
+    var loft = {
+        title       : 'Loft',
+        id          : 1,
+        description : 'You are standing in a humble room with a wooden floor.'    
+    }
+
+    // example on inserting a new room
+    Room.insertRoom(loft, function (room_id){
+       if(room_id == 0){
+           console.log('Room_id = 0');
+           return;
+       } 
+       Room.insertExits(room_id, exits, function(err){
+           if(err){
+               console.log(err);
+               return;
+           }
+       });
+    }); 
+
+/**************************************************************************************************
+***** Winecellar -  RoomId = 2 - Start here *******************************************************************************/
+
+//exits
+    var stairs = {keyword   : 'stairs',
+                description : 'The stairs leaving upstairs are pretty slippery',
+                exitId      : 0,
+                action      : 'You climb up the narrow stairs',
+                goodbye     : 'leaves upstairs'};
+   
+    var exits = [stairs];
+
+// room
+    var winecellar = {
+        title       : 'Winecellar',
+        id          : 2,
+        description : 'Lots of oaken barrels and a distinctive smell indicates that you\'ve ended up in the winecellar.'    
+    }
+
+    // example on inserting a new room
+    Room.insertRoom(winecellar, function (room_id){
+       if(room_id == 0){
+           console.log('Room_id = 0');
+           return;
+       } 
+       Room.insertExits(room_id, exits, function(err){
+           if(err){
+               console.log(err);
+               return;
+           }
+       });
+    }); 
+
+/**************************************************************************************************
+
+// example on creating a room using createRoom-function
+
+Room.createRoom(room, exits, function(err){
+    if(err){console.error(err); return;}
+});
+
+// example on inserting a new room using insertRoom- and inserExits-functions - not workiing when using event-listeners on model
+Room.insertRoom(roomObject, function (room_id){
+   if(room_id == 0){
+       console.log('Room_id = 0');
+       return;
+   } 
+   console.log('these are the exits'+exits);
+   Room.insertExits(room_id, exits, function(err){
+       console.log('hello from server-insertExits');
+       if(err){console.error(err); return; }
+       console.log('so far we have come');
+   });
+});

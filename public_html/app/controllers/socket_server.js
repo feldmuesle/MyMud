@@ -12,6 +12,7 @@ var numUsers =0;
 // get all the models we need
 var Guild = require('../models/guilds.js');
 var PlayerModel = require('../models/player.js');
+var User = require('../models/user.js');
 
 
 module.exports.response = function(socket){
@@ -24,14 +25,9 @@ module.exports.response = function(socket){
     
     
     // initialize new game
-    socket.on('initialize player', function(data){        
-        
-       // create player and set socketId 
-//       newPlayer = JSON.stringify(data['player']);
-//       newPlayer = JSON.parse(newPlayer);
-       
-//       console.log('before guild-function player: ');
-//       console.log(newPlayer);
+    socket.on('initialize player', function(data){ 
+       var newPlayer;
+       console.log('the players nickname: '+data['nickname']);
        
        
        //get the chosen guild and set attributes according to it
@@ -62,6 +58,11 @@ module.exports.response = function(socket){
             numUsers++;
         }).exec();
         guildPromise.then(function(){
+            newPlayer.save(function(err){
+                if(err){console.error(err); return;}
+                console.log('saving player succeeded.');
+                console.log(newPlayer);
+            });                        
         });
         console.log('end on initialisation');
     });

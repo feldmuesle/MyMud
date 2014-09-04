@@ -17,15 +17,15 @@ $('#newGame').click(function(){
 
 
 $(function(){
-       $('#chatWrapper').hide();
+//       $('#chatWrapper').hide();
 //       $('#chatControls').hide();
 //       $('#chatEntries').hide();
-       $('#profile').hide();
-       $('#playerlist').hide();
-       $('#roomPlayerlist').hide();
+//       $('#profile').hide();
+//       $('#playerlist').hide();
+//       $('#roomPlayerlist').hide();
        $('#pseudoInput').focus();
        $('#loadGame').click(function(){loadGame();});
-       $('#btnPseudoSet').click(function(){initializeGame();});
+       $('#btnNewGame').click(function(){initializeGame();});
        $('#chatInput').keypress(function(e){
           var key = e.which;
           if(key == '13'){  //send message if user clicks enter
@@ -42,27 +42,27 @@ function loadGame(){
 }
 
 // initialize the game 
-function initializeGame(){
+    function initializeGame(){
         if($('#pseudoInput').val()!==''){
             
             var nickname = $('#pseudoInput').val().trim(); 
             var guild = $('#playerclass').val();
-            console.log('The players nickname is: '+nickname);
-            console.log('The chosen guild is: '+guild);
-            
+            console.log('The players nickname clientside is: '+nickname);
+            console.log('The chosen guild clientside is: '+guild);
+            console.log('The users id is: '+user._id);
             setAutoHeight();
             
-            $('#profile').show();
-            $('#playerlist').show();
-            $('#roomPlayerlist').show();
-            $('#chatWrapper').show();
-            $('#pseudoSet').hide();
+//            $('#profile').show();
+//            $('#playerlist').show();
+//            $('#roomPlayerlist').show();
+//            $('#chatWrapper').show();
+//            $('#pseudoSet').hide();
             $('#chatInput').focus();
                         
             var data = {
                 'nickname'  :   nickname,
                 'guild'     :   guild,
-                'userId'    :   user
+                'userId'    :   user._id
             };
 
             //tell the server your nickname/pseudo and get initialized as a player
