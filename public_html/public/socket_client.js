@@ -24,8 +24,16 @@ $(document).ready(function(){
         appendToChat('info', data['message']);
     });
     
-    socket.on('nickname exists', function(data){
-       console.log('the nickname'+data['nickname']+' already exists'); 
+    // if nickname is already taken when starting new game
+    socket.on('nickname taken', function(data){ 
+       // flash an alert-message about it to client
+       
+       alert(data['message']);
+    });
+    
+    socket.on('initialize game', function(){
+       console.log('we are ready to initialize the game'); 
+       gameInit();
     });
     
     

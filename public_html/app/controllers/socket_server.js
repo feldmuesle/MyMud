@@ -58,7 +58,8 @@ module.exports.response = function(socket){
                     });
                 }
         });
-        
+// promise try-out, not working
+{ 
         // find user in db
 //        var promise = User.findOne({'_id': data['userId']}, function(err, user){
 //                if(err){console.error(err); return;}
@@ -110,8 +111,9 @@ module.exports.response = function(socket){
 //                console.log(err);
 //                return;
 //            });
+}
 });
-            
+{         
 //       userPromise.then(function(){
 //            // find corresponding player
 //            console.log('hello from userPromise');
@@ -137,7 +139,47 @@ module.exports.response = function(socket){
 //            });
 //           
 //        });
- 
+} 
+        
+    // check if the nickname is already taken
+    socket.on('check nickname', function(data){
+       var nickname = data['nickname'];
+       var guild    = data['guild'];
+       var userId   = data['userId'];       
+       console.log('hello from socket(check nickname)');
+       
+       User.findOne({'nickname': nickname}, function(err, user){
+            if(err){console.error(err); return;}
+
+            // if there's already a user with this nickname, prompt user to choose another one
+            if(user){
+                socket.emit('nickname taken', {
+                   nickname :   nickname,
+                   message  :  'the nickname'+ nickname +' is already taken, please choose a different nickname.'
+                });
+//                var GuildModel = require('../models/guilds.js');
+//                GuildModel.find(function(err, guilds){
+//                    if(err){ return console.log(err);}
+//
+//                    // show form again to user
+//                    res.render('game.ejs', {
+//                       guilds   :   guilds,
+//                       user     :   req.user,
+//                       message  :   'this nickname is already taken, please choose a different nickname.'
+//                   }); 
+//                });
+
+            }else{
+                
+                console.log('there is no player called '+nickname+' yet');
+                User.findOneAndUpdate({_id : userId}, {nickname : nickname}, function(err, user){
+                   if(err){console.error(err); return;}
+                   socket.emit('initialize game');
+                }); 
+
+            }              
+        });
+    });
     
     // initialize new game
     socket.on('initialize player', function(data){ 
@@ -163,10 +205,10 @@ module.exports.response = function(socket){
             newPlayer.attributes['sp'] = newGuild.sp;
             
             // call init-function, set default-values and set-up eventlisteners;
-            newPlayer.init(socket);
-            
-            // now we can call the write-listner which emits a message to the player
-            newPlayer.write('Here is a written message!');
+//            newPlayer.init(socket);
+//            
+//            // now we can call the write-listner which emits a message to the player
+//            newPlayer.write('Here is a written message!');
             
             // when all is good, push the player into users-array and increment
             users.push(newPlayer);
