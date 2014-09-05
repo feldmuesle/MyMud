@@ -38,7 +38,7 @@ $(function(){
 // initialize game with existing player
 function loadGame(){
     console.log('hello from inside loadGame');
-    socket.emit('loadGame'); 
+    socket.emit('loadGame', {'userId' : user._id}); 
 }
 
 // initialize the game 

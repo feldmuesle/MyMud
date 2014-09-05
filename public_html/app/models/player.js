@@ -40,25 +40,25 @@ var PlayerSchema = mongoose.Schema({
 
 
 // set all default-values and set up event-listeners
-PlayerSchema.methods.init = function(socket){
-    console.log('hello from init-function');
-    var self = this;
-    self.socketId = socket.id;
-    self.location = 0;
-    self.attributes['maxHealth'] = 100;
-    self.attributes['health'] = self.attributes['maxHealth'];
-    
-    // set up listener
-    self.on('write', function(data){
-        console.log('hello from player.write-listener: '+data['message']);
-        socket.emit('output', data);
-    });       
-};
-
-PlayerSchema.methods.write = function(message){
-    
-    this.emit('write', {'message'   : message});
-};
+//PlayerSchema.methods.init = function(socket){
+//    console.log('hello from init-function');
+//    var self = this;
+//    self.socketId = socket.id;
+//    self.location = 0;
+//    self.attributes['maxHealth'] = 100;
+//    self.attributes['health'] = self.attributes['maxHealth'];
+//    
+//    // set up listener
+//    self.on('write', function(data){
+//        console.log('hello from player.write-listener: '+data['message']);
+//        socket.emit('output', data);
+//    });       
+//};
+//
+//PlayerSchema.methods.write = function(message){
+//    
+//    this.emit('write', {'message'   : message});
+//};
 
 //PlayerSchema.methods.setAttribute = function (attr,val){
 //    var self = this;

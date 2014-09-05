@@ -70,7 +70,7 @@ io.sockets.on('connection', function(socket){
 });
 
 /*********** routes *************/
-require('./app/controllers/routes.js')(app, passport); // load the routes and pass in our app and fully configured passport
+require('./app/controllers/routes.js')(app, passport, game); // load the routes and pass in our app and fully configured passport
 
 //var currentUser = require('./app/model/sessionhelper.js')(req);
 //console.log('test in server.js: var currentUser= '+currentUser.req.user);

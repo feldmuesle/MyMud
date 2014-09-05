@@ -29,8 +29,9 @@ $(document).ready(function(){
     });
     
     
-    // greeting-message when new user logs on
-    socket.on('login', function(data){
+    // start-message when new user logs on
+    socket.on('start game', function(data){
+        console.log('hello from start game listener');
         room = data ['room'];
         player = data['player'];
         var chatmeta = 'Welcome '+player.nickname+ ', ' + data['numUsers'] +' users online';

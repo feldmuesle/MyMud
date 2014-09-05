@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-module.exports = function(app, passport){
+module.exports = function(app, passport, game){
         
     // homepage (with login-links)
     app.get('/', function(req, res){
@@ -57,11 +57,23 @@ module.exports = function(app, passport){
     });
     
     
+    // if the user loads an existing game
+    app.post('/game', isLoggedIn, function(req, res){
+        
+            
+            console.log('routes: reloading existing game');
+            res.render('game.ejs', {
+                user : req.user
+            });
+    });
+    
+    
     // show the game 
     // want this protected so you have to be logged in to visit
     // we will use route middleware to verify this (the isLoggedIn function)
     app.get('/game', isLoggedIn, function(req, res){
         var currentUser = req.user;
+        console.log('hello from routes-get-game.js');
         //showGuilds(currentUser, res);
         var GuildModel = require('../models/guilds.js');
         var UserModel = require('../models/user.js');

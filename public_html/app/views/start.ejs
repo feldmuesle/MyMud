@@ -25,7 +25,10 @@
                 <% if (message.length > 0) { %>
                         <div class="alert alert-danger"><%= message %></div>
                 <% } %>
-                <button id="loadGame" type="button" class="btn btn-info btn-lg">Load former game</button>
+                <form action="/game" method="post">
+                    <input type="hidden" name="loadGame" value="true">
+                    <button id="loadGame" type="submit" class="btn btn-info btn-lg">Load former game</button>
+                </form>
                 <button id="newGame" type="button" class="btn btn-info btn-lg">Play new game</button>
                 <!-- LOGIN FORM -->
                 <form action="/start" method="post">
