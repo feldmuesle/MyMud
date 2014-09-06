@@ -40,25 +40,26 @@ var PlayerSchema = mongoose.Schema({
 
 
 // set all default-values and set up event-listeners
-//PlayerSchema.methods.init = function(socket){
-//    console.log('hello from init-function');
-//    var self = this;
-//    self.socketId = socket.id;
-//    self.location = 0;
-//    self.attributes['maxHealth'] = 100;
-//    self.attributes['health'] = self.attributes['maxHealth'];
-//    
-//    // set up listener
-//    self.on('write', function(data){
-//        console.log('hello from player.write-listener: '+data['message']);
-//        socket.emit('output', data);
-//    });       
-//};
-//
-//PlayerSchema.methods.write = function(message){
-//    
-//    this.emit('write', {'message'   : message});
-//};
+PlayerSchema.methods.initialize = function(socket){
+    console.log('hello from the players init-function');
+    var self = this;
+    self.socketId = socket.id;
+    self.location = 0;
+    self.attributes['maxHealth'] = 100;
+    self.attributes['health'] = self.attributes['maxHealth'];
+    
+    // set up listener
+    self.on('write', function(data){
+        console.log('hello from player.write-listener: '+data['message']);
+        socket.emit('output', data);
+    }); 
+       
+};
+
+PlayerSchema.methods.write = function(message){
+    
+    this.emit('write', {'message'   : message});
+};
 
 //PlayerSchema.methods.setAttribute = function (attr,val){
 //    var self = this;
@@ -111,12 +112,6 @@ PlayerSchema.statics.insertSkills = function (playerId, skills, callback){
         console.log('The Skills-array-length id: '+ skills.length);
         for(var i=0; i< skills.length; i++){
             player.skillIds.push[skills._id];
-//            var Exit = new ExitModel();
-//            console.log('hello from exit-loop.');
-//            Exit.description = skills[i].description;
-//            Exit.exitId = skills[i].exitId;
-//            Exit.direction = skills[i].direction;
-//            Exit.goodbye = skills[i].goodbye;
         }
 
         player.save(function(err2){
@@ -130,26 +125,4 @@ PlayerSchema.statics.insertSkills = function (playerId, skills, callback){
 };
 
 
-//self = this;
-//    self.userId = "";
-//    self.nickname = socket.pseudo;
-//    self.guild = "";
-//    self.location = "Lobby";
-//    self.inventory = [];
-//    self.socketId = socket.id;
-//    
-//    console.log('hello from player.js, nickname is:' +self.nickname);
-//    
-//    // attributes of the player
-//    self.attributes = {
-//      max_health    :   100,
-//      health        :   100,
-//      experience    :   0,
-//      level         :   0,
-//      hp            :   10,
-//      sp            :   0
-//    };
-//    
-//    // skills the player has
-//    self.skills = {};
 

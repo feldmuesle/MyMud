@@ -2,68 +2,111 @@
 <html>
 <head>
 	<title>Welcome</title>
-        <!--
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-        -->
-        <link rel="stylesheet" href="styles.css">
+        <!--ink rel="stylesheet" href="styles.css">-->
 </head>
 <body>
-<div id="wrapper">
-    <div id="topBar">
-        
-        <div id="greeting"><span class="fa fa-user">Hello <%= user.email %></span>
-        <a href="/logout" class="button">Logout</a>
+<div class="container">
+    <div id="topBar" class="row">        
+        <div id="greeting" class="col-xs-10 col-offset-2 pull-right text-right">
+            <span class="fa fa-user"> Hello <%= user.email %></span>
+            <a href="/logout" class="btn btn-default btn-xs">Logout</a>
         </div>
     </div>
     
-        <div id="pseudoSet" class="container">
+        <div id="pseudoSet" class="row">
             <div class="col-sm-6 col-sm-offset-3">
 
                 <h1><span class="fa fa-sign-in"></span> almost there</h1>
                 <!-- show any messages that come back with authentication -->
+                 <div id="alert" class="alert alert-danger"></div>
                 
-                        <div id="alert" class="alert alert-danger"></div>
-                
-                <form action="/game" method="post">
-                    <input type="hidden" name="loadGame" value="true">
-                    <button id="loadGame" type="button" class="btn btn-info btn-lg">Load former game</button>
-                </form>
-                <button id="newGame" type="button" class="btn btn-info btn-lg">Play new game</button>
-                <!-- LOGIN FORM -->
-                <form action="/game" method="post">
-                    <div class="form-group">
-                            <label>Nickname</label>
-                            <input id="pseudoInput" type="text" class="form-control" name="nickname">
+                <form id="gameChoice" action="/game" method="post">
+                    <div class="form-group text-center">
+                        <button id="newGame" type="button" class="btn btn-info btn-lg">Play new game</button>
+                        <span> OR </span>
+                        <button id="loadGame" type="button" class="btn btn-info btn-lg">Load former game</button>                        
                     </div>
-
+                    <div id="form-group">
+                        <p>When starting a new game your former game will be overridden</p>
+                    </div>
+                </form>
+                
+                <!-- FORM TO SLIDE OPEN WHEN NEWGAME-BUTTON CLICKED -->
+                <form id="gameSignup" action="/game" method="post">
+                    <h3>configure your player, please</h3>
+                    <div class="form-group">
+                        <label>Nickname</label>
+                        <input id="pseudoInput" type="text" class="form-control" name="nickname">
+                    </div>
                     <div class="form-group">
                         <label>Choose guild</label>
                         <select id="playerclass" class="form-control" name="guild">
+                            
                             <%for( var i=0; i<guilds.length; i++){%>
                                 <option value="<%=guilds[i].name%>"><%=guilds[i].name%></option>
                             <%}%>
                         </select>
                     </div>
-                    <button id="btnNewGame" type="button" class="btn btn-info btn-lg">Start new game</button>
+                    <div class="form-group text-center">
+                        <button id="startGame" type="button" class="btn btn-info btn-lg">Start new game</button>
+                        <button id="loadGame1" type="button" class="btn btn-info btn-lg">Load former game</button>
+                    </div>
                 </form>
-            </div>
-        </div>  
-        <section id="container" class="text-center">        
-            <aside id="sidebar">
-                <ul id="profile"><li>playerstats</li></ul>
-                <ul id="playerlist"><li>player</li></ul>
-                <ul id="roomPlayerlist"><li>player</li></ul>                 
-            </aside>
+            </div> <!-- form-column end -->
+        </div> <!--row end -->
+        
+        <div id="game" class="row">        
+            
+            <section id="chatWrapper" class="col-sm-8 col-lg-9 col-sm-push-4 col-lg-push-3">
+                <ul id="chatEntries" class="list-unstyled">
+                    <li>
+                        <p>
+                            Florem ipsum spider orchid christmas rose windflower shetland mouse-ear. 
+                            Spring gentian golden rod marguerite sunflower dill snowdrop. 
+                            blue gum spurge, transvaal daisy. Waratah safari sunset lisianthus turtle head 
+                            cuckooflower cuban lily.
 
-            <div id="chatWrapper">
-                <ul id="chatEntries"></ul>
-                <div id="chatControls">
-                    <input id="chatInput" autocomplete="off" />
-                    <button id="btnChatSubmit">Send</button>
+                        </p>
+                    </li>
+                </ul>
+                <div id="chatControls" class="row form-group"> 
+                    <div class="col-md-10 col-xs-9">
+                        <input id="chatInput" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="col-md-2 col-xs-3">
+                        <button id="btnChatSubmit" class="btn btn-info btn-md">Send</button>
+                    </div>                    
                 </div>
-            </div>
-        </section>
+            </section>
+            
+            <section id="sidebar" class="col-sm-4 col-lg-3 col-sm-pull-8 col-lg-pull-9">
+                <div class="thumbnail col-xs-4 col-sm-12">
+                    <dl id="profile" class="dl-horizontal">
+                        <dt>Nickname: </dt><dd>TurboCat</dd>
+                        <dt><span class="glyphicon glyphicon-heart"></span> Health: </dt><dd>100%</dd>
+                        <dt><span class="glyphicon glyphicon-flash"></span> HP: </dt><dd>23</dd>
+                        <dt><span class="glyphicon glyphicon-fire"></span> SP: </dt><dd>17</dd>
+                    </dl>
+                </div>
+                <div class="thumbnail col-xs-4 col-sm-12">
+                    <ul id="roomPlayerlist" class="list-unstyled">
+                        <li><span class="glyphicon glyphicon-user"></span> Jackal</li>
+                        <li><span class="glyphicon glyphicon-user"></span> Torkx</li>
+                        <li><span class="glyphicon glyphicon-user"></span> Belunga</li>
+                        <li><span class="glyphicon glyphicon-user"></span> Caiza</li>
+                        <li><span class="glyphicon glyphicon-user"></span> Berixice</li>
+                        <li><span class="glyphicon glyphicon-user"></span> Hannibta</li>
+                    </ul>
+                </div>
+                <div class="thumbnail col-xs-4 col-sm-12">
+                    <ul id="playerlist" class="list-unstyled"><li>player</li></ul>
+                </div>
+            </section>
+        </div>
 
 </div>
 <script>  

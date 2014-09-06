@@ -27,7 +27,6 @@ $(document).ready(function(){
     // if nickname is already taken when starting new game
     socket.on('nickname taken', function(data){ 
        // flash an alert-message about it to client
-       
        alert(data['message']);
     });
     
@@ -40,6 +39,7 @@ $(document).ready(function(){
     // start-message when new user logs on
     socket.on('start game', function(data){
         console.log('hello from start game listener');
+        gameInit();
         room = data ['room'];
         player = data['player'];
         var chatmeta = 'Welcome '+player.nickname+ ', ' + data['numUsers'] +' users online';

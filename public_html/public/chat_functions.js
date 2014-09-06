@@ -7,25 +7,18 @@ var socket = io.connect();
 
 //$(document).ready(function(){
 
-$('#loadGame').click(function(){
-   console.log('hello, you wanna load an existing game?'); 
-});
-
-$('#newGame').click(function(){
-   console.log('hello, you wanna start a new game?'); 
-});
-
-
 $(function(){
        $('#chatWrapper').hide();
-       $('#chatControls').hide();
-       $('#chatEntries').hide();
        $('#profile').hide();
        $('#playerlist').hide();
        $('#roomPlayerlist').hide();
+       $('#gameSignup').hide();
+       $('#alert').hide();       
        $('#pseudoInput').focus();
        $('#loadGame').click(function(){loadGame();});
-       $('#btnNewGame').click(function(){checkNickname();});
+       $('#loadGame1').click(function(){loadGame();});
+       $('#newGame').click(function(){slideGameSignup();});
+       $('#startGame').click(function(){checkNickname();});       
        $('#chatInput').keypress(function(e){
           var key = e.which;
           if(key == '13'){  //send message if user clicks enter
@@ -38,29 +31,25 @@ $(function(){
 // initialize game with existing player
 function loadGame(){
     console.log('hello from inside loadGame');
-    $('#profile').show();
-    $('#playerlist').show();
-    $('#roomPlayerlist').show();
-    $('#chatWrapper').show();
-    $('#pseudoSet').hide();
-    $('#chatInput').focus();
+    
     socket.emit('loadGame', {'userId' : user._id}); 
 }
+
 
 function checkNickname(){
     if($('#pseudoInput').val()!==''){
             
-            var nickname = $('#pseudoInput').val().trim(); 
-            var guild = $('#playerclass').val();
-            console.log('The players nickname clientside is: '+nickname);
-            console.log('The chosen guild clientside is: '+guild);
-            console.log('The users id is: '+user._id);
-            socket.emit('check nickname', {
-               nickname :   nickname,
-               guild    :   guild,
-               userId   :   user._id
-            });
-        }
+        var nickname = $('#pseudoInput').val().trim(); 
+        var guild = $('#playerclass').val();
+        console.log('The players nickname clientside is: '+nickname);
+        console.log('The chosen guild clientside is: '+guild);
+        console.log('The users id is: '+user._id);
+        socket.emit('check nickname', {
+           nickname :   nickname,
+           guild    :   guild,
+           userId   :   user._id
+        });
+    }
 }
 
 function alert(message){
@@ -68,17 +57,22 @@ function alert(message){
     $('.alert').text(message);
 }
 
+function slideGameSignup(){
+            $('#gameChoice').slideUp();
+            $('#gameSignup').show();
+            
+            
+        }
+
 function gameInit(){
-    setAutoHeight();
-            
-            $('#profile').show();
-            $('#playerlist').show();
-            $('#roomPlayerlist').show();
-            $('#chatWrapper').show();
-            $('#pseudoSet').hide();
-            $('#chatInput').focus();
-            
-            setAutoHeight();
+    
+    setAutoHeight();            
+    $('#profile').show();
+    $('#playerlist').show();
+    $('#roomPlayerlist').show();
+    $('#chatWrapper').show();
+    $('#pseudoSet').hide();
+    $('#chatInput').focus();
 }
 
 // initialize the game 
