@@ -29,9 +29,7 @@ $(function(){
     });
   
 // initialize game with existing player
-function loadGame(){
-    console.log('hello from inside loadGame');
-    
+function loadGame(){    
     socket.emit('loadGame', {'userId' : user._id}); 
 }
 
@@ -158,19 +156,6 @@ function gameInit(){
         appendToChat('message', message);
     }
     
-    // add meta-message to chat
-//    function addMeta(chatmeta){
-//        console.log('hello from addMeta');
-//        var message = '<p>'+chatmeta+'</p>';
-//        appendToChat('chatmeta', message);
-//    }
-    
-//    function addLocationDesc(info){
-//        console.log('hello from addInfo');
-//        var message = '<p>'+info+'</p>';
-//        appendToChat('info', message);
-//    }
-    
     function addExitDesc(aExits){
         for(var i=0; i< aExits.length; i++){
             appendToChat('info', '<p>'+aExits[i].description+'</p>');
@@ -198,17 +183,22 @@ function gameInit(){
     function displayPlayerStats(player){
         
         var stats =[];
-        var name = '<li>Name: '+player.nickname+'</li>';
-        var playerclass = '<li>Guild: '+player.guild+'</li>';
-        var location = '<li>Location:<span id="location"> '+player.location +'</span></li>';
-        var health = '<li>Health:<span id="health"> '+player.attributes.health +'</span></li>';
-        var experience = '<li>Experience: '+player.attributes.experience+'</li>';
-        var level = '<li>Level: '+player.attributes.level+'</li>';
-        var hp = '<li>Hitpoints: '+ player.attributes.hp+'</li>';
-        var sp = '<li>Spellpoints: '+player.attributes.sp+'</li>';
+        var name = '<dt>Nickname: </dt><dd>'+player.nickname+'</dd>';
+        var location = '<dt id="location"><span class="glyphicon glyphicon-move"></span> Location: </dt><dd>'
+                +player.location +'</dd>';
+        var playerclass = '<dt id="location"><span class="glyphicon glyphicon-flag"></span> Guild: </dt><dd>'
+                +player.guild+'</dd>';
+        var health = '<dt><span class="glyphicon glyphicon-heart"></span> Health: </dt><dd>'
+                +player.attributes.health +'</dd>';
+//        var experience = '<li>Experience: '+player.attributes.experience+'</li>';
+//        var level = '<li>Level: '+player.attributes.level+'</li>';
+        var hp = '<dt><span class="glyphicon glyphicon-flash"></span> HP: </dt><dd>'
+                + player.attributes.hp+'</dd>';
+        var sp = '<dt><span class="glyphicon glyphicon-fire"></span> SP: </dt><dd>'
+                +player.attributes.sp+'</dd>';
         
-        stats.push(name, playerclass,location, health,experience, hp, sp, level);
-        var playerstats = '<li><strong>Profile</strong></li>';
+        stats.push(name, playerclass,location, health, hp, sp);
+        var playerstats = '<h3>Profile</h3>';
         for(var i=0; i< stats.length; i++){
             playerstats = playerstats + stats[i];            
         }
