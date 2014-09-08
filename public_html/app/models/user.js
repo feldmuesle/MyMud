@@ -1,15 +1,16 @@
-/* 
+ /* 
  Model for player, also used for login
  */
 
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
+var PlayerModel = require('./player.js');
 
 var UserSchema = new mongoose.Schema({
    password     :   {type:String, trim:true },
    email        :   {type:String, trim:true },
    date         :   Date,
-   nickname     :   String
+   player       :   [PlayerModel.schema]
 });
 
 UserSchema.path('date')

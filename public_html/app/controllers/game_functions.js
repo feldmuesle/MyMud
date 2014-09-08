@@ -9,6 +9,7 @@ var Guild = require('../models/guilds.js');
 var PlayerModel = require('../models/player.js');
 var User = require('../models/user.js');
 var Room = require ('../models/room.js');
+var RoomManager = require ('../models/helper_models/room_manager.js');
 
 // get all users currently online
 module.exports.getUsers = function(){ return users;  };
@@ -18,50 +19,43 @@ module.exports.getNumUsers = function(){ return numUsers;};
 // load an existing game by userId
 exports.loadGame = function(userId, callback){
         User.findOne({'_id': userId}, function(err, user){
-                    if(err){console.error(err); return;}
-                    console.log('hello from find user');
-                    if(user.nickname){
-                        console.log('user with nickname '+ user.nickname +' found');
-                    }
+            if(err){console.error(err); return;}
+                console.log('hello from find user');
+            if(user.player){
+                console.log('user with nickname '+ user.player[0].nickname +' found');
+                users.push(user.player[0]);
+                numUsers++;
+            }else{
+                console.log('no player has been found.');
+            }
         }).exec()
         .then(function(user){
-           console.log('hello from promise: User is '+user.nickname); 
-           PlayerModel.findOne({'nickname' : user.nickname}, function(err, player){
+            console.log('hello from promise. Player is '+user.player[0].nickname);
+            console.log('still got the user: '+user.nickname);
+            Room.findOne({'id' : user.player[0].location}, function(err, room){
                 if(err){console.error(err); return;}
-                console.log('hello from loadgame-findplayer');
-                if(player){
-                    console.log('player has been found.');
-                    users.push(player);
-                    numUsers++;
-                }else{
-                    console.log('no player has been found.');
+
+                if(room){
+                    RoomManager.addPlayerToRoom(room.id, user.player[0]);
+                    console.log('hello from promise. Room is' +room.name);
                 }
             }).exec()
-            .then(function(player){
-                console.log('hello from promise. Player is '+player.nickname);
-                console.log('still got the user: '+user.nickname);
-                Room.findOne({'id' : player.location}, function(err, room){
-                    if(err){console.error(err); return;}
+            .then(function(room){
+                var roomies = RoomManager.getPlayersInRoom(room.id);
+        
+                var game = {
+                    numUsers:   numUsers,
+                    player  :   user.player[0],
+                    room    :   room,
+                    roomies :   roomies
+                };
+               return callback(game);
 
-                    if(room){
-                        console.log('hello from promise. Room is' +room.name);
-                    }
-                }).exec()
-                .then(function(room){
-                    
-                    var game = {
-                        numUsers:   numUsers,
-                        player  :   player,
-                        room    :   room
-                    };
-                   return callback(game);
-                    
-                });
-            });
-        });
-    };
+            });    
+    });
+};
 
-exports.startNewGame = function(nickname, guild, socket, callback){
+exports.startNewGame = function(userId, nickname, guild, socket, callback){
         
         console.log('hello from startNewGame-function');
         var newPlayer;
@@ -94,22 +88,40 @@ exports.startNewGame = function(nickname, guild, socket, callback){
             numUsers++;
         }).exec()
         .then(function(){
-            Room.findOne({'id':'0'},function(err, room){
-                if(err){console.error(err); return;}
-                return room;
-            }).exec()
-            .then(function(room){
-                //save the player in the database
-                newPlayer.save(function(err){
+            //save the player in user in the database
+            User.findOne({_id : userId}, function(err, user){
+                if(err){console.error(err); return;}  
+                if(user){
+                    console.log('yes we have found an user to save at player in');
+                    user.player = newPlayer;
+                    user.save(function(err){
+                        if(err){ console.error(err); return;}
+                        console.log('saving player on user succeeded');
+                    });
+                 }
+             }).exec()
+            .then(function(){
+                // finally get the room
+                Room.findOne({'id':'0'},function(err, room){
+                    console.log('hello from startNewGame - find room');
                     if(err){console.error(err); return;}
-                    console.log('saving player succeeded.');
+                    room.initialize();
+                    room.announce(newPlayer); 
+                    RoomManager.addPlayerToRoom(room.id, newPlayer);
+                    
+                }).exec()
+                .then(function(room){
+                    
+                    var roomies = RoomManager.getPlayersInRoom(room.id);
+                    
                     var game = {
-                            numUsers:   numUsers,
-                            player  :   newPlayer,
-                            room    :   room
-                        };
-                       return callback(game);
-                });                        
+                        numUsers:   numUsers,
+                        player  :   newPlayer,
+                        room    :   room,
+                        roomies :   roomies
+                    };
+                    return callback(game);
+                });
             });
         });
         console.log('end on initialisation');

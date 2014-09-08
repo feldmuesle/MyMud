@@ -1,6 +1,7 @@
 /* Model for rooms */
 
 var mongoose = require('mongoose');
+var PlayerModel = require('./player.js');
 
 
 var ExitSchema = new mongoose.Schema({ 
@@ -18,7 +19,6 @@ var RoomSchema = new mongoose.Schema({
     exits       : [ExitSchema]
 });
 
-RoomSchema.plugin = require('mongoose-lifecycle');
 
 RoomSchema.set('toObject', {getters : true});
 ExitSchema.set('toObject', {getters : true});
@@ -50,7 +50,6 @@ RoomSchema.statics.createRoom = function(room, exits){
             return null; 
         }        
         console.log('new room created:');
-        console.log(Room);
     });    
 };
 
@@ -107,25 +106,22 @@ RoomSchema.statics.createRoom = function(room, exits){
 //};
 }
 
-// gives too many problems when setting up event-listeners like this
-// can't make nested queries :(
-// {
-//RoomSchema.methods.init = function(){
-//    var self = this;
-//    
-//    // set up listeners
-//    self.on('player enters', function(data){
-//        console.log(data['nickname']+' enters '+self.name);
-//    });
-//    
-//};
-//
-//// emit event: players enters room
-//RoomSchema.methods.announce = function(player){
-//    
-//    var self = this || mongoose.model('Room');    
-//    self.emit('player enters', {nickname : player.nickname});
-//};
+// setting up event-listeners like this 
+RoomSchema.methods.initialize = function(){
+    var self = this;
+    
+    // set up listeners
+    self.on('player enters', function(data){
+        console.log(data['player'].nickname +' enters '+self.name);
+    });    
+};
+
+// emit event: players enters room
+RoomSchema.methods.announce = function(player){
+    console.log('hello from room.announce()');
+    var self = this || mongoose.model('Room');    
+    self.emit('player enters', {'player' : player});
+};
 
 //RoomModel = function(){
 //    var self = this;
@@ -151,7 +147,3 @@ RoomSchema.statics.createRoom = function(room, exits){
 var ExitModel =  mongoose.model('Exit', ExitSchema);
 var Room = mongoose.model('Room',RoomSchema);
 module.exports = Room;
-
-
-
- 

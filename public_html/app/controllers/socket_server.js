@@ -12,12 +12,8 @@ var numUsers =0;
 
 // get all the models we need
 
-var Guild = require('../models/guilds.js');
-var PlayerModel = require('../models/player.js');
 var User = require('../models/user.js');
-var Room = require ('../models/room.js');
 var Game = require('./game_functions.js');
-
 
 
 
@@ -30,16 +26,15 @@ module.exports.response = function(socket){
     // if the user already has a game saved
     socket.on('loadGame', function(data){
         
-        console.log('server-socket: load an existing game');
-        userId = data['userId'];
-        console.log('userId = '+userId);
-        Game.loadGame(userId, function(game){
-            console.log('hello from loadGame-callback');
+        var userId = data['userId'];
+
+        Game.loadGame(userId, function(game){            
             socket.emit('start game', {
-                        player  :   game['player'],
-                        room    :   game['room'],
-                        numUsers:   game['numUsers']
-                    });
+                player  :   game['player'],
+                room    :   game['room'],
+                numUsers:   game['numUsers'],
+                roomies :   game['roomies']
+            });
         });
     });
 
@@ -49,7 +44,6 @@ module.exports.response = function(socket){
        var nickname = data['nickname'];
        var guild    = data['guild'];
        var userId   = data['userId'];       
-       console.log('server-socket:(check nickname)');
        
        User.findOne({'nickname': nickname}, function(err, user){
             if(err){console.error(err); return;}
@@ -62,25 +56,30 @@ module.exports.response = function(socket){
                 });  
 
             }else{
-                
-                Game.startNewGame(nickname, guild, socket, function(game){
+                // fire up a new game
+                Game.startNewGame(userId, nickname, guild, socket, function(game){
                     console.log('hello from startNewGame-callback');
-                    socket.emit('start game', {
-                                player  :   game['player'],
-                                room    :   game['room'],
-                                numUsers:   game['numUsers']
-                            });
-                });
-                
-                console.log('there is no player called '+nickname+' yet');
-                User.findOneAndUpdate({_id : userId}, {nickname : nickname}, function(err, user){
-                   if(err){console.error(err); return;}
-//                   socket.emit('initialize game');
                     
-                }); 
-
+                    // configure socket for the room
+                    socket.room = game['room'].name;
+                    socket.roomId = game['room'].id;
+                    socket.join(game['room'].name);
+                    
+                    // start game clientside
+                    socket.emit('start game', {
+                        player  :   game['player'],
+                        room    :   game['room'],
+                        numUsers:   game['numUsers'],
+                        roomies :   game['roomies']
+                    });                  
+                });                
+//                User.findOneAndUpdate({_id : userId}, {nickname : nickname}, function(err, user){
+//                   if(err){console.error(err); return;}
+////                   socket.emit('initialize game');
+//                    
+//                }); 
             }              
         });
-    });
+    }); // socket.on'check nickname' end
     
 }; // module.exports.response end

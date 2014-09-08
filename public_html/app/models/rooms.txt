@@ -22,27 +22,18 @@
                 exitId      : 3,
                 goodbye     : 'leaves through a tiny door in the wall'};
    
-    var exits = [ladder, hatch, west];
+    var exits = [ladder, hatch, door];
 
 // room
     var lobby = {
-        title       : 'Lobby',
+        name        : 'Lobby',
         id          : 0,
         description : 'You are standing in the middle of the lobby with a giant gnome'    
-    }
+    };
 
     // example on inserting a new room
-    Room.insertRoom(lobby, function (room_id){
-       if(room_id == 0){
-           console.log('Room_id = 0');
-           return;
-       } 
-       Room.insertExits(room_id, exits, function(err){
-           if(err){
-               console.log(err);
-               return;
-           }
-       });
+    Room.createRoom(lobby, exits, function(err){
+        if(err){console.error(err); return;}
     }); 
 
 /**************************************************************************************************
@@ -71,24 +62,14 @@
 
 // room
     var loft = {
-        title       : 'Loft',
+        name        : 'Loft',
         id          : 1,
         description : 'You are standing in a humble room with a wooden floor.'    
-    }
+    };
 
-    // example on inserting a new room
-    Room.insertRoom(loft, function (room_id){
-       if(room_id == 0){
-           console.log('Room_id = 0');
-           return;
-       } 
-       Room.insertExits(room_id, exits, function(err){
-           if(err){
-               console.log(err);
-               return;
-           }
-       });
-    }); 
+    Room.createRoom(loft, exits, function(err){
+        if(err){console.error(err); return;}
+    });
 
 /**************************************************************************************************
 ***** Winecellar -  RoomId = 2 - Start here *******************************************************************************/
@@ -104,26 +85,18 @@
 
 // room
     var winecellar = {
-        title       : 'Winecellar',
+        name        : 'Winecellar',
         id          : 2,
         description : 'Lots of oaken barrels and a distinctive smell indicates that you\'ve ended up in the winecellar.'    
-    }
+    };
+    
+    Room.createRoom(winecellar, exits, function(err){
+        if(err){console.error(err); return;}
+    });
 
-    // example on inserting a new room
-    Room.insertRoom(winecellar, function (room_id){
-       if(room_id == 0){
-           console.log('Room_id = 0');
-           return;
-       } 
-       Room.insertExits(room_id, exits, function(err){
-           if(err){
-               console.log(err);
-               return;
-           }
-       });
-    }); 
+   
 
-/**************************************************************************************************
+/**************************************************************************************************/
 
 // example on creating a room using createRoom-function
 

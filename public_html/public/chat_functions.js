@@ -172,7 +172,9 @@ function gameInit(){
     }
     
     function displayRoomPlayerlist(playerlist, roomTitle){
-        
+       console.log('hello from displayRoomPlayerlist');
+       console.log('players in room:' +playerlist.length);
+       console.log('in room: '+roomTitle);
        var curPlayerlist = '<li><strong>Players in '+roomTitle+':</strong></li>';
        for(var i=0; i < playerlist.length; i++){
           curPlayerlist = curPlayerlist + '<li>'+playerlist[i].nickname+'</li>';

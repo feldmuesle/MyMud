@@ -38,16 +38,24 @@ $(document).ready(function(){
     
     // start-message when new user logs on
     socket.on('start game', function(data){
-        console.log('hello from start game listener');
-        gameInit();
+        console.log('hello from socket.on "start game"');
+        
         room = data ['room'];
         player = data['player'];
-        var chatmeta = 'Welcome '+player.nickname+ ', ' + data['numUsers'] +' users online';
-        console.log('Welcome '+player.nickname+ ', ' + data['numUsers'] +' users online');
+        numUsers = data['numUsers'];
+        roomies = data['roomies'];
+        
+        // show the game
+        gameInit();
+        
+        var chatmeta = 'Welcome '+player.nickname+ ', ' + numUsers +' users online';
         appendToChat('chatmeta',chatmeta);  
         appendToChat('info',room.description);
         addExitDesc(room.exits);
+        console.log('players in room: ');
+        console.dir(room.players);
         displayPlayerStats(player);
+        displayRoomPlayerlist( roomies, room.name);
     });
 
     // broadcast that user has joined
@@ -89,6 +97,7 @@ $(document).ready(function(){
     socket.on('playerlist', function(data){  
        usersOnline = data['usersOnline'];
        playersInRoom = data['playersInRoom'];
+       console.log('hello from client-socket "playerlist"');
        displayPlayerlist(usersOnline);   
        displayRoomPlayerlist( playersInRoom, data['currRoom']);
     });
