@@ -3,10 +3,10 @@
  */
 
 // configure socket.io clientside
-var socket = io.connect();
+//var socket = io.connect();
 
-//$(document).ready(function(){
 
+//initialize screen - show starup-form, hide rest of game
 $(function(){
        $('#chatWrapper').hide();
        $('#profile').hide();
@@ -18,7 +18,8 @@ $(function(){
        $('#loadGame').click(function(){loadGame();});
        $('#loadGame1').click(function(){loadGame();});
        $('#newGame').click(function(){slideGameSignup();});
-       $('#startGame').click(function(){checkNickname();});       
+       $('#startGame').click(function(){checkNickname();});
+       $('#btnChatSubmit').click(function(){sendMessage(); return;});
        $('#chatInput').keypress(function(e){
           var key = e.which;
           if(key == '13'){  //send message if user clicks enter
@@ -33,7 +34,7 @@ function loadGame(){
     socket.emit('loadGame', {'userId' : user._id}); 
 }
 
-
+// check if entered nickname is unique -> if yes, new game is initialized
 function checkNickname(){
     if($('#pseudoInput').val()!==''){
             
@@ -50,11 +51,14 @@ function checkNickname(){
     }
 }
 
+
+// show alert-message in startup-form 
 function alert(message){
     $('#pseudoInput').val('');
     $('.alert').text(message);
 }
 
+// show form for starting a new game
 function slideGameSignup(){
             $('#gameChoice').slideUp();
             $('#gameSignup').show();
@@ -62,6 +66,7 @@ function slideGameSignup(){
             
         }
 
+// set screen-height, hide startup-form and show the game!!
 function gameInit(){
     
     setAutoHeight();            
@@ -73,34 +78,6 @@ function gameInit(){
     $('#chatInput').focus();
 }
 
-// initialize the game 
-    function initializeGame(){
-        if($('#pseudoInput').val()!==''){
-            
-//            var nickname = $('#pseudoInput').val().trim(); 
-//            var guild = $('#playerclass').val();
-//            console.log('The players nickname clientside is: '+nickname);
-//            console.log('The chosen guild clientside is: '+guild);
-//            console.log('The users id is: '+user._id);
-            setAutoHeight();
-            
-            $('#profile').show();
-            $('#playerlist').show();
-            $('#roomPlayerlist').show();
-            $('#chatWrapper').show();
-            $('#pseudoSet').hide();
-            $('#chatInput').focus();
-                        
-            var data = {
-                'nickname'  :   nickname,
-                'guild'     :   guild,
-                'userId'    :   user._id
-            };
-
-            //tell the server your nickname/pseudo and get initialized as a player
-            socket.emit('initialize player', data);
-        }
-    }
 
     function sendMessage(){
         // check if there's a message 
@@ -164,30 +141,34 @@ function gameInit(){
     
     function displayPlayerlist(playerlist){
         
-       var curPlayerlist = '<li><strong>Players online:</strong></li>';
-       for(var i=0; i < playerlist.length; i++){
-          curPlayerlist = curPlayerlist + '<li>'+playerlist[i]+'</li>';
+       var curPlayerlist = '<li><strong>Players online: </strong></li>';
+       var numPlayers = playerlist.length;
+       
+       for(var i=0; i < numPlayers; i++){          
+          if(i == numPlayers-1 ){ 
+              curPlayerlist = curPlayerlist + '<li>'+playerlist[i]+'</li>';
+          }else{
+              curPlayerlist = curPlayerlist + '<li>'+playerlist[i]+', '+'</li>'; 
+          }
        }       
        $('#playerlist').html(curPlayerlist);
     }
     
     function displayRoomPlayerlist(playerlist, roomTitle){
-       console.log('hello from displayRoomPlayerlist');
-       console.log('players in room:' +playerlist.length);
-       console.log('in room: '+roomTitle);
+        
        var curPlayerlist = '<li><strong>Players in '+roomTitle+':</strong></li>';
        for(var i=0; i < playerlist.length; i++){
-          curPlayerlist = curPlayerlist + '<li>'+playerlist[i].nickname+'</li>';
+          curPlayerlist = curPlayerlist + '<li><span class="glyphicon glyphicon-user"></span> '+playerlist[i].nickname+'</li>';
        }       
        $('#roomPlayerlist').html(curPlayerlist);
     }
     
-    function displayPlayerStats(player){
+    function displayPlayerStats(player, roomName){
         
         var stats =[];
         var name = '<dt>Nickname: </dt><dd>'+player.nickname+'</dd>';
         var location = '<dt id="location"><span class="glyphicon glyphicon-move"></span> Location: </dt><dd>'
-                +player.location +'</dd>';
+                +roomName +'</dd>';
         var playerclass = '<dt id="location"><span class="glyphicon glyphicon-flag"></span> Guild: </dt><dd>'
                 +player.guild+'</dd>';
         var health = '<dt><span class="glyphicon glyphicon-heart"></span> Health: </dt><dd>'

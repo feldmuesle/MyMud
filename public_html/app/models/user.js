@@ -34,3 +34,9 @@ UserSchema.methods.validPassword = function(password){
 };
 
 module.exports = mongoose.model('user', UserSchema);
+
+//                User.findOneAndUpdate({_id : userId}, {nickname : nickname}, function(err, user){
+//                   if(err){console.error(err); return;}
+////                   socket.emit('initialize game');
+//                    
+//                }); 

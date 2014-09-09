@@ -22,6 +22,11 @@ and open the template in the editor.
 
 /***************** list-styles *************/
 
+#playerlist li{
+    display: inline-block;
+    float:left;
+}
+
 .dl-horizontal dt{
     width: 100px;
     text-align: left;

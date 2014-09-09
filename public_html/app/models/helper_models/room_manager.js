@@ -26,7 +26,7 @@ var RoomManager = function(){
     };
     
     self.removePlayerFromRoom = function(roomId, nickname, cb){
-        console.log('user '+nickname+' should leave room with id '+roomId);
+        console.log(nickname+' leaves room with id '+roomId);
         for(i in self.activeRooms[roomId]){
             if(self.activeRooms[roomId][i].nickname == nickname){
                 //var index = self.activeRooms[roomId].indexOf(player);

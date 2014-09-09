@@ -6,18 +6,24 @@
     function checkCommand(cmd, socket){
     
         var command = cmd.split(' ');
-        var data;
+        var leave = false;
+        var index;
         console.log(command[0]);
         console.log(command[1]);
         console.log(command.length);
-                
-        //move-command
-        if(command[0] == 'north' || command[0] == 'east' || command[0] == 'south' || command[0] == 'west'){
-            
-            var index = getExitFromArray(room, command[0]);
-            
-            if(index != undefined){
-                var change = {
+        
+        // check if it's a keyword for the exits
+        for(var i=0; i< room.exits.length; i++){
+            if(command[0] == room.exits[i]['keyword']){
+                console.log('you typed '+command[0]+' -the keyword');
+                leave = true;
+                return;                
+            }
+        }
+        
+        // if it is, send the correspondent exitmessage
+        if(leave){
+            var change = {
                     newRoomId   : room.exits[index].exitId,
                     oldRoom     : room,
                     player      : player,
@@ -26,11 +32,8 @@
                 };
                                                
                 socket.emit('changeRoom',change);
-                
-            }else {
-                appendToChat('chatmeta','You can\'t go '+ command[0] +' from here');
-            }            
-        }else { // if it's not a moving-command, check for other commands
+        }
+        else { // if it's not a moving-command, check for other commands
             
             // all other commands contain more than one argument, so check for that first
             if(command.length == 1){
