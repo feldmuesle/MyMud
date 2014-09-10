@@ -33,7 +33,7 @@ $(document).ready(function(){
     
     // start up the game
     socket.on('start game', function(data){
-        console.log('hello from socket.on "start game"-beginning');
+        
         room = data ['room'];
         player = data['player'];
         online = data['users'];
@@ -43,42 +43,41 @@ $(document).ready(function(){
         gameInit();
         
         var chatmeta = 'Welcome '+player.nickname+ ', ' + online.length +' users online';
-        appendToChat('chatmeta',chatmeta);  
-        appendToChat('info',room.description);
-        addExitDesc(room.exits);
-        console.log('players in room: ');
+//        appendToChat('chatmeta',chatmeta);  
+//        appendToChat('info',room.description);
+//        addExitDesc(room.exits);
         displayPlayerStats(player, room.name);
         displayRoomPlayerlist( roomies, room.name);
         displayPlayerlist(online); 
+
+        textStream.add(chatmeta);
+        textStream.add(room.description);
+        for (var i=0; i<room.exits.length; i++){
+            textStream.add(room.exits[i].description);
+        }
+//        textStream.write(0);
         
-        console.log('hello from socket.on "start game"-ending');
     });
 
     // broadcast that user has joined and update players-online-list
     socket.on('user joined', function(data){
-       var chatmeta = data['username'] +' just joined. '+ data['numUsers']+' users online.';
-       appendToChat('chatmeta',chatmeta);
-       displayPlayerlist(data['usersOnline']); 
-       
-       console.log('hello from socket.on "user joined"');
-       console.log('username=' + data['username']);
-       console.log('numUsers=' + data['numUsers']);
-       console.log('usersOnline=' + data['usersOnline']);
+        var chatmeta = data['username'] +' just joined. '+ data['numUsers']+' users online.';
+//       appendToChat('chatmeta',chatmeta);
+        textStream.add(chatmeta);
+        displayPlayerlist(data['usersOnline']); 
     });
 
     // broadcast that user has left and update players-online-list
     socket.on('user left', function(data){
         var chatmeta = data['username'] +' just left. '+ data['numUsers']+' users online.';
         appendToChat('chatmeta',chatmeta);
-        displayPlayerlist(data['usersOnline']);     
-        console.log('hello from socket.on "user left"');
+        displayPlayerlist(data['usersOnline']);
     });
     
     //get current players in room and display them in players-in-room-list
     socket.on('playerlist', function(data){ 
         playersInRoom = data['playersInRoom'];
         displayRoomPlayerlist( playersInRoom, data['currRoom']);
-        console.log('hello from socket.on "playerlist"');
     });
     
     /********* code above worked through ********************/
@@ -104,11 +103,7 @@ $(document).ready(function(){
     // display info
     socket.on('addInfo', function(data){
        appendToChat('chatmeta',data['msg']); 
-    });
-    
-    
-    
-    
+    });    
     
     //update playerstats 
     socket.on('updatePlayerStats', function(data){
@@ -120,5 +115,6 @@ $(document).ready(function(){
         }       
     });
 
-
+    
+        
 });  //document.ready-function end

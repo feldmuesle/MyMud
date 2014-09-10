@@ -21,7 +21,7 @@ module.exports.response = function(socket){
 
     
     /********* GAMESTART - CONNECT ****************************************************/
-    
+{   
     // check if the nickname is already taken
     socket.on('check nickname', function(data){
        var nickname = data['nickname'];
@@ -62,15 +62,15 @@ module.exports.response = function(socket){
                         players     :   game['online'],
                         roomies     :   game['roomies']
                     };
-
-                    // broadcast to all players online and update players-online-list
+                    // emit events for eventEmitter to catch outside of callback
                     eventEmitter.emit('broadcast user joined', broadcast);
-
-                    //broadcast new playerlist to players in same room 
                     eventEmitter.emit('broadcast players in room', broadcast);
                 });    
             }              
         }); // end of promise-chain
+        
+        // broadcast to all users
+        // has to be done outside of callback, but only once for this socket, not sockets of all players
         eventEmitter.once('broadcast user joined', function(data){
                         
             socket.broadcast.emit('user joined',{
@@ -80,6 +80,7 @@ module.exports.response = function(socket){
             });
         });   
         
+        // update playerlist for all players in same room
         eventEmitter.once('broadcast players in room', function(data){
             
             socket.broadcast.to(socket.room).emit('playerlist',{
@@ -149,7 +150,8 @@ module.exports.response = function(socket){
         });  
         
     }); // socket.on 'load game' -> end
-    
+} // codeblock GameStart -> end
+
     /******* GAMEEND - DISCONNECT ***********************************************/
     
     //when a user disconnects

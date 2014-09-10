@@ -40,9 +40,6 @@ function checkNickname(){
             
         var nickname = $('#pseudoInput').val().trim(); 
         var guild = $('#playerclass').val();
-        console.log('The players nickname clientside is: '+nickname);
-        console.log('The chosen guild clientside is: '+guild);
-        console.log('The users id is: '+user._id);
         socket.emit('check nickname', {
            nickname :   nickname,
            guild    :   guild,
@@ -104,6 +101,7 @@ function gameInit(){
             // empty inputfield
             $('#chatInput').val('');
         }
+        
     }
 
     // add plain message to chat
@@ -118,8 +116,51 @@ function gameInit(){
     // append li på rigtig måde
     function appendToChat(cssClass, msg){
         $('<li class="'+cssClass+'"><p>'+msg+'</p></li>').hide().appendTo('#chatEntries').slideDown('fast');
+    }
+    
+    function typeOnScreen(msg, index){
+        $('<li></li>').appendTo('#chatEntries').slideDown('fast');
+        var currLi = $('#chatEntries').children('li').last();
+        newMsg = true;
+        type(msg, 0, currLi, index);     
+    }
+    
+    
+    var k = 1;
+    // typewriter-effect    
+    function type(text, pos, el){
+        console.log('typing: '+text);
+        var letter = text.substring(0,pos);
+        $(el).html(letter);
+
+        if(pos == text.length){
+//            console.log('we finished typing');            
+//            console.log('runtimes: '+k);
+//            console.log('stream-length: '+textStream.stream.length);
+//            k++            
+            
+            if(textStream.stream.length == 1){
+                console.log('no more messages!');
+                return;
+            }
+            // else 
+            textStream.remove(0); //remove the message from array
+            textStream.readyAgain(); // emit that we are ready to type next msg in array
+            textStream.write(); // write it!
+            
+        }else {
+            setTimeout(function(){
+                type(text, pos+1, el);
+            },80);   
+        }
         
     }
+
+    
+    // get typewriter-effect
+    function addOutput(msg){
+        output.push(msg);
+    };
     
     function setLocation(roomTitle){        
         $('#location').text(roomTitle);        
@@ -240,15 +281,15 @@ function gameInit(){
     }
     
     
-    // get typewriter-effect
-    function typewriter(el,text,pos,no){
-        ctext=text.substring(0,pos)+(pos%2?'_':'<blink>_</blink>');
-        $(el).html(ctext);
-        if(pos==text.length){
-         $(el).html(text+"<blink>_</blink>");
-        } else {
-         window.setTimeout('typwriter("'+el+'","'+text+'",'+(pos+1)+','+1+');',800);
-        }
-    }
+//    // get typewriter-effect
+//    function typewriter(el,text,pos,no){
+//        ctext=text.substring(0,pos)+(pos%2?'_':'<blink>_</blink>');
+//        $(el).html(ctext);
+//        if(pos==text.length){
+//         $(el).html(text+"<blink>_</blink>");
+//        } else {
+//         window.setTimeout('typwriter("'+el+'","'+text+'",'+(pos+1)+','+1+');',800);
+//        }
+//    }
 
 //});
