@@ -38,24 +38,18 @@ $(document).ready(function(){
         player = data['player'];
         online = data['users'];
         roomies = data['roomies'];
+        var welcome = 'Welcome '+player.nickname+ ', ' + online.length +' users online';
         
-        // show the game
-        gameInit();
-        
-        var chatmeta = 'Welcome '+player.nickname+ ', ' + online.length +' users online';
-//        appendToChat('chatmeta',chatmeta);  
-//        appendToChat('info',room.description);
-//        addExitDesc(room.exits);
+        // display the game-interface on screen
+        gameInit();          
         displayPlayerStats(player, room.name);
         displayRoomPlayerlist( roomies, room.name);
         displayPlayerlist(online); 
 
-        textStream.add(chatmeta);
+        // display text on screen in typewriter-style
+        textStream.add(welcome);
         textStream.add(room.description);
-        for (var i=0; i<room.exits.length; i++){
-            textStream.add(room.exits[i].description);
-        }
-//        textStream.write(0);
+        highlightKeywords(room.exits);
         
     });
 
@@ -80,15 +74,30 @@ $(document).ready(function(){
         displayRoomPlayerlist( playersInRoom, data['currRoom']);
     });
     
-    /********* code above worked through ********************/
-    
     // change room
     socket.on('enterRoom', function(data){
        room = data['room'];
-       setLocation(room.title);
-       appendToChat('info',room.description);
-       addExitDesc(room.exits);
+       var roomies = data['roomies'];
+       displayRoomPlayerlist(roomies, room.name);
+       setLocation(room.name);
+       textStream.add(room.description);
+       highlightKeywords(room.exits);
     });
+    
+    // inform when there's traffic in the room
+    //  and update players-in-room-list
+    socket.on('roomTraffic', function(data){
+        
+        displayRoomPlayerlist(data['roomies'], data['currRoom']);
+        textStream.add(data['info']);      
+       
+    });
+    
+    /********* code above worked through ********************/
+    
+    
+    
+    
     
     //get the message back from the server
     socket.on('message', function(data){        

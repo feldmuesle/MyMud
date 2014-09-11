@@ -175,4 +175,93 @@ module.exports.response = function(socket){
 
     }); // socket.on'disconnect' -> end
     
-}; // module.exports.response end
+    /******** CHANGE ROOM ****************************************************************/
+    socket.on('changeRoom',function(data){
+        console.log('change room to : '+data['newRoomId']);
+        var oldRoom = data['oldRoom'];
+        var newRoomId = data['newRoomId'];
+        var player = data['player'];
+        var index = data['index'];
+        
+        Game.changeRoom(oldRoom, newRoomId, player, function(data){
+            
+            console.log('hello from socket_server changeRoom-function-callback');
+            var room = data['newRoom'];
+            var oldRoomies = data['oldRoomies'];
+            var newRoomies = data['newRoomies'];
+            
+            // save new room in sockets session
+            socket.leave(oldRoom.name);
+            socket.join(room.name);
+            socket.room = room.name;
+            socket.roomId = room.id;  
+            
+            
+            // let the player enter new room and update his players-in-room-list
+            console.log('data to user in new room '+room.id+' sent');
+            socket.emit('enterRoom',{
+                action  : oldRoom.exits[index].action,
+                roomies : newRoomies,
+                room    : room
+           }); 
+           
+           // get needed data for broadcasting to players in old room
+           var goodbye = player.nickname +' '+oldRoom.exits[index].goodbye
+                            + ' and leaves the room.';
+           
+           var broadcast = {
+               'oldRoom'    : oldRoom.name,   
+               'goodbye'    : goodbye,
+               'oldRoomies' : oldRoomies
+           };
+           
+           eventEmitter.emit('broadcast oldRoomies', broadcast);
+           
+           // get needed data for broadcasting to players in new room
+           var broadcast = {
+               'newRoom'    : room.name,
+               'hello'      : player.nickname +' arrives in room.',               
+               'newRoomies' : newRoomies
+           };
+           
+           eventEmitter.emit('broadcast newRoomies', broadcast);
+            
+        });
+        
+        eventEmitter.once('broadcast oldRoomies', function(data){
+             
+            console.log('hello from broadcast oldRoomies');
+            var oldRoomies = data['oldRoomies'];            
+            var goodbye = data['goodbye'];            
+            var room = data['oldRoom'];
+            
+            // if there are other users left in the old room
+            if(oldRoomies.length > 0){
+                console.log('data to users in old room '+room+' sent');
+                 socket.broadcast.to(room).emit('roomTraffic',{
+                    'roomies' : oldRoomies,
+                    'info' : goodbye,
+                    'currRoom': room
+                });
+            }
+         });                      
+            
+        eventEmitter.once('broadcast newRoomies', function(data){
+            
+            var newRoomies = data['newRoomies'];
+            var room = data['newRoom'];
+            var hello = data['hello'];
+            
+            // broadcast and update playerlist if there are other players in room
+            if(newRoomies.length > 1){
+                 console.log('data to users in old room '+room+' sent');
+                 socket.broadcast.to(room).emit('roomTraffic',{
+                    'roomies'   : newRoomies,
+                    'currRoom'  : room,
+                    'info'      : hello
+                });
+            }
+        });
+        
+    }); // socket.on 'changeRoom' -> end
+}; // module.exports.response -> end

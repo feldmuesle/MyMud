@@ -63,17 +63,17 @@ function slideGameSignup(){
             
         }
 
-// set screen-height, hide startup-form and show the game!!
-function gameInit(){
-    
-    setAutoHeight();            
-    $('#profile').show();
-    $('#playerlist').show();
-    $('#roomPlayerlist').show();
-    $('#chatWrapper').show();
-    $('#pseudoSet').hide();
-    $('#chatInput').focus();
-}
+    // set screen-height, hide startup-form and show the game!!
+    function gameInit(){
+
+        setAutoHeight();            
+        $('#profile').show();
+        $('#playerlist').show();
+        $('#roomPlayerlist').show();
+        $('#chatWrapper').show();
+        $('#pseudoSet').hide();
+        $('#chatInput').focus();
+    }
 
 
     function sendMessage(){
@@ -118,29 +118,44 @@ function gameInit(){
         $('<li class="'+cssClass+'"><p>'+msg+'</p></li>').hide().appendTo('#chatEntries').slideDown('fast');
     }
     
+    //highlight keywords in exit-descriptions of rooms and add it to textStream
+    function highlightKeywords(exits){
+        for (var i=0; i<exits.length; i++){
+            var desc = exits[i].description;
+            highlight(exits[i].keyword, desc, function(string){
+                textStream.add(string);
+            });                
+        }  
+    }        
+
+    function highlight(word, string, callback) {
+        var rgxp = new RegExp(word, 'gi');
+        var repl = '>' + word + '<';
+        string = string.replace(rgxp, repl);
+        callback(string);
+    }
+
+    
+    // append messages to chat in typewriter-style
     function typeOnScreen(msg, index){
         $('<li></li>').appendTo('#chatEntries').slideDown('fast');
         var currLi = $('#chatEntries').children('li').last();
         newMsg = true;
         type(msg, 0, currLi, index);     
-    }
+    }    
     
-    
-    var k = 1;
     // typewriter-effect    
     function type(text, pos, el){
-        console.log('typing: '+text);
-        var letter = text.substring(0,pos);
+        
+        letter =  text.substring(0,pos);
         $(el).html(letter);
-
-        if(pos == text.length){
-//            console.log('we finished typing');            
-//            console.log('runtimes: '+k);
-//            console.log('stream-length: '+textStream.stream.length);
-//            k++            
+        
+        if(pos == text.length){   
             
             if(textStream.stream.length == 1){
                 console.log('no more messages!');
+                textStream.remove(0);
+                textStream.ready = true;
                 return;
             }
             // else 
@@ -152,15 +167,9 @@ function gameInit(){
             setTimeout(function(){
                 type(text, pos+1, el);
             },80);   
-        }
-        
+        }        
     }
 
-    
-    // get typewriter-effect
-    function addOutput(msg){
-        output.push(msg);
-    };
     
     function setLocation(roomTitle){        
         $('#location').text(roomTitle);        
@@ -208,9 +217,9 @@ function gameInit(){
         
         var stats =[];
         var name = '<dt>Nickname: </dt><dd>'+player.nickname+'</dd>';
-        var location = '<dt id="location"><span class="glyphicon glyphicon-move"></span> Location: </dt><dd>'
-                +roomName +'</dd>';
-        var playerclass = '<dt id="location"><span class="glyphicon glyphicon-flag"></span> Guild: </dt><dd>'
+        var location = '<dt"><span class="glyphicon glyphicon-move"></span>'
+                        +' Location: </dt><dd id="location">'+roomName +'</dd>';
+        var playerclass = '<dt><span class="glyphicon glyphicon-flag"></span> Guild: </dt><dd>'
                 +player.guild+'</dd>';
         var health = '<dt><span class="glyphicon glyphicon-heart"></span> Health: </dt><dd>'
                 +player.attributes.health +'</dd>';

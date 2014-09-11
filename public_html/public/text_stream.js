@@ -47,6 +47,7 @@ var TextStream = function(){
     
     // add message to array and try to output it
     self.add = function(message){
+        console.log('new message added to stream. message: '+message);
         self.stream.push(message);
         self.write();
     };
@@ -58,7 +59,7 @@ var TextStream = function(){
            
     // write the first message of array - if we are ready for it
     self.write = function(){
-        
+        console.log('hello from textStream.write. Ready = '+self.ready);
         if(self.ready){
             typeOnScreen(self.stream[0],0); 
             self.ready = false;

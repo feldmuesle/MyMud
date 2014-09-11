@@ -8,8 +8,9 @@ var ExitSchema = new mongoose.Schema({
    keyword      : String, // the keyword player types to leave 
    description  : String,   
    exitId       : Number, // roomId of the room it leads to
-   action       : String, // leaving message to player
-   goodbye      : String  // leaving message to other users in room  
+   action       : String, // action of player when leaving room
+   goodbye      : String // leaving-msg to other users in room 
+   //hello        : String  // arrival-msg to other user in room
 });
 
 var RoomSchema = new mongoose.Schema({

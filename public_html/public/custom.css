@@ -40,3 +40,8 @@ and open the template in the editor.
     padding: 10px;
     margin-right: 10px;
 }
+
+/**chat***************/
+.highlight{
+    font-weight: bold;
+}

@@ -15,23 +15,25 @@
         // check if it's a keyword for the exits
         for(var i=0; i< room.exits.length; i++){
             if(command[0] == room.exits[i]['keyword']){
-                console.log('you typed '+command[0]+' -the keyword');
-                leave = true;
-                return;                
+                console.log('you typed '+command[0]+' - that is a keyword');
+                index = i;
+                leave = true;               
             }
         }
         
         // if it is, send the correspondent exitmessage
         if(leave){
+            
+            textStream.add(room.exits[index].action +'...');
+            console.log('leave is true');
             var change = {
-                    newRoomId   : room.exits[index].exitId,
-                    oldRoom     : room,
-                    player      : player,
-                    msgLeave    : player.nickname +' leaves towards '+room.exits[index].direction,
-                    msgArrive   : player.nickname +' arrives from '+ room.exits[index].direction
-                };
+                newRoomId   : room.exits[index].exitId,
+                oldRoom     : room,
+                player      : player,
+                index       : index
+            };
                                                
-                socket.emit('changeRoom',change);
+            socket.emit('changeRoom',change);
         }
         else { // if it's not a moving-command, check for other commands
             

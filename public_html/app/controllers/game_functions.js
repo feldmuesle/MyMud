@@ -148,3 +148,26 @@ exports.removePlayer = function(socket, callback){
 
     }
 };
+
+exports.changeRoom = function(oldRoom, newRoomId, player, callback){
+    // get the new room from db
+    Room.findOne({id: newRoomId},function(err, newRoom){
+        if(err){console.error(err); return;}     
+    
+        //remove player from old roomlist and add to new roomlist
+        RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
+            RoomManager.addPlayerToRoom(newRoom.id, player)); 
+        
+        var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
+        var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
+        console.log(newRoomies.length +' users in new room with id '+newRoom.id);
+        console.log(oldRoomies.length +' users in old room with id '+oldRoom.id);
+        
+        var data ={
+            'newRoomies'    : newRoomies,
+            'oldRoomies'    : oldRoomies,
+            'newRoom'       : newRoom
+        };        
+        callback(data);
+    });        
+};
