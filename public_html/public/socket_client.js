@@ -81,6 +81,15 @@ $(document).ready(function(){
        displayRoomPlayerlist(roomies, room.name);
        setLocation(room.name);
        textStream.add(room.description);
+       
+       if(data['npcs'].length >0){
+           var npcs = data['npcs'];
+           for(var i=0; i<npcs.length; i++){
+               textStream.add(npcs[i].shortDesc);
+           }
+       }else {
+           console.log('no npcs in room'); 
+       }       
        highlightKeywords(room.exits);
     });
     

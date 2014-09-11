@@ -10,6 +10,7 @@ var PlayerModel = require('../models/player.js');
 var User = require('../models/user.js');
 var Room = require ('../models/room.js');
 var RoomManager = require ('../models/helper_models/room_manager.js');
+var Npc = require('../models/npc.js');
 
 // get all users currently online
 exports.getUsers = function(){ return users;  };
@@ -150,24 +151,145 @@ exports.removePlayer = function(socket, callback){
 };
 
 exports.changeRoom = function(oldRoom, newRoomId, player, callback){
+
+    
     // get the new room from db
     Room.findOne({id: newRoomId},function(err, newRoom){
-        if(err){console.error(err); return;}     
-    
-        //remove player from old roomlist and add to new roomlist
-        RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
+        if(err){console.error(err); return;} 
+        return newRoom;
+    }).exec()
+    .then(function(newRoom){
+        console.log('hello from change-room-promise');            
+        console.log(newRoom);           
+
+        Npc.find({'_id':{$in : newRoom.npcs}}, function(err, docs){
+             if(err){console.error(err); return;}
+
+             if(docs.length > 0){
+                 console.log('npc found');
+                 console.log('hello inside: '+docs);             
+
+             }else{
+                 console.log('no npc in this room');
+             }                                   
+        }).exec()
+        .then(function(npcs){
+            console.log('hello from npc-promise '+npcs);
+            //remove player from old roomlist and add to new roomlist
+            RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
             RoomManager.addPlayerToRoom(newRoom.id, player)); 
+
+            var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
+            var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
+            console.log(newRoomies.length +' users in new room with id '+newRoom.id);
+            console.log(oldRoomies.length +' users in old room with id '+oldRoom.id);
+
+
+            var data ={
+                'newRoomies'    : newRoomies,
+                'oldRoomies'    : oldRoomies,
+                'newRoom'       : newRoom,
+                'npcs'          : npcs
+            };     
+            
+            callback(data);
+        });      
         
-        var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
-        var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
-        console.log(newRoomies.length +' users in new room with id '+newRoom.id);
-        console.log(oldRoomies.length +' users in old room with id '+oldRoom.id);
-        
-        var data ={
-            'newRoomies'    : newRoomies,
-            'oldRoomies'    : oldRoomies,
-            'newRoom'       : newRoom
-        };        
-        callback(data);
     });        
+};
+
+exports.insertTestNpc = function(){
+    var panda = {
+        id          :   2,
+        name        :   'Poodie',
+//        location    :   2,
+        hp          :   15,
+        sp          :   0,
+        shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
+        description :   'The panda jumps off the shelf and brushes off some flour in his fur. Hello my friend.',
+        maxLoad     :   1
+    };
+    var npcs = [panda];
+    Npc.createNpcinDB(npcs);
+};
+
+exports.insertTestRoom = function(){
+  /***** Kitchen -  RoomId = 3 - Start here *******************************************************************************/
+
+//exits
+    var hole = {keyword   : 'hole',
+                description : 'There\'s a huge hole in the the wall behind the cupboard',
+                exitId      : 0,
+                action      : 'You push the cupboard aside and crawl through the hole',
+                goodbye     : 'squeezes through hole behind the cupboard'
+    };
+
+    var hoist = {keyword   : 'hoist',
+                description : 'You see a hoist. Probably used for food. Hmmm...',
+                exitId      : 1,
+                action      : 'You love adventures and jump into the hoist. it goes upwards',
+                goodbye     : 'climbs into hoist'
+    };
+           
+   
+    var exits = [hole, hoist];    
+    var npcs = [2];
+
+// room
+    var kitchen = {
+        name        : 'kitchen',
+        id          : 3,
+        description : 'Pots and pans where ever you look. This must be the kitchen.'    
+    };
+    
+    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+        if(err){console.error(err); return;}
+    });
+
+   
+
+/**************************************************************************************************/  
+};
+
+exports.deleteRoomById = function(id){
+  Room.find({'id':id}, function(err, docs){
+      if(err){console.error(err);return;}
+      for(var i=0; i<docs.length; i++){
+          docs[i].remove();
+      }
+      
+  });  
+};
+
+exports.deleteNpcById = function(id){
+  Npc.find({'id':id}, function(err, docs){
+      if(err){console.error(err);return;}
+      for(var i=0; i<docs.length; i++){
+          docs[i].remove();
+      }
+  });  
+};
+
+exports.getNpc = function(){
+    console.log('hello from getNpc');
+    
+    var pandaConfig = {
+        id          :   2,
+        name        :   'Poodie',
+        location    :   2,
+        hp          :   15,
+        sp          :   0,
+        shortDesc   :   'On top of a bookshelf is a panda. And it\'s alive.',
+        description :   'The panda watches you with friendly eyes and jumps off the shelf. Hello my friend.',
+        maxLoad     :   1
+    };
+    
+    var panda = new Npc();
+    panda.initialize(pandaConfig);
+    panda.testEvent();
+//    panda.save(function(err,npc){
+//        if(err){console.error(err); return;}
+//        console.log(npc);
+//    });
+    
 };

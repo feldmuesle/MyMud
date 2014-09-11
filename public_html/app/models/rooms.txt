@@ -97,6 +97,55 @@
    
 
 /**************************************************************************************************/
+***** Kitchen -  RoomId = 3 - Start here *******************************************************************************/
+
+//exits
+    var hole = {keyword   : 'hole',
+                description : 'There\'s a huge hole in the the wall behind the cupboard',
+                exitId      : 0,
+                action      : 'You push the cupboard aside and crawl through the hole',
+                goodbye     : 'squeezes through hole behind the cupboard'
+    };
+
+    var hoist = {keyword   : 'hoist',
+                description : 'You see a hoist. Probably used for food. Hmmm...',
+                exitId      : 1,
+                action      : 'You love adventures and jump into the hoist. it goes upwards',
+                goodbye     : 'climbs into hoist'
+    };
+           
+   
+    var exits = [hole, hoist];
+
+    var pandaConfig = {
+        id          :   2,
+        name        :   'Poodie',
+        location    :   2,
+        hp          :   15,
+        sp          :   0,
+        shortDesc   :   'On top of a bookshelf is a panda. And it\'s alive.',
+        description :   'The panda watches you with friendly eyes and jumps off the shelf. Hello my friend.',
+        maxLoad     :   1
+    };
+    
+    
+    
+    var npcs = [pandaConfig];
+
+// room
+    var kitchen = {
+        name        : 'kitchen',
+        id          : 3,
+        description : 'Pots and pans where ever you look. This must be the kitchen.'    
+    };
+    
+    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+        if(err){console.error(err); return;}
+    });
+
+   
+
+/**************************************************************************************************/
 
 // example on creating a room using createRoom-function
 

@@ -1,28 +1,82 @@
 /* Model for rooms */
 
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 var PlayerModel = require('./player.js');
+var Npc = require('./npc.js');
 
 
-var ExitSchema = new mongoose.Schema({ 
+var ExitSchema = new Schema({ 
    keyword      : String, // the keyword player types to leave 
    description  : String,   
    exitId       : Number, // roomId of the room it leads to
    action       : String, // action of player when leaving room
-   goodbye      : String // leaving-msg to other users in room 
-   //hello        : String  // arrival-msg to other user in room
+   goodbye      : String, // leaving-msg to other users in room 
+   hello        : String  // arrival-msg to other user in room
 });
 
-var RoomSchema = new mongoose.Schema({
+var RoomSchema = new Schema({
     name        : String,
     id          : Number,
     description : String,
-    exits       : [ExitSchema]
+    exits       : [ExitSchema],
+    npcs        :[{type: Schema.ObjectId, ref:'Npc'}]
 });
 
 
 RoomSchema.set('toObject', {getters : true});
 ExitSchema.set('toObject', {getters : true});
+
+RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
+    console.log('hello from createRoom');
+    var RoomModel = this || mongoose.model('Room');
+    var Room = new RoomModel();
+    Room.name = room.name;
+    Room.id = room.id;
+    Room.description = room.description;
+    Room.exits = [];
+    Room.npcs = [];
+    
+    console.log('The Exit-array-length id: '+exits.length);
+    for(var i=0; i< exits.length; i++){
+        var Exit = new ExitModel();
+        console.log('hello from exit-loop.');
+        Exit.description = exits[i].description;
+        Exit.exitId = exits[i].exitId;
+        Exit.keyword = exits[i].keyword;
+        Exit.goodbye = exits[i].goodbye;
+        Exit.action = exits[i].action;
+        Room.exits.push(Exit);
+    }
+    
+    // find all npcs by id and push onto room-array
+    
+    for(var i=0; i<npcs.length; i++){  
+        Npc.find({'id' : npcs[i]}, function(err,npcs){
+            if(err){console.error(err); return;};             
+            
+            for (var i=0; i<npcs.length; i++){
+                Room.npcs.push(npcs[i]._id);
+                console.log('pushing '+npcs[i]._id);
+            }
+            
+        }).exec()
+            .then(function(){
+                
+                Room.save(function(err){
+                    if(err){
+                        console.log('something went wrong when creating a room.');
+                        return null; 
+                    }    
+                    console.log(Room.npcs);
+                    console.log('new room created:');
+                });  
+            });
+    }    
+        
+
+        
+    };
 
 RoomSchema.statics.createRoom = function(room, exits){
     console.log('hello from createRoom');

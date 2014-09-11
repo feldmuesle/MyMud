@@ -1,0 +1,14 @@
+// Npcs we create
+
+var panda = {
+        id          :   2,
+        name        :   'Poodie',
+//        location    :   2,
+        hp          :   15,
+        sp          :   0,
+        shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
+        description :   'The panda jumps off the shelf and brushes off some flour in his fur. Hello my friend.',
+        maxLoad     :   1
+    };
+
+Npc.createNpcinDB(panda);

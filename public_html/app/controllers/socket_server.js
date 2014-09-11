@@ -18,6 +18,11 @@ var Game = require('./game_functions.js');
 
 module.exports.response = function(socket){
     console.log('hello from socket-response');
+    
+//    Game.insertTestNpc();
+//    Game.insertTestRoom();
+//    Game.deleteRoomById(3);
+//    Game.deleteNpcById(2);
 
     
     /********* GAMESTART - CONNECT ****************************************************/
@@ -94,10 +99,12 @@ module.exports.response = function(socket){
     // load a game from db, if the user already has a game saved
     socket.on('loadGame', function(data){
         
+        
+        
         var userId = data['userId'];
         var playersOnline;
         var playersInRoom;
-
+        
         Game.loadGame(userId, function(game){ 
             
             // configure socket of player
@@ -189,7 +196,9 @@ module.exports.response = function(socket){
             var room = data['newRoom'];
             var oldRoomies = data['oldRoomies'];
             var newRoomies = data['newRoomies'];
+            var npcs = data['npcs'];
             
+            console.log('npcs in socket-callback '+npcs);
             // save new room in sockets session
             socket.leave(oldRoom.name);
             socket.join(room.name);
@@ -202,7 +211,8 @@ module.exports.response = function(socket){
             socket.emit('enterRoom',{
                 action  : oldRoom.exits[index].action,
                 roomies : newRoomies,
-                room    : room
+                room    : room,
+                npcs    : npcs
            }); 
            
            // get needed data for broadcasting to players in old room
