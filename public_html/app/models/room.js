@@ -20,7 +20,8 @@ var RoomSchema = new Schema({
     id          : Number,
     description : String,
     exits       : [ExitSchema],
-    npcs        :[{type: Schema.ObjectId, ref:'Npc'}]
+    npcs        :[{type: Schema.ObjectId, ref:'Npc'}],
+    inventory   :[Schema.Types.Mixed]
 });
 
 
@@ -36,6 +37,7 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
     Room.description = room.description;
     Room.exits = [];
     Room.npcs = [];
+    Room.inventory = [];
     
     console.log('The Exit-array-length id: '+exits.length);
     for(var i=0; i< exits.length; i++){
@@ -49,7 +51,7 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
         Room.exits.push(Exit);
     }
     
-    // find all npcs by id and push onto room-array
+    // find all npcs by id and push their ref onto rooms npc-array
     
     for(var i=0; i<npcs.length; i++){  
         Npc.find({'id' : npcs[i]}, function(err,npcs){
@@ -73,12 +75,22 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
                 });  
             });
     }    
-        
+};
 
-        
-    };
+RoomSchema.statics.getNpcs = function(roomId){
+    var RoomModel = this || mongoose.model('Room');
+    RoomModel.findOne({'id':roomId}, function(err, room){
+        if(err){console.error(err); return;}
+    }).populate('npcs').exec(function(err, room){
+        if(err){console.error(err); return;}
+        console.log('Room.getNpc: '+room);
+        return room;
+    });
+};
 
-RoomSchema.statics.createRoom = function(room, exits){
+
+RoomSchema.statics.createRoom = function(room, 
+exits){
     console.log('hello from createRoom');
     var RoomModel = this || mongoose.model('Room');
     var Room = new RoomModel();

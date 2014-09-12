@@ -3,30 +3,14 @@ Model for the player
  */
 
 var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-//var AttributesSchema = mongoose.Schema({
-//    maxHealth   :   Number,
-//    health      :   Number,
-//    hp          :   Number,
-//    sp          :   Number
-//    
-//});
-
-var ItemSchema = mongoose.Schema({
-   name         :   String,
-   keywords     :   Array,
-   location     :   Number,
-   description  :   String,
-   shortDesc    :   String,
-   maxLoad      :   Number
-});
-
-var PlayerSchema = mongoose.Schema({
+var PlayerSchema = Schema({
     nickname    :   String,
     guild       :   String,
     location    :   String,
 //    inventory   :   [{
-//        type    :   mongoose.Schema.Types.ObjectId,
+//        type    :   Schema.ObjectId,
 //        ref     :   'Item'
 //    }],
     socketId    :   String,

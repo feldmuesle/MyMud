@@ -23,7 +23,9 @@ module.exports.response = function(socket){
 //    Game.insertTestRoom();
 //    Game.deleteRoomById(3);
 //    Game.deleteNpcById(2);
+//    Game.insertTestItem();
 
+//      Game.test(3);
     
     /********* GAMESTART - CONNECT ****************************************************/
 {   
@@ -197,8 +199,9 @@ module.exports.response = function(socket){
             var oldRoomies = data['oldRoomies'];
             var newRoomies = data['newRoomies'];
             var npcs = data['npcs'];
+            var inventory = data['inventory'];
             
-            console.log('npcs in socket-callback '+npcs);
+            //console.log('npcs in socket-callback '+npcs);
             // save new room in sockets session
             socket.leave(oldRoom.name);
             socket.join(room.name);
@@ -212,7 +215,8 @@ module.exports.response = function(socket){
                 action  : oldRoom.exits[index].action,
                 roomies : newRoomies,
                 room    : room,
-                npcs    : npcs
+                npcs    : npcs,
+                inventory: inventory
            }); 
            
            // get needed data for broadcasting to players in old room

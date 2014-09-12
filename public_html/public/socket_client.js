@@ -86,10 +86,26 @@ $(document).ready(function(){
            var npcs = data['npcs'];
            for(var i=0; i<npcs.length; i++){
                textStream.add(npcs[i].shortDesc);
+               
+               if(npcs[i].inventory.length > 0){
+                   console.log('npc got inventory!');
+                   for(var j=0; j<npcs[i].inventory.length; i++){
+                       textStream.add('The '+npcs[i].keyword+ ' has a '+npcs[i].inventory[j].keyword);
+                   }
+               }               
            }
        }else {
            console.log('no npcs in room'); 
-       }       
+       }  
+       
+       if(data['inventory'].length >0){
+           var inventory = data['inventory'];
+           for(var i=0; i<inventory.length; i++){
+               textStream.add('there is '+inventory[i].shortDesc);
+           }
+       }else {
+           console.log('no items in room'); 
+       }  
        highlightKeywords(room.exits);
     });
     

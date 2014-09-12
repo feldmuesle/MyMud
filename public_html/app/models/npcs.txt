@@ -2,13 +2,16 @@
 
 var panda = {
         id          :   2,
-        name        :   'Poodie',
+        keyword     :   'panda',
 //        location    :   2,
-        hp          :   15,
-        sp          :   0,
+        attributes    :{
+                        hp  :   15,
+                        sp  :   0
+                    },        
         shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
-        description :   'The panda jumps off the shelf and brushes off some flour in his fur. Hello my friend.',
+        description :   'The panda jumps off the shelf and brushes some flour off his fur.',
         maxLoad     :   1
     };
-
-Npc.createNpcinDB(panda);
+    
+    var items = [1]; //spoon
+    Npc.createNpcinDB(panda, items);

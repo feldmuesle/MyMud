@@ -11,6 +11,7 @@ var User = require('../models/user.js');
 var Room = require ('../models/room.js');
 var RoomManager = require ('../models/helper_models/room_manager.js');
 var Npc = require('../models/npc.js');
+var Item = require('../models/item.js');
 
 // get all users currently online
 exports.getUsers = function(){ return users;  };
@@ -150,67 +151,132 @@ exports.removePlayer = function(socket, callback){
     }
 };
 
+
+exports.test = function(roomId) {
+  Room.findOne({id: roomId})
+    .populate('npcs')
+    .exec(function(err) {
+        if(err){console.error(err); return;}
+      
+    }).then(function(third){
+        console.log('inside test: '+third);
+        console.log('item: '+third.npcs[0].inventory[0]);
+        console.log('health: '+third.npcs[0].attributes['health']);
+        Item.populate(third.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+            npcs.forEach(function(npc){
+                console.log(npc.keyword +' has item '+npc.inventory[0]);
+
+            });
+        }).exec(function(err) {
+            if(err){console.error(err); return;}
+      
+        }).then(function(){
+            console.log('and the end:');
+                    console.dir(third.npcs[0]);
+            console.log('last item: '+third.npcs[0].inventory[0]);
+        });      
+  });
+};
+
 exports.changeRoom = function(oldRoom, newRoomId, player, callback){
 
+    Room.findOne({id: newRoomId})
+    .populate('npcs')
+    .exec(function(err) {
+        if(err){console.error(err); return;}
+      
+    }).then(function(newRoom){
+        console.log('inside test: '+newRoom);
+        console.log('item: '+newRoom.npcs[0].inventory[0]);
+        console.log('health: '+newRoom.npcs[0].attributes['health']);
+        Item.populate(newRoom.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+            npcs.forEach(function(npc){
+                console.log(npc.keyword +' has item '+npc.inventory[0]);
+
+            });
+
+                console.log('hello from where we send the data back to ');
+                //remove player from old roomlist and add to new roomlist
+                RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
+                RoomManager.addPlayerToRoom(newRoom.id, player)); 
+
+                var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
+                var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
+
+
+                var data ={
+                    'newRoomies'    : newRoomies,
+                    'oldRoomies'    : oldRoomies,
+                    'newRoom'       : newRoom,
+                    'npcs'          : newRoom.npcs,
+                    'inventory'     : newRoom.inventory
+                };     
+                
+                newRoom.announce(player);
+
+                callback(data);
+            }); 
+        });
+};
+
+exports.insertTestItem = function(){
+  
+    var spoon = { 
+        id           :   1,
+        keyword      :   'spoon',
+        description  :   'The spoon looks ancient with a delicate floral carvings across the handle.'
+                            +'Perfect for stirring!',
+        shortDesc    :   'A very large wooden spoon',
+        maxLoad      :   1,
+        behaviours   :   ['getable','dropable']
+    };
+
+/*********************************************/
+
+var torch = {  
+    id           :   2,
+    keyword      :    'torch',
+    description  :   'a torch that can shed light into dark places',
+    shortDesc    :   'a small torch',
+    maxLoad      :   1,
+    behaviours   :   ['getable', 'lightable', 'dropable']
+};
+
+/*********************************************/
+
+var muffin = {
+    id           :   3,
+    keyword      :   'muffin',
+    description  :   'an incredibly delicious looking chocolate-muffin with blueberries and vanilla-icing.',
+    shortDesc    :   'a freshly baked muffin',
+    maxLoad      :   1,
+    behaviours   :   ['getable','dropable', 'eatable' ]
+};
+
+/*********************************************/
     
-    // get the new room from db
-    Room.findOne({id: newRoomId},function(err, newRoom){
-        if(err){console.error(err); return;} 
-        return newRoom;
-    }).exec()
-    .then(function(newRoom){
-        console.log('hello from change-room-promise');            
-        console.log(newRoom);           
-
-        Npc.find({'_id':{$in : newRoom.npcs}}, function(err, docs){
-             if(err){console.error(err); return;}
-
-             if(docs.length > 0){
-                 console.log('npc found');
-                 console.log('hello inside: '+docs);             
-
-             }else{
-                 console.log('no npc in this room');
-             }                                   
-        }).exec()
-        .then(function(npcs){
-            console.log('hello from npc-promise '+npcs);
-            //remove player from old roomlist and add to new roomlist
-            RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
-            RoomManager.addPlayerToRoom(newRoom.id, player)); 
-
-            var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
-            var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
-            console.log(newRoomies.length +' users in new room with id '+newRoom.id);
-            console.log(oldRoomies.length +' users in old room with id '+oldRoom.id);
-
-
-            var data ={
-                'newRoomies'    : newRoomies,
-                'oldRoomies'    : oldRoomies,
-                'newRoom'       : newRoom,
-                'npcs'          : npcs
-            };     
-            
-            callback(data);
-        });      
-        
-    });        
+    var items = [spoon, torch, muffin];
+    
+    Item.createItemsInDb(items);
+    
 };
 
 exports.insertTestNpc = function(){
     var panda = {
         id          :   2,
-        name        :   'Poodie',
+        keyword     :   'panda',
 //        location    :   2,
-        hp          :   15,
-        sp          :   0,
+        attributes    :{
+                        hp  :   15,
+                        sp  :   0
+                    },        
         shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
-        description :   'The panda jumps off the shelf and brushes off some flour in his fur. Hello my friend.',
+        description :   'The panda jumps off the shelf and brushes some flour off his fur.',
         maxLoad     :   1
     };
-    var npcs = [panda];
-    Npc.createNpcinDB(npcs);
+    
+    var items = [1];
+    Npc.createNpcinDB(panda, items);
 };
 
 exports.insertTestRoom = function(){
