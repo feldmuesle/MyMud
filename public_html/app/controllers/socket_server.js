@@ -99,9 +99,7 @@ module.exports.response = function(socket){
     }); // socket.on'check nickname' end
     
     // load a game from db, if the user already has a game saved
-    socket.on('loadGame', function(data){
-        
-        
+    socket.on('loadGame', function(data){        
         
         var userId = data['userId'];
         var playersOnline;

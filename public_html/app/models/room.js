@@ -28,7 +28,7 @@ var RoomSchema = new Schema({
 RoomSchema.set('toObject', {getters : true});
 ExitSchema.set('toObject', {getters : true});
 
-RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
+RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds){
     console.log('hello from createRoom');
     var RoomModel = this || mongoose.model('Room');
     var Room = new RoomModel();
@@ -53,8 +53,8 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
     
     // find all npcs by id and push their ref onto rooms npc-array
     
-    for(var i=0; i<npcs.length; i++){  
-        Npc.find({'id' : npcs[i]}, function(err,npcs){
+    
+        Npc.find({'id' : {$in : npcIds}}, function(err,npcs){
             if(err){console.error(err); return;};             
             
             for (var i=0; i<npcs.length; i++){
@@ -74,7 +74,7 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcs){
                     console.log('new room created:');
                 });  
             });
-    }    
+        
 };
 
 RoomSchema.statics.getNpcs = function(roomId){

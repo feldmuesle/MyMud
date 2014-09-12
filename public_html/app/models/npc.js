@@ -20,7 +20,13 @@ var NpcSchema = new Schema({
         },
     maxLoad     :   Number,
     pacifist      :   { type:Boolean, default:true},
-    inventory   :   [{type:Schema.ObjectId, ref:'Item'}]
+    inventory   :   [{type:Schema.ObjectId, ref:'Item'}],
+    behaviours   :{
+            playerEnters    :   String,
+            playerDrops     :   String,
+            playerChat      :   [String]
+        },
+    skills      :   [String]
 });
 
 
@@ -30,9 +36,8 @@ NpcSchema.statics.createNpcinDB = function(npcConf, items){
     var NpcModel = this || mongoose.model('Npc');
     var npc = new NpcModel();
     npc.initialize(npcConf);
-        
-    for(var i=0; i<items.length; i++){  
-        Item.find({'id' : items[i]}, function(err,docs){
+      
+        Item.find({'id' : {$in :items}}, function(err,docs){
             if(err){console.error(err); return;};             
             
             for (var i=0; i<docs.length; i++){
@@ -41,14 +46,16 @@ NpcSchema.statics.createNpcinDB = function(npcConf, items){
             }
             
         }).exec()
-        .then(function(){
-        
-            npc.save(function(err){
+            .then(function(){
+                npc.save(function(err){
                 if(err){console.error(err); return;}          
                 console.log('npc '+npc.keyword+' has been saved.');
             });
-        });  
-    }
+        }); 
+    
+        
+            
+   
 };
 
 NpcSchema.statics.getInventory = function(objectId){
@@ -70,9 +77,9 @@ NpcSchema.methods.getItems = function(){
             });
 };
 
-NpcSchema.methods.testEvent = function(){
+NpcSchema.methods.playerEnters = function(){
     console.log('hello from emit-testEvent');
-    this.emit('test');
+    this.emit('playerEnters');
 };
 
 // initialize with config
@@ -90,12 +97,20 @@ NpcSchema.methods.initialize = function(config){
     self.shortDesc = config.shortDesc;
     self.description = config.description;
     self.maxLoad = config.maxLoad;
-    self.inventory = [];
+    self.inventory =[];
+    self.behaviours = {
+        playerEnters    :   config.behaviours['playerEnters'],
+        playerDrops     :   config.behaviours['playerDrops'],
+        playerChat      :   []
+    };
+    
+    for(var i = 0; i< config.behaviours['playerChat'].length; i++){
+        self.behaviours['playerChat'].push(config.behaviours['playerChat'][i]);
+    }
     
     // set up listeners
-    this.on('test', function(){
-        
-        console.log('Testevent on NpcModel called by ' + this.name); 
+    this.on('playerEnters', function(){        
+        console.log('The ' + this.keyword +' says: "'+self.behaviours['playerEnters']+'"'); 
      });
 };
 

@@ -77,10 +77,12 @@ $(document).ready(function(){
     // change room
     socket.on('enterRoom', function(data){
        room = data['room'];
+       console.log(room);
        var roomies = data['roomies'];
        displayRoomPlayerlist(roomies, room.name);
        setLocation(room.name);
        textStream.add(room.description);
+       
        
        if(data['npcs'].length >0){
            var npcs = data['npcs'];
@@ -88,8 +90,7 @@ $(document).ready(function(){
                textStream.add(npcs[i].shortDesc);
                
                if(npcs[i].inventory.length > 0){
-                   console.log('npc got inventory!');
-                   for(var j=0; j<npcs[i].inventory.length; i++){
+                   for(var j=0; j<npcs[i].inventory.length; j++){
                        textStream.add('The '+npcs[i].keyword+ ' has a '+npcs[i].inventory[j].keyword);
                    }
                }               
@@ -106,7 +107,9 @@ $(document).ready(function(){
        }else {
            console.log('no items in room'); 
        }  
+       
        highlightKeywords(room.exits);
+       
     });
     
     // inform when there's traffic in the room

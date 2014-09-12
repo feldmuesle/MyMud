@@ -38,6 +38,7 @@ exports.loadGame = function(userId, callback){
 
                 if(room){
                     RoomManager.addPlayerToRoom(room.id, user.player[0]);
+                    room.announce(user.player[0]);
                     //console.log('hello from promise. Room is' +room.name);
                 }
             }).exec()
@@ -163,6 +164,8 @@ exports.test = function(roomId) {
         console.log('item: '+third.npcs[0].inventory[0]);
         console.log('health: '+third.npcs[0].attributes['health']);
         Item.populate(third.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+            if(err){console.error(err); return;}
+            
             npcs.forEach(function(npc){
                 console.log(npc.keyword +' has item '+npc.inventory[0]);
 
@@ -190,6 +193,8 @@ exports.changeRoom = function(oldRoom, newRoomId, player, callback){
         console.log('item: '+newRoom.npcs[0].inventory[0]);
         console.log('health: '+newRoom.npcs[0].attributes['health']);
         Item.populate(newRoom.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+            if(err){console.error(err); return;}
+            
             npcs.forEach(function(npc){
                 console.log(npc.keyword +' has item '+npc.inventory[0]);
 
@@ -272,15 +277,148 @@ exports.insertTestNpc = function(){
                     },        
         shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
         description :   'The panda jumps off the shelf and brushes some flour off his fur.',
-        maxLoad     :   1
+        maxLoad     :   1,
+        behaviours  :   {
+            playerEnters    : 'Hello my friend. Are you hungry?',
+            playerDrops     : 'Can you eat this?',
+            playerChat      : ['I\'m hungry. Unless you have something to eat go away.',
+                                'Do you like chocolate?',
+                                'I only want to talk about food']
+            },
+        skills      :   ['dance']
     };
     
-    var items = [1];
+    var items = [1,3]; //spoon, muffin
     Npc.createNpcinDB(panda, items);
+
+/************************************************************************/
+
+var fakir = {
+        id          :   1,
+        keyword     :   'fakir',
+//        location    :   2,
+        attributes    :{
+                        hp  :   15,
+                        sp  :   0
+                    },        
+        shortDesc   :   'In the corner sits a fakir on his bed of nails',
+        description :   'The fakir closes demonstratively his eyes and ears as you approach.',
+        maxLoad     :   1,
+        behaviours  :   {
+                    playerEnters    : 'Oh no',
+                    playerDrops     : 'Hey, somebody might get hurt',
+                    playerChat      : ['My butt hurts',
+                                        'What did you say. I can\'t hear you.']
+                    },
+        skills      :   ['heal']
+    };
+    
+    var items = [2,3]; //torch, muffin
+    Npc.createNpcinDB(fakir, items);
 };
 
 exports.insertTestRoom = function(){
-  /***** Kitchen -  RoomId = 3 - Start here *******************************************************************************/
+  /**************************************************************************************************
+***** Lobby -  RoomId = 0 - Start here *******************************************************************************/
+
+//exits
+    var ladder = {keyword   : 'ladder',
+                description : 'There\'s a ladder going upstairs',
+                exitId      : 1,
+                action      : 'You climb up the ladder',
+                goodbye     : 'climbs up a ladder'};
+            
+    var hatch = {keyword    : 'hatch',
+                description : 'There\'s a hatch in the floor',
+                exitId      : 2,
+                action      : 'You open up the hatch and climb down the stairs',
+                goodbye     : 'leaves through the hatch in the floor'};
+            
+    var door = {keyword     : 'door',
+                description : 'Only visible if you really look, there\'s a tiny door in the wall',
+                exitId      : 3,
+                action      : 'Even though it takes some time you manage to squeeze through the door',
+                goodbye     : 'leaves through a tiny door in the wall'};
+   
+    var exits = [ladder, hatch, door];
+    var npcs = [1, 2];
+    var items = [2];
+
+// room
+    var lobby = {
+        name        : 'Lobby',
+        id          : 0,
+        description : 'You are standing in the middle of the lobby with a giant gnome'    
+    };
+
+    // example on inserting a new room
+    Room.createRoomWithNpc(lobby, exits, npcs, function(err){
+        if(err){console.error(err); return;}
+    });
+
+/**************************************************************************************************
+***** Loft -  RoomId = 1 **************************************************************************/
+
+//exits
+    var ladder = {keyword   : 'ladder',
+                description : 'Don\'t fall down the hole with the ladder leading downstairs.',
+                exitId      : 0,
+                action      : 'You climb down the ladder',
+                goodbye     : 'climbs down the ladder'};
+
+    var window = {keyword   : 'window',
+                description : 'There\'s a small dirty window. It\'s just big enough to squeeze through',
+                exitId      : 1,
+                action      : 'You open the window and climb through',
+                goodbye     : 'climbs through window'};
+            
+    var closet = {keyword    : 'closet',
+                description : 'There\'s a huge closet standing in the middle of the room',
+                exitId      : 2,
+                action      : 'You enter the closet. It is dark.',
+                goodbye     : 'enters the closet'};
+   
+    var exits = [ladder,window, closet];
+    var npcs = [];
+
+// room
+    var loft = {
+        name        : 'Loft',
+        id          : 1,
+        description : 'You are standing in a humble room with a wooden floor.'    
+    };
+
+    Room.createRoomWithNpc(loft, exits, npcs, function(err){
+        if(err){console.error(err); return;}
+    });
+
+/**************************************************************************************************
+***** Winecellar -  RoomId = 2 - Start here *******************************************************************************/
+
+//exits
+    var stairs = {keyword   : 'stairs',
+                description : 'The stairs leaving upstairs are pretty slippery',
+                exitId      : 0,
+                action      : 'You climb up the narrow stairs',
+                goodbye     : 'leaves upstairs'};
+   
+    var exits = [stairs];
+    var npcs = [];
+
+// room
+    var winecellar = {
+        name        : 'Winecellar',
+        id          : 2,
+        description : 'Lots of oaken barrels and a distinctive smell indicates that you\'ve ended up in the winecellar.'    
+    };
+    
+    Room.createRoomWithNpc(winecellar, exits, npcs, function(err){
+        if(err){console.error(err); return;}
+    });
+
+   
+
+/**** Kitchen -  RoomId = 3 - Start here ************************************************************/
 
 //exits
     var hole = {keyword   : 'hole',
@@ -298,8 +436,8 @@ exports.insertTestRoom = function(){
     };
            
    
-    var exits = [hole, hoist];    
-    var npcs = [2];
+    var exits = [hole, hoist]; 
+    var npcs = [2]; //panda
 
 // room
     var kitchen = {
@@ -314,7 +452,7 @@ exports.insertTestRoom = function(){
 
    
 
-/**************************************************************************************************/  
+/**************************************************************************************************/
 };
 
 exports.deleteRoomById = function(id){

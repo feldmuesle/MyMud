@@ -10,8 +10,41 @@ var panda = {
                     },        
         shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
         description :   'The panda jumps off the shelf and brushes some flour off his fur.',
-        maxLoad     :   1
+        maxLoad     :   1,
+        behaviours  :   {
+            playerEnters    : 'Hello my friend. Are you hungry?',
+            playerDrops     : 'Can you eat this?',
+            playerChat      : ['I\'m hungry. Unless you have something to eat go away.',
+                                'Do you like chocolate?',
+                                'I only want to talk about food']
+            },
+        skills      :   ['dance'];
     };
     
-    var items = [1]; //spoon
+    var items = [1,3]; //spoon, muffin
     Npc.createNpcinDB(panda, items);
+
+/************************************************************************/
+
+var fakir = {
+        id          :   1,
+        keyword     :   'fakir',
+//        location    :   2,
+        attributes    :{
+                        hp  :   15,
+                        sp  :   0
+                    },        
+        shortDesc   :   'In the corner sits a fakir on his bed of nails',
+        description :   'The fakir closes demonstratively his eyes and ears as you approach.',
+        maxLoad     :   1,
+        behaviours  :   {
+                    playerEnters    : 'Oh no',
+                    playerDrops     : 'Hey, somebody might get hurt',
+                    playerChat      : ['My butt hurts',
+                                        'What did you say. I can\'t hear you.'
+                    },
+        skills      :   ['heal'];
+    };
+    
+    var items = [2,3]; //torch, muffin
+    Npc.createNpcinDB(fakir, items);

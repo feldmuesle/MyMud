@@ -20,9 +20,12 @@
     var door = {keyword     : 'door',
                 description : 'Only visible if you really look, there\'s a tiny door in the wall',
                 exitId      : 3,
+                action      : 'Even though it takes some time you manage to squeeze through the door',
                 goodbye     : 'leaves through a tiny door in the wall'};
    
     var exits = [ladder, hatch, door];
+    var npcs = [1, 2];
+    var items = [2]
 
 // room
     var lobby = {
@@ -32,9 +35,9 @@
     };
 
     // example on inserting a new room
-    Room.createRoom(lobby, exits, function(err){
+    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
         if(err){console.error(err); return;}
-    }); 
+    });
 
 /**************************************************************************************************
 ***** Loft -  RoomId = 1 **************************************************************************/
@@ -59,6 +62,7 @@
                 goodbye     : 'enters the closet'};
    
     var exits = [ladder,window, closet];
+    var npcs = [];
 
 // room
     var loft = {
@@ -67,7 +71,7 @@
         description : 'You are standing in a humble room with a wooden floor.'    
     };
 
-    Room.createRoom(loft, exits, function(err){
+    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
         if(err){console.error(err); return;}
     });
 
@@ -82,6 +86,7 @@
                 goodbye     : 'leaves upstairs'};
    
     var exits = [stairs];
+    var npcs = []
 
 // room
     var winecellar = {
@@ -90,7 +95,7 @@
         description : 'Lots of oaken barrels and a distinctive smell indicates that you\'ve ended up in the winecellar.'    
     };
     
-    Room.createRoom(winecellar, exits, function(err){
+    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
         if(err){console.error(err); return;}
     });
 
@@ -115,22 +120,8 @@
     };
            
    
-    var exits = [hole, hoist];
-
-    var pandaConfig = {
-        id          :   2,
-        name        :   'Poodie',
-        location    :   2,
-        hp          :   15,
-        sp          :   0,
-        shortDesc   :   'On top of a bookshelf is a panda. And it\'s alive.',
-        description :   'The panda watches you with friendly eyes and jumps off the shelf. Hello my friend.',
-        maxLoad     :   1
-    };
-    
-    
-    
-    var npcs = [pandaConfig];
+    var exits = [hole, hoist]; 
+    var npcs = [2]; //panda
 
 // room
     var kitchen = {

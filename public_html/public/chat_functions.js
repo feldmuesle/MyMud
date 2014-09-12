@@ -166,7 +166,7 @@ function slideGameSignup(){
         }else {
             setTimeout(function(){
                 type(text, pos+1, el);
-            },80);   
+            },60);   
         }        
     }
 
