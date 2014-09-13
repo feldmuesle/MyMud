@@ -23,7 +23,7 @@ exports.getUsers = function(){ return users;  };
 exports.getNumUsers = function(){ return numUsers;};
 
 // load an existing game by userId
-exports.loadGame1 = function(userId, socket, callback){
+exports.loadGame = function(userId, socket, callback){
     
     clients.push(socket);
     Texter.updateSockets(clients);
@@ -33,26 +33,44 @@ exports.loadGame1 = function(userId, socket, callback){
         if(err){console.error(err); return;}
 
         if(user.player){
-
-            users.push(user.player[0].nickname);
+            
+            var player = user.player[0]; // there will always only be one player per user
+            users.push(player.nickname);
             numUsers++;
-
-            user.player[0].socketId = socket.id;
+            
+            player.socketId = socket.id;
             user.save(function(err){
                 if(err){console.error(err); return;}
-                console.log('user has been saved new socket: '+socket.id);
+                
+                Texter.welcomeAgain(player);
 
-            Room.findOne({'id' : user.player[0].location}, function(err, room){
-                if(err){console.error(err); return;}
+                Room.findOne({'id' : player.location}, function(err, room){
+                    if(err){console.error(err); return;}
 
-                if(room){
-                    room.setListeners();
-                    room.announce(user.player[0]);
-                    RoomManager.addPlayerToRoom(room.id, user.player[0]);
-                    //console.log('hello from promise. Room is' +room.name);
-                }
-            }).exec()
-                .then(function(room){
+                    if(room){
+                        room.setListeners();
+                        room.announce(player);
+                        RoomManager.addPlayerToRoom(room.id, player);
+
+                        
+                    }
+                }).populate('npcs').exec(function(err){if(err){console.error(err); return;};})
+                    .then(function(room){
+                    Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+                        if(err){console.error(err); return;}
+
+                        if(npcs.length >0){
+
+                            Texter.write('There is '+ grammatize(npcs) +' in the room.', player.socketId);
+
+                            npcs.forEach(function(npc){
+//                                console.log(npc.keyword +' has item '+npc.inventory[0]);
+                                npc.setListeners();
+                                npc.playerEnters(player);
+
+                            });
+                        }
+
                     var roomies = RoomManager.getPlayersInRoom(room.id);
 
                     var game = {
@@ -65,56 +83,19 @@ exports.loadGame1 = function(userId, socket, callback){
 
                 }); 
             });
+        });
         }
     });
 };
 
-exports.loadGame = function(userId, socket, callback){
-        User.findOne({'_id': userId}, function(err, user){
-            if(err){console.error(err); return;}
-                //console.log('hello from find user');
-            if(user.player){
-                console.log('player trying to emit write-event.');
-                user.player[0].initialize(socket);
-                user.player[0].write('This is a player-event-writing-test');
-                //console.log('user with nickname '+ user.player[0].nickname +' found');
-                users.push(user.player[0].nickname);
-                numUsers++;
-            }else{
-                //console.log('no player has been found.');
-            }
-        }).exec()
-        .then(function(user){
-            //console.log('hello from promise. Player is '+user.player[0].nickname);
-            Room.findOne({'id' : user.player[0].location}, function(err, room){
-                if(err){console.error(err); return;}
-
-                if(room){
-                    //  room.setListeners();
-                    room.announce(user.player[0]);
-                    RoomManager.addPlayerToRoom(room.id, user.player[0]);
-                    
-                    console.log('hello from promise. Room is' +room.name);
-                }
-            }).exec()
-            .then(function(room){
-                var roomies = RoomManager.getPlayersInRoom(room.id);
-        
-                var game = {
-                    online  :   users,
-                    player  :   user.player[0],
-                    room    :   room,
-                    roomies :   roomies
-                };
-               return callback(game);
-
-            });    
-    });
-};
 
 // load a entire new game by det given userinput
 exports.startNewGame = function(userId, nickname, guild, socket, callback){
         
+    clients.push(socket);
+    Texter.updateSockets(clients);
+    Texter.addListeners();
+    
     //console.log('hello from startNewGame-function');
     var newPlayer;
 
@@ -154,30 +135,50 @@ exports.startNewGame = function(userId, nickname, guild, socket, callback){
                 user.player = newPlayer;
                 user.save(function(err){
                     if(err){ console.error(err); return;}
+                    console.log(newPlayer);
+                    Texter.welcome(newPlayer);
                 });
              }
          }).exec()
         .then(function(){
             // finally get the room
             Room.findOne({'id':'0'},function(err, room){
-                //console.log('hello from startNewGame - find room');
-                if(err){console.error(err); return;}
-                room.initialize();
-                room.announce(newPlayer); 
-                RoomManager.addPlayerToRoom(room.id, newPlayer);
+                    if(err){console.error(err); return;}
 
-            }).exec()
-            .then(function(room){
+                    if(room){
+                        room.setListeners();
+                        room.announce(newPlayer);
+                        RoomManager.addPlayerToRoom(room.id, newPlayer);
 
-                var roomies = RoomManager.getPlayersInRoom(room.id);
+                        
+                    }
+                }).populate('npcs').exec(function(err){if(err){console.error(err); return;};})
+                    .then(function(room){
+                    Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+                        if(err){console.error(err); return;}
 
-                var game = {
-                    online  :   users,
-                    player  :   newPlayer,
-                    room    :   room,
-                    roomies :   roomies
-                };
-                return callback(game);
+                        if(npcs.length >0){
+
+                            Texter.write('There is '+ grammatize(npcs) +' in the room.', newPlayer.socketId);
+
+                            npcs.forEach(function(npc){
+                                console.log(npc.keyword +' has item '+npc.inventory[0]);
+                                npc.setListeners();
+                                npc.playerEnters(newPlayer);
+
+                            });
+                        }
+
+                    var roomies = RoomManager.getPlayersInRoom(room.id);
+
+                    var game = {
+                        online  :   users,
+                        player  :   newPlayer,
+                        room    :   room,
+                        roomies :   roomies
+                    };
+                   return callback(game);
+                    });
             });
         });
     });
@@ -187,10 +188,10 @@ exports.removePlayer = function(socket, callback){
     
     if(users.length > 0){ // in case server shut down and avoid negative numbers
         --numUsers;
+        //TODO: take socket out of clients, then update texter
         Texter.updateSockets(clients);
         var disconnected = users.indexOf(socket.pseudo);
         users.splice(disconnected, 1);
-        
         // use instead socket.nickname to search for player in roomarray in roommanager
         var roomies = RoomManager.removePlayerFromRoom(socket.roomId, socket.pseudo, 
                                         RoomManager.getPlayersInRoom(socket.roomId));
@@ -238,16 +239,16 @@ exports.test = function(roomId) {
 };
 
 exports.changeRoom = function(oldRoom, newRoomId, player, callback){
-
+    
     Room.findOne({id: newRoomId})
     .populate('npcs')
     .exec(function(err) {
         if(err){console.error(err); return;}
       
     }).then(function(newRoom){
-        console.log('inside test: '+newRoom);
-        console.log('item: '+newRoom.npcs[0].inventory[0]);
-        console.log('health: '+newRoom.npcs[0].attributes['health']);
+        
+        newRoom.setListeners();
+        newRoom.announce(player);
         Item.populate(newRoom.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
             if(err){console.error(err); return;}
             
@@ -257,29 +258,22 @@ exports.changeRoom = function(oldRoom, newRoomId, player, callback){
                 npc.emit('playerEnters', player);
 
             });
+            //remove player from old roomlist and add to new roomlist
+            RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
+            RoomManager.addPlayerToRoom(newRoom.id, player)); 
 
-                console.log('hello from where we send the data back to ');
-                //remove player from old roomlist and add to new roomlist
-                RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
-                RoomManager.addPlayerToRoom(newRoom.id, player)); 
+            var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
+            var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
 
-                var newRoomies = RoomManager.getPlayersInRoom(newRoom.id);
-                var oldRoomies = RoomManager.getPlayersInRoom(oldRoom.id);
-
-
-                var data ={
-                    'newRoomies'    : newRoomies,
-                    'oldRoomies'    : oldRoomies,
-                    'newRoom'       : newRoom,
-                    'npcs'          : newRoom.npcs,
-                    'inventory'     : newRoom.inventory
-                };     
-                
-                newRoom.announce(player);
-
-                callback(data);
-            }); 
-        });
+            var data ={
+                'newRoomies'    : newRoomies,
+                'oldRoomies'    : oldRoomies,
+                'newRoom'       : newRoom
+            }; 
+            
+            callback(data);
+        }); 
+    });
 };
 
 exports.insertTestItem = function(){
@@ -555,3 +549,31 @@ exports.getNpc = function(){
 //    });
     
 };
+
+
+// order a list of keywords grammatically correct
+function grammatize(oArray){
+    var length = oArray.length;
+    var string = '';
+    
+    switch(true){
+        case(length == 2):{
+                string = 'a '+oArray[0].keyword+' and a '+oArray[1].keyword;
+                break;  
+            }
+        case(length >2):{
+                for(var i=0; i<length; i++){
+                   if(i == length-1){
+                       string = string +' and a'+oArray[i].keyword;
+                   }else {
+                       string = string +'a '+ oArray[i].keyword +', '
+                   } 
+                }
+            }
+        case(length == 1):{
+                string = 'a '+oArray[0].keyword;
+                break;
+        }
+    }
+    return string;
+}

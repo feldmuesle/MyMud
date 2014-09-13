@@ -99,13 +99,13 @@ module.exports.response = function(socket){
         });  
     }); // socket.on'check nickname' end
     
-    socket.on('loadGame1', function(data){
+    socket.on('loadGame', function(data){
         var userId = data['userId'];
         var playersOnline;
         var playersInRoom;
         
         
-        Game.loadGame1(userId, socket, function(data){
+        Game.loadGame(userId, socket, function(data){
           // configure socket of player
             console.log('hello from loadGame1-callback-function');
             data['player'].socketId = socket.id;
@@ -114,7 +114,6 @@ module.exports.response = function(socket){
             socket.roomId = data['room'].id;
             socket.join(data['room'].name);
             
-            console.log('just begor socket.emit');
             
             // send the game to the client
             socket.emit('start game', {
@@ -124,7 +123,6 @@ module.exports.response = function(socket){
                 roomies :   data['roomies']
             });
             
-            console.log('just begor socket.emit');
             
             // set variables to broadcast, since socket.broadcast has to be done outside of this callback!            
             var broadcast = {
@@ -158,66 +156,6 @@ module.exports.response = function(socket){
             });
             
         });  
-    });
-    
-    // load a game from db, if the user already has a game saved
-    socket.on('loadGame', function(data){        
-        
-        var userId = data['userId'];
-        var playersOnline;
-        var playersInRoom;
-        
-        Game.loadGame(userId, socket, function(game){ 
-            
-            // configure socket of player
-            game['player'].socketId = socket.id;
-            socket.pseudo = game['player'].nickname;
-            socket.room = game['room'].name;
-            socket.roomId = game['room'].id;
-            socket.join(game['room'].name);
-            
-            
-            // send the game to the client
-            socket.emit('start game', {
-                player  :   game['player'],
-                room    :   game['room'],
-                users   :   game['online'],
-                roomies :   game['roomies']
-            });
-            
-            // set variables to broadcast, since socket.broadcast has to be done outside of this callback!            
-            var broadcast = {
-                currSocket  :   socket,
-                players     :   game['online'],
-                roomies     :   game['roomies']
-            };
-            
-            // broadcast to all players online and update players-online-list
-            eventEmitter.emit('broadcast user joined', broadcast);
-            
-            //broadcast new playerlist to players in same room 
-            eventEmitter.emit('broadcast players in room', broadcast);
-            
-        });// function loadGame-callback -> end        
-        
-        eventEmitter.once('broadcast user joined', function(data){
-                        
-            socket.broadcast.emit('user joined',{
-                username    :   data['currSocket'].pseudo,
-                numUsers    :   data['players'].length,
-                usersOnline :   data['players']
-            });
-        });   
-        
-        eventEmitter.once('broadcast players in room', function(data){
-            
-            socket.broadcast.to(socket.room).emit('playerlist',{
-                playersInRoom   :  data['roomies'],
-                currRoom        :  data['currSocket'].room
-            });
-            
-        });  
-        
     }); // socket.on 'load game' -> end
 } // codeblock GameStart -> end
 
@@ -258,8 +196,6 @@ module.exports.response = function(socket){
             var room = data['newRoom'];
             var oldRoomies = data['oldRoomies'];
             var newRoomies = data['newRoomies'];
-            var npcs = data['npcs'];
-            var inventory = data['inventory'];
             
             //console.log('npcs in socket-callback '+npcs);
             // save new room in sockets session
@@ -272,11 +208,8 @@ module.exports.response = function(socket){
             // let the player enter new room and update his players-in-room-list
             console.log('data to user in new room '+room.id+' sent');
             socket.emit('enterRoom',{
-                action  : oldRoom.exits[index].action,
                 roomies : newRoomies,
-                room    : room,
-                npcs    : npcs,
-                inventory: inventory
+                room    : room
            }); 
            
            // get needed data for broadcasting to players in old room

@@ -46,9 +46,7 @@ PlayerSchema.methods.setUpListeners = function(socket){
     // set up listener
     self.on('write', function(data){
         var self = this || mongoose.model('Player'); 
-        console.log('hello from player.write-listener: '+data['message']);
-        console.log('socket:'+self.socketId);
-        socket.emit('output', data);
+        console.log('here is player-event: '+data['message']);
     }); 
 };
 

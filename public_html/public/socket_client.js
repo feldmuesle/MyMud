@@ -39,7 +39,6 @@ $(document).ready(function(){
         player = data['player'];
         online = data['users'];
         roomies = data['roomies'];
-        var welcome = 'Welcome '+player.nickname+ ', ' + online.length +' users online';
         
         // display the game-interface on screen
         gameInit();          
@@ -47,10 +46,6 @@ $(document).ready(function(){
         displayRoomPlayerlist( roomies, room.name);
         displayPlayerlist(online); 
 
-        // display text on screen in typewriter-style
-        textStream.add(welcome);
-        textStream.add(room.description);
-        highlightKeywords(room.exits);
         
     });
 
@@ -78,39 +73,10 @@ $(document).ready(function(){
     // change room
     socket.on('enterRoom', function(data){
        room = data['room'];
-       console.log(room);
        var roomies = data['roomies'];
        displayRoomPlayerlist(roomies, room.name);
        setLocation(room.name);
-       textStream.add(room.description);
-       
-       
-       if(data['npcs'].length >0){
-           var npcs = data['npcs'];
-           for(var i=0; i<npcs.length; i++){
-               textStream.add(npcs[i].shortDesc);
-               
-               if(npcs[i].inventory.length > 0){
-                   for(var j=0; j<npcs[i].inventory.length; j++){
-                       textStream.add('The '+npcs[i].keyword+ ' has a '+npcs[i].inventory[j].keyword);
-                   }
-               }               
-           }
-       }else {
-           console.log('no npcs in room'); 
-       }  
-       
-       if(data['inventory'].length >0){
-           var inventory = data['inventory'];
-           for(var i=0; i<inventory.length; i++){
-               textStream.add('there is '+inventory[i].shortDesc);
-           }
-       }else {
-           console.log('no items in room'); 
-       }  
-       
-       highlightKeywords(room.exits);
-       
+     
     });
     
     // inform when there's traffic in the room

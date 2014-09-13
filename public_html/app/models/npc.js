@@ -72,23 +72,35 @@ NpcSchema.statics.getInventory = function(objectId){
 
 NpcSchema.methods.getItems = function(){
     return this.model('Npc').findOne({'id': this.id})
-            .populate('inventory').exec(function(err, items ){
+            .populate('inventory').exec(function(err, npc ){
                 if(err){console.error(err); return;}
-                console.log('item in'+ this.keyword+'\'s inventory: '+items);
+//                console.log('item in '+ npc.keyword+'\'s inventory: '+npc.inventory);
             });
 };
 
-NpcSchema.methods.playerEnters = function(){
-    console.log('hello from Npc-emit-testEvent');
-    this.emit('playerEnters');
+NpcSchema.methods.playerEnters = function(player){
+    console.log('hello from Npc-emit-playerEnters-Event');
+    this.emit('playerEnters', player);
 };
 
 NpcSchema.methods.setListeners = function(){
     console.log('Listeners for npc set');
+    
+    this.getItems();
     var self = this || mongoose.model('Npc');
+    
     self.on('playerEnters', function(player){
-        Texter.write('The ' + self.keyword +' says: "'
+        
+        var rand = Math.floor(Math.random()* 3);
+        if(rand == 2){
+            console.log('you hit lucky '+rand); 
+            Texter.write('The ' + self.keyword +' says: "'
                 +self.behaviours['playerEnters']+'"', player.socketId);
+        
+            Texter.write('The ' + self.keyword +' has '
+                +grammatize(self.inventory)+' somewhere in his pockets.', player.socketId);
+        }
+        
     });
 };
 
@@ -135,3 +147,29 @@ var NpcModel = mongoose.model('Npc',NpcSchema);
 module.exports = NpcModel;
 
 
+// order a list of keywords grammatically correct
+function grammatize(oArray){
+    var length = oArray.length;
+    var string = '';
+    
+    switch(true){
+        case(length == 2):{
+                string = 'a '+oArray[0].keyword+' and a '+oArray[1].keyword;
+                break;  
+            }
+        case(length >2):{
+                for(var i=0; i<length; i++){
+                   if(i == length-1){
+                       string = string +' and a'+oArray[i].keyword;
+                   }else {
+                       string = string +'a '+ oArray[i].keyword +', ';
+                   } 
+                }
+            }
+        case(length == 1):{
+                string = 'a '+oArray[0].keyword;
+                break;
+        }
+    }
+    return string;
+}
