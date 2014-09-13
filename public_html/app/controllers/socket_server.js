@@ -11,6 +11,7 @@ var users = []; //array of users that are currently connected
 var numUsers =0;
 
 // get all the models we need
+var Texter = require('./texter.js');
 var User = require('../models/user.js');
 var Game = require('./game_functions.js');
 
@@ -98,6 +99,67 @@ module.exports.response = function(socket){
         });  
     }); // socket.on'check nickname' end
     
+    socket.on('loadGame1', function(data){
+        var userId = data['userId'];
+        var playersOnline;
+        var playersInRoom;
+        
+        
+        Game.loadGame1(userId, socket, function(data){
+          // configure socket of player
+            console.log('hello from loadGame1-callback-function');
+            data['player'].socketId = socket.id;
+            socket.pseudo = data['player'].nickname;
+            socket.room = data['room'].name;
+            socket.roomId = data['room'].id;
+            socket.join(data['room'].name);
+            
+            console.log('just begor socket.emit');
+            
+            // send the game to the client
+            socket.emit('start game', {
+                player  :   data['player'],
+                room    :   data['room'],
+                users   :   data['online'],
+                roomies :   data['roomies']
+            });
+            
+            console.log('just begor socket.emit');
+            
+            // set variables to broadcast, since socket.broadcast has to be done outside of this callback!            
+            var broadcast = {
+                currSocket  :   socket,
+                players     :   data['online'],
+                roomies     :   data['roomies']
+            };
+            
+            // broadcast to all players online and update players-online-list
+            eventEmitter.emit('broadcast user joined', broadcast);
+            
+            //broadcast new playerlist to players in same room 
+            eventEmitter.emit('broadcast players in room', broadcast);
+            
+        });// function loadGame-callback -> end        
+        
+        eventEmitter.once('broadcast user joined', function(data){
+                        
+            socket.broadcast.emit('user joined',{
+                username    :   data['currSocket'].pseudo,
+                numUsers    :   data['players'].length,
+                usersOnline :   data['players']
+            });
+        });   
+        
+        eventEmitter.once('broadcast players in room', function(data){
+            
+            socket.broadcast.to(socket.room).emit('playerlist',{
+                playersInRoom   :  data['roomies'],
+                currRoom        :  data['currSocket'].room
+            });
+            
+        });  
+    });
+    
     // load a game from db, if the user already has a game saved
     socket.on('loadGame', function(data){        
         
@@ -105,7 +167,7 @@ module.exports.response = function(socket){
         var playersOnline;
         var playersInRoom;
         
-        Game.loadGame(userId, function(game){ 
+        Game.loadGame(userId, socket, function(game){ 
             
             // configure socket of player
             game['player'].socketId = socket.id;

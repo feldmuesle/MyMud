@@ -4,14 +4,18 @@ This file contains game-functions for mangaging the game overall (e.g. starting,
 
 var users = []; //array of users that are currently connected
 var numUsers =0;
+var clients = [];
 
 var Guild = require('../models/guilds.js');
-var PlayerModel = require('../models/player.js');
 var User = require('../models/user.js');
 var Room = require ('../models/room.js');
-var RoomManager = require ('../models/helper_models/room_manager.js');
+var PlayerModel = require('../models/player.js');
 var Npc = require('../models/npc.js');
 var Item = require('../models/item.js');
+
+var RoomManager = require ('../models/helper_models/room_manager.js');
+var Texter = require('./texter.js');
+
 
 // get all users currently online
 exports.getUsers = function(){ return users;  };
@@ -19,11 +23,60 @@ exports.getUsers = function(){ return users;  };
 exports.getNumUsers = function(){ return numUsers;};
 
 // load an existing game by userId
-exports.loadGame = function(userId, callback){
+exports.loadGame1 = function(userId, socket, callback){
+    
+    clients.push(socket);
+    Texter.updateSockets(clients);
+    Texter.addListeners();
+    
+    User.findOne({'_id': userId}, function(err, user){
+        if(err){console.error(err); return;}
+
+        if(user.player){
+
+            users.push(user.player[0].nickname);
+            numUsers++;
+
+            user.player[0].socketId = socket.id;
+            user.save(function(err){
+                if(err){console.error(err); return;}
+                console.log('user has been saved new socket: '+socket.id);
+
+            Room.findOne({'id' : user.player[0].location}, function(err, room){
+                if(err){console.error(err); return;}
+
+                if(room){
+                    room.setListeners();
+                    room.announce(user.player[0]);
+                    RoomManager.addPlayerToRoom(room.id, user.player[0]);
+                    //console.log('hello from promise. Room is' +room.name);
+                }
+            }).exec()
+                .then(function(room){
+                    var roomies = RoomManager.getPlayersInRoom(room.id);
+
+                    var game = {
+                        online  :   users,
+                        player  :   user.player[0],
+                        room    :   room,
+                        roomies :   roomies
+                    };
+                   return callback(game);
+
+                }); 
+            });
+        }
+    });
+};
+
+exports.loadGame = function(userId, socket, callback){
         User.findOne({'_id': userId}, function(err, user){
             if(err){console.error(err); return;}
                 //console.log('hello from find user');
             if(user.player){
+                console.log('player trying to emit write-event.');
+                user.player[0].initialize(socket);
+                user.player[0].write('This is a player-event-writing-test');
                 //console.log('user with nickname '+ user.player[0].nickname +' found');
                 users.push(user.player[0].nickname);
                 numUsers++;
@@ -37,9 +90,11 @@ exports.loadGame = function(userId, callback){
                 if(err){console.error(err); return;}
 
                 if(room){
-                    RoomManager.addPlayerToRoom(room.id, user.player[0]);
+                    //  room.setListeners();
                     room.announce(user.player[0]);
-                    //console.log('hello from promise. Room is' +room.name);
+                    RoomManager.addPlayerToRoom(room.id, user.player[0]);
+                    
+                    console.log('hello from promise. Room is' +room.name);
                 }
             }).exec()
             .then(function(room){
@@ -132,6 +187,7 @@ exports.removePlayer = function(socket, callback){
     
     if(users.length > 0){ // in case server shut down and avoid negative numbers
         --numUsers;
+        Texter.updateSockets(clients);
         var disconnected = users.indexOf(socket.pseudo);
         users.splice(disconnected, 1);
         
@@ -197,6 +253,8 @@ exports.changeRoom = function(oldRoom, newRoomId, player, callback){
             
             npcs.forEach(function(npc){
                 console.log(npc.keyword +' has item '+npc.inventory[0]);
+                npc.setListeners();
+                npc.emit('playerEnters', player);
 
             });
 

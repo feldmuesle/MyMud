@@ -5,6 +5,7 @@ Model for Non-person-characters
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Item = require('./item.js');
+var Texter = require ('../controllers/texter.js');
 
 //var autoIncrement = require('mongoose-auto-increment');
 var NpcSchema = new Schema({
@@ -78,8 +79,17 @@ NpcSchema.methods.getItems = function(){
 };
 
 NpcSchema.methods.playerEnters = function(){
-    console.log('hello from emit-testEvent');
+    console.log('hello from Npc-emit-testEvent');
     this.emit('playerEnters');
+};
+
+NpcSchema.methods.setListeners = function(){
+    console.log('Listeners for npc set');
+    var self = this || mongoose.model('Npc');
+    self.on('playerEnters', function(player){
+        Texter.write('The ' + self.keyword +' says: "'
+                +self.behaviours['playerEnters']+'"', player.socketId);
+    });
 };
 
 // initialize with config
@@ -109,10 +119,10 @@ NpcSchema.methods.initialize = function(config){
     }
     
     // set up listeners
-    this.on('playerEnters', function(){        
-        console.log('The ' + this.keyword +' says: "'+self.behaviours['playerEnters']+'"'); 
-     });
+    this.setListerner();
 };
+
+
 
 var NpcModel = mongoose.model('Npc',NpcSchema);
 //NpcModel.on('test', function(){

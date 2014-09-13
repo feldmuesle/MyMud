@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var PlayerModel = require('./player.js');
 var Npc = require('./npc.js');
+var Texter = require ('../controllers/texter.js');
 
 
 var ExitSchema = new Schema({ 
@@ -174,20 +175,27 @@ exits){
 }
 
 // setting up event-listeners like this 
-RoomSchema.methods.initialize = function(){
-    var self = this;
+RoomSchema.methods.setListeners = function(){
+    console.log('listerners for room set.');
+    var self = this || mongoose.model('Room'); 
     
     // set up listeners
-    self.on('player enters', function(data){
-        console.log(data['player'].nickname +' enters '+self.name);
+    self.on('playerEnters', function(data){
+        console.log(data['nickname'] +' enters '+self.name);
+        // write room-description
+        Texter.write (self.description, data['socketId']);
+        // write exits-description
+        for (var i=0; i< self.exits.length; i++){
+            Texter.write(self.exits[i].description, data['socketId']);
+        }
+        
     });    
 };
 
 // emit event: players enters room
 RoomSchema.methods.announce = function(player){
-    console.log('hello from room.announce()');
     var self = this || mongoose.model('Room');    
-    self.emit('player enters', {'player' : player});
+    self.emit('playerEnters', player);
 };
 
 //RoomModel = function(){

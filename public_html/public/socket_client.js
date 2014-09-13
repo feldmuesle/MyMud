@@ -21,7 +21,8 @@ $(document).ready(function(){
     
     // simply output a message to the client
     socket.on('output', function(data){
-        appendToChat('info', data['message']);
+        console.log('so you wanna output something'+data['message']);
+        textStream.add(data['message']);
     });
     
     // if nickname is already taken when starting new game

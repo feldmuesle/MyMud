@@ -31,7 +31,7 @@ $(function(){
   
 // initialize game with existing player
 function loadGame(){    
-    socket.emit('loadGame', {'userId' : user._id}); 
+    socket.emit('loadGame1', {'userId' : user._id}); 
 }
 
 // check if entered nickname is unique -> if yes, new game is initialized
@@ -166,7 +166,7 @@ function slideGameSignup(){
         }else {
             setTimeout(function(){
                 type(text, pos+1, el);
-            },60);   
+            },40);   
         }        
     }
 

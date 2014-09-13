@@ -23,24 +23,37 @@ var PlayerSchema = Schema({
 });
 
 
+
+PlayerSchema.set('toObject', {getters : true});
+
 // set all default-values and set up event-listeners
 PlayerSchema.methods.initialize = function(socket){
     console.log('hello from the players init-function');
-    var self = this;
+    var self = this || mongoose.model('Player'); 
     self.socketId = socket.id;
     self.location = 0;
     self.attributes['maxHealth'] = 100;
     self.attributes['health'] = self.attributes['maxHealth'];
     
-    // set up listener
-    self.on('write', function(data){
-        console.log('hello from player.write-listener: '+data['message']);
-        socket.emit('output', data);
-    }); 
+    self.setUpListeners(socket);
        
 };
 
+PlayerSchema.methods.setUpListeners = function(socket){
+    
+    var self = this || mongoose.model('Player'); 
+    
+    // set up listener
+    self.on('write', function(data){
+        var self = this || mongoose.model('Player'); 
+        console.log('hello from player.write-listener: '+data['message']);
+        console.log('socket:'+self.socketId);
+        socket.emit('output', data);
+    }); 
+};
+
 PlayerSchema.methods.write = function(message){
+    console.log('hello from methods.write: '+message);
     
     this.emit('write', {'message'   : message});
 };
