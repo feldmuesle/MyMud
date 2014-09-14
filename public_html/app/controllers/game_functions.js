@@ -15,6 +15,7 @@ var Item = require('../models/item.js');
 
 var RoomManager = require ('../models/helper_models/room_manager.js');
 var Texter = require('./texter.js');
+var Helper = require('./helper_functions.js');
 
 
 // get all users currently online
@@ -48,26 +49,24 @@ exports.loadGame = function(userId, socket, callback){
                     if(err){console.error(err); return;}
 
                     if(room){
-                        room.setListeners();
-                        room.announce(player);
-                        RoomManager.addPlayerToRoom(room.id, player);
-
                         
+                        RoomManager.addPlayerToRoom(room.id, player);                        
                     }
                 }).populate('npcs').exec(function(err){if(err){console.error(err); return;};})
                     .then(function(room){
                     Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
                         if(err){console.error(err); return;}
-
-                        if(npcs.length >0){
-
-                            Texter.write('There is '+ grammatize(npcs) +' in the room.', player.socketId);
-
+                        
+                        // now that we got all stuff, let room and npc handle it
+                        room.setListeners();
+                        room.announce(player); // writes description to player
+                        
+                        if(npcs.length >0){                            
+                            
                             npcs.forEach(function(npc){
 //                                console.log(npc.keyword +' has item '+npc.inventory[0]);
                                 npc.setListeners();
                                 npc.playerEnters(player);
-
                             });
                         }
 
@@ -209,6 +208,131 @@ exports.removePlayer = function(socket, callback){
     }
 };
 
+exports.checkCommand = function(commands, player, room, callback){
+    
+    // if there's only one word
+    if(commands.length < 2){
+        var msg = '*'+commands[0]+' alone won\'t work. You are missing arguments.';
+        Texter.write(msg, player.socketId);
+        return;
+    }    
+    
+    switch(commands[0]){
+
+        case 'look': 
+                
+                console.log('hello from look');
+                var who = commands[1];
+                // check if there are npcs and check them if there are any
+                var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
+                var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', who);
+                var playerI = users.indexOf(who);
+                console.log(npcI);
+                console.log(itemI);
+                
+                switch(true){
+                    case (who == room.name):
+                        console.log('look at '+who);
+                        Room.getRoomWithNpcs(room.id).exec(function(err,room){
+                            if(err){console.error(err); return;}
+                            room.setListeners();
+                            room.look(player);                            
+                        });
+                        break;
+                    case (npcI != null):
+                        console.log('look at npc '+who);
+                        Npc.getInventory(room.npcs[npcI]['_id']).exec(function(err,npc){
+                            if(err){console.error(err); return;}
+                            npc.setListeners();
+                            npc.look(player);                            
+                        });
+                        break;
+                    
+                    case (itemI != null):
+                        console.log('look at itm '+who);
+                        Item.findOne({'_id':room.inventory[itemI]['_id']}).exec(function(err,item){
+                            if(err){console.error(err); return;}
+                            item.setListeners();
+                            item.look(player);                            
+                        });
+                        break;
+                    
+                    case (playerI != null && who == users[playerI]):
+                        var msg = 'It\'s not polite to stare at other people.';
+                        Texter.write(msg, player.socketId);
+                        break;
+                
+                    default:
+                        var msg = 'There\'s nothing to look at my dear.';
+                        Texter.write(msg, player.socketId);
+                        break;
+                
+                }
+                break;
+            
+
+        case "attack":
+            console.log('hello from look');
+            var who = commands[1];
+            // check if there are npcs and check them if there are any
+            var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
+            var playerI = users.indexOf(who);
+            
+            switch(true){
+                    case (npcI != null):
+                        console.log('look at npc '+who);
+                        Npc.getInventory(room.npcs[npcI]['_id']).exec(function(err,npc){
+                            if(err){console.error(err); return;}
+                            npc.setListeners();
+                            npc.emit('defend',player);                            
+                        });
+                        break;
+                    
+                    case (playerI != null && who == users[playerI]):
+                        var msg = 'It\'s not polite to stare at other people.';
+                        PlayerModel.findOne({'_id': player._id}).exec(function(err, attacker){
+                            if(err){console.error(err); return;}
+                            console.log('we got the player');
+                            console.log('attacker:'+attacker);
+                            
+                        }).then(function(){
+                            PlayerModel.findOne({'nickname': users[playerI] }).exec(function(err, defender){
+                            if(err){console.error(err); return;}
+                            console.log('defender:'+defender);
+                        }).then(function(){
+                            console.log('we got them both!');
+                        });
+                        });
+                        Texter.write(msg, player.socketId);
+                        break;
+                
+                    default:
+                        var msg = 'There\'s nothing to look at my dear.';
+                        Texter.write(msg, player.socketId);
+                        break;
+                
+                }
+                //TODO: check for what to look at and get it if we can
+                //check for commands[1]
+                //->check for player through room-manager and fight if true
+                //->check room for npcs and fight if true
+                //->check if npcs are pacifists, fight accordingly
+                break;           
+
+
+        // if command isn't found
+        default:
+                var msg ='\'';
+                for(var i=0; i<commands.length; i++){
+                    msg += commands[i]+ ' ';
+                }
+
+                msg +='\' is not a valid command. Maybe you mispelled something?';
+                Texter.write(msg, player.socketId);
+                break;  
+            }
+      
+};
 
 exports.test = function(roomId) {
   Room.findOne({id: roomId})
@@ -551,29 +675,3 @@ exports.getNpc = function(){
 };
 
 
-// order a list of keywords grammatically correct
-function grammatize(oArray){
-    var length = oArray.length;
-    var string = '';
-    
-    switch(true){
-        case(length == 2):{
-                string = 'a '+oArray[0].keyword+' and a '+oArray[1].keyword;
-                break;  
-            }
-        case(length >2):{
-                for(var i=0; i<length; i++){
-                   if(i == length-1){
-                       string = string +' and a'+oArray[i].keyword;
-                   }else {
-                       string = string +'a '+ oArray[i].keyword +', '
-                   } 
-                }
-            }
-        case(length == 1):{
-                string = 'a '+oArray[0].keyword;
-                break;
-        }
-    }
-    return string;
-}

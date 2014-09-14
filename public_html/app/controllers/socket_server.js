@@ -254,4 +254,17 @@ module.exports.response = function(socket){
          });   
         
     }); // socket.on 'changeRoom' -> end
+    
+    
+    /******** CHANGE ROOM ****************************************************************/
+    socket.on('command', function(data){
+        var commands = data['command'];
+        var player = data['player'];
+        var room = data['room'];
+        Game.checkCommand(commands, player, room, function(response){
+            
+        });
+        
+    });
+    
 }; // module.exports.response -> end

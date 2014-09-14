@@ -11,8 +11,7 @@ var room;
 var exits = [];
 var usersOnline = [];
 var playersInRoom = [];
-var hitWhere = ['right on the nose','on the shinbone', 'in the butt', 'on the left toe'];
-var hitHow = ['hit', 'kick', 'bite', 'knock'];
+
 
 $(document).ready(function(){   
     

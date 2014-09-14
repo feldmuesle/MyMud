@@ -5,6 +5,7 @@ var Schema = mongoose.Schema;
 var PlayerModel = require('./player.js');
 var Npc = require('./npc.js');
 var Texter = require ('../controllers/texter.js');
+var Helper = require('../controllers/helper_functions.js');
 
 
 var ExitSchema = new Schema({ 
@@ -78,15 +79,19 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds){
         
 };
 
-RoomSchema.statics.getNpcs = function(roomId){
+RoomSchema.statics.getRoomById = function(roomId){
     var RoomModel = this || mongoose.model('Room');
-    RoomModel.findOne({'id':roomId}, function(err, room){
+    
+    return RoomModel.findOne({'id':roomId}, function(err, room){
         if(err){console.error(err); return;}
-    }).populate('npcs').exec(function(err, room){
-        if(err){console.error(err); return;}
-        console.log('Room.getNpc: '+room);
-        return room;
+    
     });
+};
+
+RoomSchema.statics.getRoomWithNpcs = function(roomId){
+    var RoomModel = this || mongoose.model('Room');
+    return RoomModel.findOne({'id':roomId}, function(){
+    }).populate('npcs inventory');
 };
 
 
@@ -189,13 +194,38 @@ RoomSchema.methods.setListeners = function(){
             Texter.write(self.exits[i].description, data['socketId']);
         }
         
-    });    
+    });  
+    
+    self.on('look', function(data){
+        console.log(data['nickname'] +' enters '+self.name);
+        console.log(self);
+        // write room-description
+        Texter.write (self.description, data['socketId']);
+        // write exits-description
+        for (var i=0; i< self.exits.length; i++){
+            Texter.write(self.exits[i].description, data['socketId']);
+        }
+        if(self.npcs.length > 0){
+            Texter.write('There is '+Helper.grammatize(self.npcs) +' in the room.', data['socketId']);
+        }        
+        
+        //TODO: populate also inventory if there is
+        if(self.inventory.length > 0){
+            Texter.write('Also you see '+ Helper.grammatize(self.inventory)+' laying around.', data['socketId']);
+        } 
+    });  
 };
 
 // emit event: players enters room
 RoomSchema.methods.announce = function(player){
     var self = this || mongoose.model('Room');    
     self.emit('playerEnters', player);
+};
+
+// give close description on room
+RoomSchema.methods.look = function(player){
+    var self = this || mongoose.model('Room');    
+    self.emit('look', player);
 };
 
 //RoomModel = function(){

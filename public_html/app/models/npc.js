@@ -5,7 +5,9 @@ Model for Non-person-characters
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Item = require('./item.js');
+var Behaviours = require('../controllers/behaviours.js');
 var Texter = require ('../controllers/texter.js');
+var Helper = require('../controllers/helper_functions.js');
 
 //var autoIncrement = require('mongoose-auto-increment');
 var NpcSchema = new Schema({
@@ -22,12 +24,12 @@ var NpcSchema = new Schema({
     maxLoad     :   Number,
     pacifist      :   { type:Boolean, default:true},
     inventory   :   [{type:Schema.ObjectId, ref:'Item'}],
-    behaviours   :{
+    actions   :{
             playerEnters    :   String,
             playerDrops     :   String,
             playerChat      :   [String]
         },
-    skills      :   [String]
+    behaviours      :   [String]
 });
 
 
@@ -61,13 +63,15 @@ NpcSchema.statics.createNpcinDB = function(npcConf, items){
 
 NpcSchema.statics.getInventory = function(objectId){
     var NpcModel = this || mongoose.model('Npc');
-    NpcModel.findOne({'_id':objectId}, function(err, npc){
+    return NpcModel.findOne({'_id':objectId}, function(err, npc){
         if(err){console.error(err); return;}
-    }).populate('inventory').exec(function(err, npc){
-        if(err){console.error(err); return;}
-        console.log('Npc.getInventory: '+npc);
-        return npc;
-    });
+    }).populate('inventory');
+};
+
+NpcSchema.statics.getRoomWithNpcs = function(roomId){
+    var RoomModel = this || mongoose.model('Room');
+    return RoomModel.findOne({'id':roomId}, function(){
+    }).populate('npcs inventory');
 };
 
 NpcSchema.methods.getItems = function(){
@@ -83,6 +87,12 @@ NpcSchema.methods.playerEnters = function(player){
     this.emit('playerEnters', player);
 };
 
+// give close description on room
+NpcSchema.methods.look = function(player){
+    var self = this || mongoose.model('Npc');    
+    self.emit('look', player);
+};
+
 NpcSchema.methods.setListeners = function(){
     console.log('Listeners for npc set');
     
@@ -95,12 +105,48 @@ NpcSchema.methods.setListeners = function(){
         if(rand == 2){
             console.log('you hit lucky '+rand); 
             Texter.write('The ' + self.keyword +' says: "'
-                +self.behaviours['playerEnters']+'"', player.socketId);
+                +self.actions['playerEnters']+'"', player.socketId);
         
             Texter.write('The ' + self.keyword +' has '
-                +grammatize(self.inventory)+' somewhere in his pockets.', player.socketId);
-        }
+                +Helper.grammatize(self.inventory)+' somewhere in his pockets.', player.socketId);
+        }        
+    });
+    
+    self.on('attack', function(player){
         
+        var rand = Math.floor(Math.random()* 3);
+        if(rand == 2){
+            console.log('you hit lucky '+rand); 
+            Texter.write('The ' + self.keyword +' says: "'
+                +self.actions['playerEnters']+'"', player.socketId);
+        
+            Texter.write('The ' + self.keyword +' has '
+                +Helper.grammatize(self.inventory)+' somewhere in his pockets.', player.socketId);
+        }        
+    });
+    
+    self.on('look', function(data){
+        // write description
+        var rand = Math.floor(Math.random()* self.actions['playerChat'].length);
+        Texter.write (self.description, data['socketId']);
+        Texter.write('The ' + self.keyword +' says: "'
+                +self.actions['playerChat'][rand]+'"', data['socketId']);
+        
+        // populate also inventory if there is
+        if(self.inventory.length > 0){
+            Texter.write('The ' + self.keyword +' has '
+                +Helper.grammatize(self.inventory)+' somewhere in his pockets.', data['socketId']);
+        } 
+    });  
+    
+    self.on('attack', function(player){
+        console.log(player['nickname'] +' wants to fight ');
+        Behaviours.fight.hit(self, player);
+    });
+    
+    self.on('defend', function(player){
+        console.log(player['nickname'] +' wants to fight ');
+        Behaviours.fight.parry(self, player);
     });
 };
 
@@ -120,14 +166,14 @@ NpcSchema.methods.initialize = function(config){
     self.description = config.description;
     self.maxLoad = config.maxLoad;
     self.inventory =[];
-    self.behaviours = {
-        playerEnters    :   config.behaviours['playerEnters'],
-        playerDrops     :   config.behaviours['playerDrops'],
+    self.actions = {
+        playerEnters    :   config.actions['playerEnters'],
+        playerDrops     :   config.actions['playerDrops'],
         playerChat      :   []
     };
     
-    for(var i = 0; i< config.behaviours['playerChat'].length; i++){
-        self.behaviours['playerChat'].push(config.behaviours['playerChat'][i]);
+    for(var i = 0; i< config.actions['playerChat'].length; i++){
+        self.actions['playerChat'].push(config.actions['playerChat'][i]);
     }
     
     // set up listeners
@@ -137,39 +183,6 @@ NpcSchema.methods.initialize = function(config){
 
 
 var NpcModel = mongoose.model('Npc',NpcSchema);
-//NpcModel.on('test', function(){
-//   console.log('Testevent on NpcModel'); 
-//});
-//
-//var npc = new NpcModel();
-//npc.testEvent();
-
 module.exports = NpcModel;
 
 
-// order a list of keywords grammatically correct
-function grammatize(oArray){
-    var length = oArray.length;
-    var string = '';
-    
-    switch(true){
-        case(length == 2):{
-                string = 'a '+oArray[0].keyword+' and a '+oArray[1].keyword;
-                break;  
-            }
-        case(length >2):{
-                for(var i=0; i<length; i++){
-                   if(i == length-1){
-                       string = string +' and a'+oArray[i].keyword;
-                   }else {
-                       string = string +'a '+ oArray[i].keyword +', ';
-                   } 
-                }
-            }
-        case(length == 1):{
-                string = 'a '+oArray[0].keyword;
-                break;
-        }
-    }
-    return string;
-}

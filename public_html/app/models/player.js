@@ -39,7 +39,7 @@ PlayerSchema.methods.initialize = function(socket){
        
 };
 
-PlayerSchema.methods.setUpListeners = function(socket){
+PlayerSchema.methods.setListeners = function(socket){
     
     var self = this || mongoose.model('Player'); 
     
