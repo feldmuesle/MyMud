@@ -4,6 +4,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var PlayerModel = require('./player.js');
 var Npc = require('./npc.js');
+var Item = require('./item.js');
 var Texter = require ('../controllers/texter.js');
 var Helper = require('../controllers/helper_functions.js');
 
@@ -23,14 +24,14 @@ var RoomSchema = new Schema({
     description : String,
     exits       : [ExitSchema],
     npcs        :[{type: Schema.ObjectId, ref:'Npc'}],
-    inventory   :[Schema.Types.Mixed]
+    inventory   :[{type: Schema.ObjectId, ref:'Item'}]
 });
 
 
 RoomSchema.set('toObject', {getters : true});
 ExitSchema.set('toObject', {getters : true});
 
-RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds){
+RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds){
     console.log('hello from createRoom');
     var RoomModel = this || mongoose.model('Room');
     var Room = new RoomModel();
@@ -56,16 +57,24 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds){
     // find all npcs by id and push their ref onto rooms npc-array
     
     
-        Npc.find({'id' : {$in : npcIds}}, function(err,npcs){
+    Npc.find({'id' : {$in : npcIds}}).exec(function(err,npcs){
+        if(err){console.error(err); return;};             
+
+        for (var i=0; i<npcs.length; i++){
+            Room.npcs.push(npcs[i]._id);
+            console.log('pushing '+npcs[i]._id);
+        }
+
+    }).then(function(){
+
+        Item.find({'id' : {$in : itemIds}}).exec(function(err,items){
             if(err){console.error(err); return;};             
-            
-            for (var i=0; i<npcs.length; i++){
-                Room.npcs.push(npcs[i]._id);
-                console.log('pushing '+npcs[i]._id);
+
+            for (var i=0; i<items.length; i++){
+                Room.inventory.push(items[i]._id);
+                console.log('pushing '+items[i]._id);
             }
-            
-        }).exec()
-            .then(function(){
+        }).then(function(){
                 
                 Room.save(function(err){
                     if(err){
@@ -75,8 +84,8 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds){
                     console.log(Room.npcs);
                     console.log('new room created:');
                 });  
-            });
-        
+        });
+    });       
 };
 
 RoomSchema.statics.getRoomById = function(roomId){

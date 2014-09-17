@@ -18,13 +18,14 @@ var Game = require('./game_functions.js');
 
 
 module.exports.response = function(socket){
-    console.log('hello from socket-response');
-    
+    console.log('hello from socket-response'); 
+ 
+//    Game.insertTestItem();    
 //    Game.insertTestNpc();
 //    Game.insertTestRoom();
 //    Game.deleteRoomById(3);
 //    Game.deleteNpcById(2);
-//    Game.insertTestItem();
+
 
 //      Game.test(3);
     
@@ -34,7 +35,8 @@ module.exports.response = function(socket){
     socket.on('check nickname', function(data){
        var nickname = data['nickname'];
        var guild    = data['guild'];
-       var userId   = data['userId'];       
+       var userId   = data['userId'];
+       var gender = data['gender'];
        
        User.findOne({'nickname': nickname}, function(err, user){
             if(err){console.error(err); return;}
@@ -48,7 +50,7 @@ module.exports.response = function(socket){
 
             }else{
                 // fire up a new game
-                Game.startNewGame(userId, nickname, guild, socket, function(game){
+                Game.startNewGame(userId, nickname, guild, gender, socket, function(game){
                     
                     // configure socket 
                     socket.pseudo = game['player'].nickname;
@@ -262,7 +264,7 @@ module.exports.response = function(socket){
         var player = data['player'];
         var room = data['room'];
         Game.checkCommand(commands, player, room, function(response){
-            
+            console.log('data returned to callback '+response);
         });
         
     });

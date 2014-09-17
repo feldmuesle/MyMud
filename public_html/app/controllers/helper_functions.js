@@ -4,6 +4,8 @@
  * and open the template in the editor.
  */
 
+
+
 exports.getRandomIndex = function(array){
   
     var rand = Math.floor(Math.random()* array.length);
@@ -20,6 +22,16 @@ exports.getIndexByKeyValue = function(array, key, value){
         }        
     }
     return null;
+};
+
+
+// replace %s with object-properties
+exports.replaceStringNpc = function(string, npc, player){
+    
+    string = string.replace('%npc', npc.keyword).replace('%pl', player.nickname);
+    string = string.replace('%npcg', getPronoun(npc.gender)).replace('%plg', getPronoun(player.gender));
+    
+    return string;
 };
 
 // order a list of keywords grammatically correct
@@ -48,3 +60,39 @@ exports.grammatize = function(oArray){
     }
     return string;
 };
+
+exports.calcDamage = function(attPoints){
+    
+    var damage = 0;
+    // define impact
+        switch(true){
+            case (attPoints <5):
+                impact = 'gimpy';
+                damage = 1;
+                break;
+            
+            case (attPoints >5 && attPoints < 10):
+                impact = 'half-hearted';
+                damage = 2;
+                break;
+            
+            case (attPoints >10 && attPoints < 15):
+                impact = 'properly';
+                damage = 3;
+                break;
+            
+            case (attPoints >15):
+                impact = 'viciously';
+                damage = 4;
+                break;
+        }
+        
+        return damage;
+};
+
+function getPronoun(gender){
+    if(gender == 'male'){
+        return 'his';
+    }
+    return 'her';
+}

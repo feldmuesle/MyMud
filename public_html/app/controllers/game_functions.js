@@ -16,6 +16,7 @@ var Item = require('../models/item.js');
 var RoomManager = require ('../models/helper_models/room_manager.js');
 var Texter = require('./texter.js');
 var Helper = require('./helper_functions.js');
+var Command = require('./command_functions.js');
 
 
 // get all users currently online
@@ -28,7 +29,7 @@ exports.loadGame = function(userId, socket, callback){
     
     clients.push(socket);
     Texter.updateSockets(clients);
-    Texter.addListeners();
+    
     
     User.findOne({'_id': userId}, function(err, user){
         if(err){console.error(err); return;}
@@ -36,10 +37,12 @@ exports.loadGame = function(userId, socket, callback){
         if(user.player){
             
             var player = user.player[0]; // there will always only be one player per user
+            player.socketId = socket.id;
             users.push(player.nickname);
             numUsers++;
+            console.log('player inside load: '+player);
+            Texter.addListeners(socket.id);
             
-            player.socketId = socket.id;
             user.save(function(err){
                 if(err){console.error(err); return;}
                 
@@ -64,7 +67,6 @@ exports.loadGame = function(userId, socket, callback){
                         if(npcs.length >0){                            
                             
                             npcs.forEach(function(npc){
-//                                console.log(npc.keyword +' has item '+npc.inventory[0]);
                                 npc.setListeners();
                                 npc.playerEnters(player);
                             });
@@ -87,9 +89,8 @@ exports.loadGame = function(userId, socket, callback){
     });
 };
 
-
 // load a entire new game by det given userinput
-exports.startNewGame = function(userId, nickname, guild, socket, callback){
+exports.startNewGame = function(userId, nickname, guild, gender, socket, callback){
         
     clients.push(socket);
     Texter.updateSockets(clients);
@@ -106,6 +107,7 @@ exports.startNewGame = function(userId, nickname, guild, socket, callback){
         newPlayer = new PlayerModel();
         newPlayer.nickname = nickname;
         newPlayer.guild = guild;
+        newPlayer.gender = gender;
         newPlayer.socketId = socket.id;            
 
         // parse mongoose-document to javascript-object
@@ -158,12 +160,10 @@ exports.startNewGame = function(userId, nickname, guild, socket, callback){
 
                         if(npcs.length >0){
 
-                            Texter.write('There is '+ grammatize(npcs) +' in the room.', newPlayer.socketId);
-
                             npcs.forEach(function(npc){
                                 console.log(npc.keyword +' has item '+npc.inventory[0]);
-                                npc.setListeners();
-                                npc.playerEnters(newPlayer);
+//                                npc.setListeners();
+//                                npc.playerEnters(newPlayer);
 
                             });
                         }
@@ -227,11 +227,9 @@ exports.checkCommand = function(commands, player, room, callback){
                 var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
                 var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', who);
                 var playerI = users.indexOf(who);
-                console.log(npcI);
-                console.log(itemI);
                 
                 switch(true){
-                    case (who == room.name):
+                    case (who == room.name || who == room.name.toLowerCase()):
                         console.log('look at '+who);
                         Room.getRoomWithNpcs(room.id).exec(function(err,room){
                             if(err){console.error(err); return;}
@@ -272,7 +270,7 @@ exports.checkCommand = function(commands, player, room, callback){
             
 
         case "attack":
-            console.log('hello from look');
+            console.log('hello from attack');
             var who = commands[1];
             // check if there are npcs and check them if there are any
             var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
@@ -280,12 +278,10 @@ exports.checkCommand = function(commands, player, room, callback){
             
             switch(true){
                     case (npcI != null):
-                        console.log('look at npc '+who);
-                        Npc.getInventory(room.npcs[npcI]['_id']).exec(function(err,npc){
-                            if(err){console.error(err); return;}
-                            npc.setListeners();
-                            npc.emit('defend',player);                            
-                        });
+                        console.log('attack '+who);
+                        Command.battleNpc('attack',room.npcs[npcI], player);
+                        //TODO: attack-function, where all the stuff happens
+                        
                         break;
                     
                     case (playerI != null && who == users[playerI]):
@@ -443,7 +439,7 @@ var muffin = {
 };
 
 exports.insertTestNpc = function(){
-    var panda = {
+ var panda = {
         id          :   2,
         keyword     :   'panda',
 //        location    :   2,
@@ -452,16 +448,18 @@ exports.insertTestNpc = function(){
                         sp  :   0
                     },        
         shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
-        description :   'The panda jumps off the shelf and brushes some flour off his fur.',
+        description :   'It is a rather fat panda with some marmelade-stains in his fur',
+        gender      :   'male',
         maxLoad     :   1,
-        behaviours  :   {
-            playerEnters    : 'Hello my friend. Are you hungry?',
+        actions     :   {
+            playerEnters    : 'Hey you there. Got anything to eat? I\'d die for some crumpets.',
             playerDrops     : 'Can you eat this?',
             playerChat      : ['I\'m hungry. Unless you have something to eat go away.',
                                 'Do you like chocolate?',
                                 'I only want to talk about food']
             },
-        skills      :   ['dance']
+        behaviours  :   ['dance'],
+        pacifist    :   true
     };
     
     var items = [1,3]; //spoon, muffin
@@ -478,23 +476,25 @@ var fakir = {
                         sp  :   0
                     },        
         shortDesc   :   'In the corner sits a fakir on his bed of nails',
-        description :   'The fakir closes demonstratively his eyes and ears as you approach.',
+        description :   'The fakir closes demonstratively his eyes and ears in order to hide from you.',
+        gender      :   'male',
         maxLoad     :   1,
-        behaviours  :   {
-                    playerEnters    : 'Oh no',
+        actions     :   {
+                    playerEnters    : 'Oh no, this looks like trouble',
                     playerDrops     : 'Hey, somebody might get hurt',
-                    playerChat      : ['My butt hurts',
+                    playerChat      : ['I am not to be disturbed',
                                         'What did you say. I can\'t hear you.']
                     },
-        skills      :   ['heal']
+        behaviours  :   ['heal'], 
+        pacifist    : false
     };
     
-    var items = [2,3]; //torch, muffin
+    var items = [2]; //torch, muffin
     Npc.createNpcinDB(fakir, items);
 };
 
 exports.insertTestRoom = function(){
-  /**************************************************************************************************
+/**************************************************************************************************
 ***** Lobby -  RoomId = 0 - Start here *******************************************************************************/
 
 //exits
@@ -528,7 +528,7 @@ exports.insertTestRoom = function(){
     };
 
     // example on inserting a new room
-    Room.createRoomWithNpc(lobby, exits, npcs, function(err){
+    Room.createRoomWithNpc(lobby, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
@@ -556,6 +556,7 @@ exports.insertTestRoom = function(){
    
     var exits = [ladder,window, closet];
     var npcs = [];
+    var items = [3];
 
 // room
     var loft = {
@@ -564,7 +565,7 @@ exports.insertTestRoom = function(){
         description : 'You are standing in a humble room with a wooden floor.'    
     };
 
-    Room.createRoomWithNpc(loft, exits, npcs, function(err){
+    Room.createRoomWithNpc(loft, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
@@ -580,6 +581,7 @@ exports.insertTestRoom = function(){
    
     var exits = [stairs];
     var npcs = [];
+    var items = [];
 
 // room
     var winecellar = {
@@ -588,13 +590,14 @@ exports.insertTestRoom = function(){
         description : 'Lots of oaken barrels and a distinctive smell indicates that you\'ve ended up in the winecellar.'    
     };
     
-    Room.createRoomWithNpc(winecellar, exits, npcs, function(err){
+    Room.createRoomWithNpc(winecellar, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
    
 
-/**** Kitchen -  RoomId = 3 - Start here ************************************************************/
+/**************************************************************************************************
+***** Kitchen -  RoomId = 3 - Start here *******************************************************************************/
 
 //exits
     var hole = {keyword   : 'hole',
@@ -614,21 +617,23 @@ exports.insertTestRoom = function(){
    
     var exits = [hole, hoist]; 
     var npcs = [2]; //panda
+    var items = [];
 
 // room
     var kitchen = {
-        name        : 'kitchen',
+        name        : 'Kitchen',
         id          : 3,
         description : 'Pots and pans where ever you look. This must be the kitchen.'    
     };
     
-    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+    Room.createRoomWithNpc(kitchen, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
    
 
 /**************************************************************************************************/
+
 };
 
 exports.deleteRoomById = function(id){

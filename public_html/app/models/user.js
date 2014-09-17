@@ -4,13 +4,13 @@
 
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
-var PlayerModel = require('./player.js');
+var Player = require('./player.js');
 
 var UserSchema = new mongoose.Schema({
    password     :   {type:String, trim:true },
    email        :   {type:String, trim:true },
    date         :   Date,
-   player       :   [PlayerModel.schema]
+   player       :   [Player.schema]
 });
 
 UserSchema.path('date')
@@ -32,6 +32,22 @@ UserSchema.methods.generateHash = function(password){
 UserSchema.methods.validPassword = function(password){
   return bcrypt.compareSync(password, this.password);  
 };
+
+/********* statics ********************/
+UserSchema.statics.savePlayer = function(playerObj){
+  console.log('player_id: '+playerObj.nickname);
+  var self = this || mongoose.model('Player');
+  self.findOne({player :{'nickname' : playerObj.nickname}}, function(err, user){
+      if(err){console.error(err); return;}
+      var pl = Player.getPlayer(playerObj);
+      console.log(user);
+      user.player[0] = pl; 
+      user.save(function(err){
+         if(err){console.error(err); return;} 
+         console.log('player has been saved');
+      });
+  });
+ };
 
 module.exports = mongoose.model('user', UserSchema);
 

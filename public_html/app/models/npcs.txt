@@ -9,16 +9,18 @@ var panda = {
                         sp  :   0
                     },        
         shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
-        description :   'The panda jumps off the shelf and brushes some flour off his fur.',
+        description :   'It is a rather fat panda with some marmelade-stains in his fur',
+        gender      :   'male',
         maxLoad     :   1,
-        behaviours  :   {
+        actions     :   {
             playerEnters    : 'Hello my friend. Are you hungry?',
             playerDrops     : 'Can you eat this?',
             playerChat      : ['I\'m hungry. Unless you have something to eat go away.',
                                 'Do you like chocolate?',
                                 'I only want to talk about food']
             },
-        skills      :   ['dance'];
+        behaviours  :   ['dance'],
+        pacifist    :   true
     };
     
     var items = [1,3]; //spoon, muffin
@@ -35,15 +37,17 @@ var fakir = {
                         sp  :   0
                     },        
         shortDesc   :   'In the corner sits a fakir on his bed of nails',
-        description :   'The fakir closes demonstratively his eyes and ears as you approach.',
+        description :   'The fakir closes demonstratively his eyes and ears in order to hide from you.',
+        gender      :   'male',
         maxLoad     :   1,
-        behaviours  :   {
-                    playerEnters    : 'Oh no',
+        actions     :   {
+                    playerEnters    : 'Oh no, I will not be disturbed again!',
                     playerDrops     : 'Hey, somebody might get hurt',
-                    playerChat      : ['My butt hurts',
-                                        'What did you say. I can\'t hear you.'
+                    playerChat      : ['I am busy contemplating',
+                                        'What did you say. I can\'t hear you.']
                     },
-        skills      :   ['heal'];
+        behaviours  :   ['heal'], 
+        pacifist    : false
     };
     
     var items = [2,3]; //torch, muffin

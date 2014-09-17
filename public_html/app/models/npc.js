@@ -16,6 +16,7 @@ var NpcSchema = new Schema({
 //    location    :   {type: Schema.ObjectId, ref:'Room'},
     shortDesc   :   String,
     description :   String,
+    gender      :   String,
     attributes    : {
             health  :   Number,
             hp      :   Number,
@@ -82,17 +83,27 @@ NpcSchema.methods.getItems = function(){
             });
 };
 
+
+/******* Emitters ******************************************/
 NpcSchema.methods.playerEnters = function(player){
-    console.log('hello from Npc-emit-playerEnters-Event');
+    var self = this || mongoose.model('Npc');
     this.emit('playerEnters', player);
 };
 
-// give close description on room
+// give close description on npc
 NpcSchema.methods.look = function(player){
     var self = this || mongoose.model('Npc');    
     self.emit('look', player);
 };
 
+// text npc's attributes
+NpcSchema.methods.prompt = function(player){
+    var self = this || mongoose.model('Npc');    
+    self.emit('prompt', player);
+};
+
+
+/******* Listeners ********************************************/
 NpcSchema.methods.setListeners = function(){
     console.log('Listeners for npc set');
     
@@ -101,27 +112,12 @@ NpcSchema.methods.setListeners = function(){
     
     self.on('playerEnters', function(player){
         
-        var rand = Math.floor(Math.random()* 3);
+        var rand = Math.floor(Math.random()* 4);
         if(rand == 2){
             console.log('you hit lucky '+rand); 
-            Texter.write('The ' + self.keyword +' says: "'
-                +self.actions['playerEnters']+'"', player.socketId);
-        
-            Texter.write('The ' + self.keyword +' has '
-                +Helper.grammatize(self.inventory)+' somewhere in his pockets.', player.socketId);
-        }        
-    });
-    
-    self.on('attack', function(player){
-        
-        var rand = Math.floor(Math.random()* 3);
-        if(rand == 2){
-            console.log('you hit lucky '+rand); 
-            Texter.write('The ' + self.keyword +' says: "'
-                +self.actions['playerEnters']+'"', player.socketId);
-        
-            Texter.write('The ' + self.keyword +' has '
-                +Helper.grammatize(self.inventory)+' somewhere in his pockets.', player.socketId);
+            var msg = 'There is a '+ self.keyword +' in the room.';
+            msg = msg +'"'+self.actions['playerEnters']+'" says the '+self.keyword;
+            Texter.write(msg, player.socketId);
         }        
     });
     
@@ -138,6 +134,14 @@ NpcSchema.methods.setListeners = function(){
                 +Helper.grammatize(self.inventory)+' somewhere in his pockets.', data['socketId']);
         } 
     });  
+    
+    self.on('prompt', function(player){        
+        var msg = 'The '+self.keyword+' has '+self.attributes['hp']+' hitpoints, '+self.attributes['sp']+' spellpoints';
+        msg = msg + ', while %ng health is '+self.attributes['health'];
+        msg = Helper.replaceStringNpc(msg, self, player);
+        Texter.write(msg, player.socketId);
+        
+    });
     
     self.on('attack', function(player){
         console.log(player['nickname'] +' wants to fight ');
@@ -164,8 +168,10 @@ NpcSchema.methods.initialize = function(config){
     };    
     self.shortDesc = config.shortDesc;
     self.description = config.description;
+    self.gender = config.gender;
     self.maxLoad = config.maxLoad;
     self.inventory =[];
+    self.pacifist = config.pacifist;
     self.actions = {
         playerEnters    :   config.actions['playerEnters'],
         playerDrops     :   config.actions['playerDrops'],
@@ -175,9 +181,6 @@ NpcSchema.methods.initialize = function(config){
     for(var i = 0; i< config.actions['playerChat'].length; i++){
         self.actions['playerChat'].push(config.actions['playerChat'][i]);
     }
-    
-    // set up listeners
-    this.setListerner();
 };
 
 

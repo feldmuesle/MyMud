@@ -38,8 +38,9 @@ module.exports = function(app, passport, game){
         failureFlash: true // allow flash-messages
     }));
     
-    // show start-screen for game
+    // show start-screen for existing player
     app.get('/game', isLoggedIn, function (req, res){
+      
         var GuildModel = require('../models/guilds.js');
         console.log('hello from start-routes');
         GuildModel.find(function(err, guilds){

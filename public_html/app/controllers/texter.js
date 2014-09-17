@@ -14,51 +14,49 @@ exports.updateSockets = function(sockets){
 };
 
 
-function addListeners (){
+function addListeners (socketId){
+    var socket = getSocket(socketId);
     
     texter.once('welcome', function(data){
-       var welcome = 'Welcome '+data['nickname']+' - nice you are visiting!'; 
-       var socket = getSocket(data['socketId']);
+       var welcome = 'Welcome '+data['nickname']+' - nice you are visiting!';        
        socket.emit('output', {'message':welcome}); 
     });
     
     texter.once('welcome again', function(data){
-       var welcome = 'Welcome again '+data['nickname']+' - we missed you!'; 
-       var socket = getSocket(data['socketId']);
+       var welcome = 'Welcome again '+data['nickname']+' - we missed you!';
        socket.emit('output', {'message':welcome}); 
+    });
+    
+    texter.once('updatePlayer', function(data){
+       socket.emit('updatePlayer', data); 
     });
     
         
     texter.once('writeOnce', function(data){
-        
-        var socket = getSocket(data['socketId']);
-        console.log('texter says:' +data['message']);
-        console.log('socket' +socket.id);
+        console.log('texter write once');
         socket.emit('output', {'message':data['message']});    
     });
     
     texter.once('broadcast room', function(data){
-        
-        var socket = getSocket(data['socketId']);
-        console.log('texter says:' +data['message']);
+        console.log('texter broadcast room');
         console.log('socket' +socket.id);
         socket.to(data['room']).emit('output', {'message':data['message']});    
     });
 };
 
-exports.addListeners = function(){
-    addListeners();
+exports.addListeners = function(socketId){
+    addListeners(socketId);
 };
 
 exports.welcome = function(player){
     texter.removeAllListeners();
-    addListeners();
+    addListeners(player.socketId);
     texter.emit('welcome',player);
 };
 
 exports.welcomeAgain = function(player){
     texter.removeAllListeners();
-    addListeners();
+    addListeners(player.socketId);
     texter.emit('welcome again',player);
 };
 
@@ -74,8 +72,14 @@ exports.broadcastRoomies = function(msg, socketId, roomName){
 
 exports.write = function(msg, socketId){  
     texter.removeAllListeners();
-    addListeners();
+    addListeners(socketId);
     texter.emit('writeOnce', {'message':msg, 'socketId':socketId});
+};
+
+exports.updatePlayer = function(player){  
+    texter.removeAllListeners();
+    addListeners(player.socketId);
+    texter.emit('updatePlayer', player);
 };
 
 /***********************************************************************************/

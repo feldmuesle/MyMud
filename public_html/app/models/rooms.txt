@@ -25,7 +25,7 @@
    
     var exits = [ladder, hatch, door];
     var npcs = [1, 2];
-    var items = [2]
+    var items = [2];
 
 // room
     var lobby = {
@@ -35,7 +35,7 @@
     };
 
     // example on inserting a new room
-    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+    Room.createRoomWithNpc(lobby, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
@@ -63,6 +63,7 @@
    
     var exits = [ladder,window, closet];
     var npcs = [];
+    var items = [3];
 
 // room
     var loft = {
@@ -71,7 +72,7 @@
         description : 'You are standing in a humble room with a wooden floor.'    
     };
 
-    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+    Room.createRoomWithNpc(loft, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
@@ -86,7 +87,8 @@
                 goodbye     : 'leaves upstairs'};
    
     var exits = [stairs];
-    var npcs = []
+    var npcs = [];
+    var items = [];
 
 // room
     var winecellar = {
@@ -95,13 +97,13 @@
         description : 'Lots of oaken barrels and a distinctive smell indicates that you\'ve ended up in the winecellar.'    
     };
     
-    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+    Room.createRoomWithNpc(winecellar, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
    
 
-/**************************************************************************************************/
+/**************************************************************************************************
 ***** Kitchen -  RoomId = 3 - Start here *******************************************************************************/
 
 //exits
@@ -122,22 +124,22 @@
    
     var exits = [hole, hoist]; 
     var npcs = [2]; //panda
+    var items = [];
 
 // room
     var kitchen = {
-        name        : 'kitchen',
+        name        : 'Kitchen',
         id          : 3,
         description : 'Pots and pans where ever you look. This must be the kitchen.'    
     };
     
-    Room.createRoomWithNpc(kitchen, exits, npcs, function(err){
+    Room.createRoomWithNpc(kitchen, exits, npcs, items, function(err){
         if(err){console.error(err); return;}
     });
 
    
 
 /**************************************************************************************************/
-
 // example on creating a room using createRoom-function
 
 Room.createRoom(room, exits, function(err){

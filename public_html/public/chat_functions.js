@@ -40,10 +40,13 @@ function checkNickname(){
             
         var nickname = $('#pseudoInput').val().trim(); 
         var guild = $('#playerclass').val();
+        var gender = $( "input:checked").val();
+
         socket.emit('check nickname', {
            nickname :   nickname,
            guild    :   guild,
-           userId   :   user._id
+           userId   :   user._id,
+           gender   :   gender
         });
     }
 }

@@ -2,21 +2,76 @@
  * Functions used to handle commands
  */
 
+var Player = require('../models/player.js');
+var Npc = require('../models/npc.js');
+var User = require('../models/user.js');
+var Helper = require('./helper_functions.js');
+var Texter = require('./texter.js');
 
-//attack
-exports.attack = function (attacker, defender){
+
+
+exports.battleNpc = function (action, npc, playerObj){
+    
+    var player = Player.getPlayer(playerObj);
+    
+    Npc.getInventory(npc['_id']).exec(function(err,npc){
+    
+        if(err){console.error(err); return;}  
         
-    var index = getIndexByKeyValue(playersInRoom, 'nickname', defender);
+        player.setListeners();
+        npc.setListeners();
+        
+        if(action == 'attack'){
+            Texter.write(player.nickname +' attacks the '+npc.keyword, player.socketId);
+            
+        }else {
+            Texter.write('The '+npc.keyword +' attacks '+player.nickname, player.socketId);            
+        }
+        
+        npc.emit(action ,player); // dependend if action is attack or defend
+        
+        var attPoints = Math.floor(Math.random()* player.attributes['hp'] +1);
+        var defPoints = Math.floor(Math.random()* npc.attributes['hp'] +1);        
+        var damage;
+        var outcome;
+        
+        if(attPoints > defPoints){
 
-    //check if there's anybody to attack in the room
-    if(index != null){
-        defender = playersInRoom[index];            
-        battle(attacker, defender);
-
-        appendToChat('info','You attack '+defender.nickname);
-    } else {
-        appendToChat('meta','Nobody called '+defender+' you could attack is in this room.');
-    }                
+            damage = Helper.calcDamage(attPoints);
+            var health = npc.attributes['health'];
+            var newHealth = health - damage;
+            npc.attributes['health']= newHealth; 
+            outcome = player.nickname +' wins the battle. '
+                +damage+' points of damage has been done to the '+npc.keyword+'.';
+            
+        }else {
+            damage = Helper.calcDamage(defPoints);
+            var health = player.attributes['health'];
+            var newHealth = health - damage;
+            player.attributes['health']= newHealth;
+            outcome = 'The '+npc.keyword +' wins the battle. '
+                +damage+' points of damage has been done to '+player.nickname+'.';
+            player.emit('regen');                      
+        }    
+        
+        Texter.write(outcome, player.socketId); 
+        npc.emit('prompt', player);
+        
+    });
+    
+    
+        
+//    var index = getIndexByKeyValue(playersInRoom, 'nickname', defender);
+//
+//    //check if there's anybody to attack in the room
+//    if(index != null){
+//        defender = playersInRoom[index];            
+//        battle(attacker, defender);
+//
+//        appendToChat('info','You attack '+defender.nickname);
+//    } else {
+//        appendToChat('meta','Nobody called '+defender+' you could attack is in this room.');
+//    }                
 };    
     
     // battle 
@@ -25,40 +80,16 @@ exports.battle = function(attacker, defender){
         console.log(attacker);
         console.log(defender);
         
+        Texter.write(attacker.nickname +' attacks '+defender.nickname)
         var msg = attacker.nickname +' attacks '+defender.nickname;
         var attackPoints = Math.floor(Math.random()* attacker.attributes.hp +1);
         var defensePoints = Math.floor(Math.random()* defender.attributes.hp +1);
-        var hitHowIndex = Math.floor(Math.random()* hitHow.length);
-        var hitWhereIndex = Math.floor(Math.random()* hitWhere.length);
-        var defMsg ="";
-        var attMsg ="";
         var impact = "";
         var damage = 0;
         var stats = "";
         var outcome = "";
         
-        // define impact
-        switch(true){
-            case (attackPoints <5):
-                impact = 'gimpy';
-                damage = 1;
-                break;
-            
-            case (attackPoints >5 && attackPoints < 10):
-                impact = 'half-hearted';
-                damage = 2;
-                break;
-            
-            case (attackPoints >10 && attackPoints < 15):
-                impact = 'properly';
-                damage = 3;
-                break;
-            
-            case (attackPoints >15 && attackPoints < 20):
-                impact = 'viciously';
-                damage = 4;
-                break;
-        }
+        
         console.log('attackPoints= '+attackPoints);
         console.log('defensePoints= '+defensePoints);
         
