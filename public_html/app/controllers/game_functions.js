@@ -40,7 +40,6 @@ exports.loadGame = function(userId, socket, callback){
             player.socketId = socket.id;
             users.push(player.nickname);
             numUsers++;
-            console.log('player inside load: '+player);
             Texter.addListeners(socket.id);
             
             user.save(function(err){
@@ -55,7 +54,7 @@ exports.loadGame = function(userId, socket, callback){
                         
                         RoomManager.addPlayerToRoom(room.id, player);                        
                     }
-                }).populate('npcs').exec(function(err){if(err){console.error(err); return;};})
+                }).populate('npcs inventory').exec(function(err){if(err){console.error(err); return;};})
                     .then(function(room){
                     Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
                         if(err){console.error(err); return;}
@@ -153,7 +152,7 @@ exports.startNewGame = function(userId, nickname, guild, gender, socket, callbac
 
                         
                     }
-                }).populate('npcs').exec(function(err){if(err){console.error(err); return;};})
+                }).populate('npcs inventory').exec(function(err){if(err){console.error(err); return;};})
                     .then(function(room){
                     Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
                         if(err){console.error(err); return;}
@@ -210,27 +209,32 @@ exports.removePlayer = function(socket, callback){
 
 exports.checkCommand = function(commands, player, room, callback){
     
+    // get the player as mongoose-doc and set listeners
+    var player = PlayerModel.getPlayer(player);
+    player.setListeners();
+    
     // if there's only one word
     if(commands.length < 2){
         var msg = '*'+commands[0]+' alone won\'t work. You are missing arguments.';
         Texter.write(msg, player.socketId);
         return;
     }    
-    
+    console.log('room');
+    console.dir(room.npcs[0].inventory);
     switch(commands[0]){
 
         case 'look': 
-                
-                console.log('hello from look');
                 var who = commands[1];
+                                
                 // check if there are npcs and check them if there are any
                 var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
                 var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', who);
                 var playerI = users.indexOf(who);
-                
+                        
                 switch(true){
                     case (who == room.name || who == room.name.toLowerCase()):
-                        console.log('look at '+who);
+                        player.emit('look', who);
+                        Texter.write('You take at good look at the '+who, player.socketId);
                         Room.getRoomWithNpcs(room.id).exec(function(err,room){
                             if(err){console.error(err); return;}
                             room.setListeners();
@@ -238,20 +242,40 @@ exports.checkCommand = function(commands, player, room, callback){
                         });
                         break;
                     case (npcI != null):
-                        console.log('look at npc '+who);
+                        
                         Npc.getInventory(room.npcs[npcI]['_id']).exec(function(err,npc){
                             if(err){console.error(err); return;}
-                            npc.setListeners();
-                            npc.look(player);                            
+                            
+                            // look also for items if command is eg '*look npc item'
+                            if(commands.length > 2){
+                               var what = commands[2]; 
+                               var itemI = Helper.getIndexByKeyValue(room.npcs[npcI].inventory, 'keyword', what);
+                               
+                               if(itemI != null){
+                                   
+                                   player.emit('look', what);
+                                   Item.findOne({'_id':room.npcs[npcI].inventory[itemI]['_id']}, function(err,item){
+                                        if(err){console.error(err); return;}
+                                        item.setListeners();
+                                        item.emit('look', player);                            
+                                    });
+                               }
+                               
+                            }else { 
+                                player.emit('look', who);
+                                npc.setListeners();
+                                npc.look(player); 
+                            }
+                                                       
                         });
                         break;
                     
                     case (itemI != null):
-                        console.log('look at itm '+who);
-                        Item.findOne({'_id':room.inventory[itemI]['_id']}).exec(function(err,item){
+                        player.emit('look', who);
+                        Item.findOne({'_id':room.inventory[itemI]['_id']}, function(err,item){
                             if(err){console.error(err); return;}
                             item.setListeners();
-                            item.look(player);                            
+                            item.emit('look', player);                            
                         });
                         break;
                     
@@ -272,34 +296,34 @@ exports.checkCommand = function(commands, player, room, callback){
         case "attack":
             console.log('hello from attack');
             var who = commands[1];
-            // check if there are npcs and check them if there are any
+            // check if there are any npcs and if there are any find the right one
             var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
             var playerI = users.indexOf(who);
             
             switch(true){
                     case (npcI != null):
                         console.log('attack '+who);
-                        Command.battleNpc('attack',room.npcs[npcI], player);
+                        Command.battleNpc('attack',room.npcs[npcI], player, room);
                         //TODO: attack-function, where all the stuff happens
                         
                         break;
+                        
+                    case (who == player.nickname):
+                        var msg = 'Apperently you got some masocistic issues and slap yourself. This doesn\'t really make sense.';  
+                        Texter.write(msg, player.socketId);
+                        break;
                     
                     case (playerI != null && who == users[playerI]):
-                        var msg = 'It\'s not polite to stare at other people.';
-                        PlayerModel.findOne({'_id': player._id}).exec(function(err, attacker){
+                        
+                        User.getPlayerByName(who).exec(function(err, user){
                             if(err){console.error(err); return;}
-                            console.log('we got the player');
-                            console.log('attacker:'+attacker);
-                            
-                        }).then(function(){
-                            PlayerModel.findOne({'nickname': users[playerI] }).exec(function(err, defender){
-                            if(err){console.error(err); return;}
-                            console.log('defender:'+defender);
-                        }).then(function(){
-                            console.log('we got them both!');
+                            var attacker = PlayerModel.getPlayer(player);
+                            var defender = PlayerModel.getPlayer(user.player[0]);
+//                            defender.setListeners();
+//                            defender.emit('regen');
+                            Command.battlePlayer(attacker, defender, room);
                         });
-                        });
-                        Texter.write(msg, player.socketId);
+                        
                         break;
                 
                     default:

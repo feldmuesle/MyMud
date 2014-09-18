@@ -4,6 +4,7 @@ Model for the player
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var Room = require('./room.js');
 var Texter = require ('../controllers/texter.js');
 
 var PlayerSchema = Schema({
@@ -51,22 +52,31 @@ PlayerSchema.methods.savePlayer = function(){
     });   
 };
 
-PlayerSchema.methods.setListeners = function(socket){
+PlayerSchema.methods.setListeners = function(){
     
+    console.log('listeners for player set');
     var self = this || mongoose.model('Player'); 
     
     // set up listener
     self.on('regen', function(){
         var self = this || mongoose.model('Player'); 
-        Texter.updatePlayer(self);
-        setTimeout(function(){
-            self.attributes['health'] = self.attributes['maxHealth'];
-            Texter.updatePlayer(self);
-            Texter.write(self.nickname+' has regenerated.',self.socketId);
-            
-        },5000);
-        console.log('player regenerating: '+self.attributes['health']);
+        // get the room-name        
+        Room.getRoomById(self.location).exec(function(err, room){
+            Texter.updatePlayer(self, room.name);
+            setTimeout(function(){
+                self.attributes['health'] = self.attributes['maxHealth'];
+                Texter.updatePlayer(self, room.name);
+                Texter.write(self.nickname+' has regenerated.',self.socketId);
+
+            },15000);
+            console.log('player regenerating: '+self.attributes['health']);
+        });        
     }); 
+    
+    self.on('look', function(data){
+       var msg = 'You take a good look at the '+data;
+       Texter.write(msg, self.socketId);
+    });
 };
 
 PlayerSchema.methods.write = function(message){
@@ -76,7 +86,7 @@ PlayerSchema.methods.write = function(message){
 };
 
 PlayerSchema.statics.getPlayer = function (player){
-    console.log('hello from savePlayer');
+    
     var PlayerModel = this || mongoose.model('Player');
     var pl = new PlayerModel();
     pl.nickname = player.nickname;

@@ -22,7 +22,7 @@ var torch = {
 
 var muffin = {
     keyword      :   'muffin',
-    description  :   'an incredibly delicious looking chocolate-muffin with blueberries and vanilla-icing.',
+    description  :   'This muffin looks incredibly delicious looking chocolate-muffin with blueberries and vanilla-icing.',
     shortDesc    :   'a freshly baked muffin',
     maxLoad      :   1,
     behaviour    :   ['getable','dropable', 'eatable', ]

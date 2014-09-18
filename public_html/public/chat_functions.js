@@ -220,7 +220,7 @@ function slideGameSignup(){
         
         var stats =[];
         var name = '<dt>Nickname: </dt><dd>'+player.nickname+'</dd>';
-        var location = '<dt"><span class="glyphicon glyphicon-move"></span>'
+        var location = '<dt><span class="glyphicon glyphicon-move"></span>'
                         +' Location: </dt><dd id="location">'+roomName +'</dd>';
         var playerclass = '<dt><span class="glyphicon glyphicon-flag"></span> Guild: </dt><dd>'
                 +player.guild+'</dd>';

@@ -15,11 +15,12 @@ exports.getRandomIndex = function(array){
 
 // check if the defender exists in room
 exports.getIndexByKeyValue = function(array, key, value){
-    
+    console.dir(array);
     for (var i = 0; i< array.length; i++){
         if (array[i][key] == value){
             return i;
         }        
+        console.log('getIndex key '+array[i][key]+' value '+value );
     }
     return null;
 };
@@ -29,7 +30,7 @@ exports.getIndexByKeyValue = function(array, key, value){
 exports.replaceStringNpc = function(string, npc, player){
     
     string = string.replace('%npc', npc.keyword).replace('%pl', player.nickname);
-    string = string.replace('%npcg', getPronoun(npc.gender)).replace('%plg', getPronoun(player.gender));
+    string = string.replace('%ng', getPronoun(npc.gender)).replace('%pg', getPronoun(player.gender));
     
     return string;
 };
@@ -64,6 +65,7 @@ exports.grammatize = function(oArray){
 exports.calcDamage = function(attPoints){
     
     var damage = 0;
+    console.log('att-points: '+attPoints);
     // define impact
         switch(true){
             case (attPoints <5):

@@ -10,7 +10,7 @@ var Texter = require('./texter.js');
 
 
 
-exports.battleNpc = function (action, npc, playerObj){
+exports.battleNpc = function (action, npc, playerObj, room){
     
     var player = Player.getPlayer(playerObj);
     
@@ -57,72 +57,48 @@ exports.battleNpc = function (action, npc, playerObj){
         Texter.write(outcome, player.socketId); 
         npc.emit('prompt', player);
         
-    });
-    
-    
-        
-//    var index = getIndexByKeyValue(playersInRoom, 'nickname', defender);
-//
-//    //check if there's anybody to attack in the room
-//    if(index != null){
-//        defender = playersInRoom[index];            
-//        battle(attacker, defender);
-//
-//        appendToChat('info','You attack '+defender.nickname);
-//    } else {
-//        appendToChat('meta','Nobody called '+defender+' you could attack is in this room.');
-//    }                
+    });              
 };    
     
     // battle 
-exports.battle = function(attacker, defender){
+exports.battlePlayer = function(attacker, defender, room){
+    
+        attacker.setListeners();
+        defender.setListeners();
+        defender.write('we are batteling');
         
-        console.log(attacker);
-        console.log(defender);
+        Texter.write('You attack '+defender.nickname, attacker.socketId);
+        Texter.broadcastRoomies(attacker.nickname +' attacks '+defender.nickname, attacker.socketId, room.name);
+        var attPoints = Math.floor(Math.random()* attacker.attributes.hp +1);
+        var defPoints = Math.floor(Math.random()* defender.attributes.hp +1);
+        var damage;
+        var outcome;
         
-        Texter.write(attacker.nickname +' attacks '+defender.nickname)
-        var msg = attacker.nickname +' attacks '+defender.nickname;
-        var attackPoints = Math.floor(Math.random()* attacker.attributes.hp +1);
-        var defensePoints = Math.floor(Math.random()* defender.attributes.hp +1);
-        var impact = "";
-        var damage = 0;
-        var stats = "";
-        var outcome = "";
-        
-        
-        console.log('attackPoints= '+attackPoints);
-        console.log('defensePoints= '+defensePoints);
-        
-        if(attackPoints > defensePoints){
-            defMsg = attacker.nickname+' '+hitHow[hitHowIndex]+'s you '+impact+' '+hitWhere[hitWhereIndex];
-            attMsg = 'You attack '+defender.nickname+' and '+impact+' '+hitHow[hitHowIndex]+' the poor soul '+hitWhere[hitWhereIndex];
+        if(attPoints > defPoints){
+
+            damage = Helper.calcDamage(attPoints);
             var health = defender.attributes['health'];
             var newHealth = health - damage;
-            defender.attributes['health']= newHealth;            
-            stats = 'attack';
+            defender.attributes['health']= newHealth; 
             outcome = attacker.nickname +' wins the battle. '
-                +damage+' points of damage has been done.';
+                +damage+' points of damage has been done to '+defender.nickname+'.';
+            if(damage > 0){
+                defender.emit('regen');
+            }
+            
             
         }else {
-            defMsg = attacker.nickname+'\'s attack was pretty lame and you '+hitHow[hitHowIndex]+' '+impact+' back '+hitWhere[hitWhereIndex]+' instead';
-            attMsg = defender.nickname+' parries your lame attack and '+hitHow[hitHowIndex]+'s you '+impact+' '+hitWhere[hitWhereIndex]+' instead';
+            damage = Helper.calcDamage(defPoints);
             var health = attacker.attributes['health'];
             var newHealth = health - damage;
             attacker.attributes['health']= newHealth;
-            stats = 'defense';
             outcome = defender.nickname +' wins the battle. '
-                +damage+' points of damage has been done.';
-        }    
-        
-        var data = {
-            attacker    : attacker,
-            defender    : defender,
-            message     : msg,
-            stats       : stats,
-            defMsg      : defMsg,
-            attMsg      : attMsg, 
-            outcome     : outcome
-        };
-        
-        
+                +damage+' points of damage has been done to '+attacker.nickname+'.';
+                
+            if(damage > 0){
+                attacker.emit('regen');
+            }
+        }            
+        Texter.write(outcome, attacker.socketId); 
+        Texter.broadcastRoomies(outcome, attacker.socketId, room.name); 
     };

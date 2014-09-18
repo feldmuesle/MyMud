@@ -93,6 +93,7 @@ RoomSchema.statics.getRoomById = function(roomId){
     
     return RoomModel.findOne({'id':roomId}, function(err, room){
         if(err){console.error(err); return;}
+        console.log('room from findOne: '+room.name);
     
     });
 };

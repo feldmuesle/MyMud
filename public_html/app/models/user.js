@@ -34,6 +34,19 @@ UserSchema.methods.validPassword = function(password){
 };
 
 /********* statics ********************/
+UserSchema.statics.getPlayerByName = function(playerName){
+    var self = this || mongoose.model('User');
+    return self.findOne().where({'player.nickname' : playerName});
+//            .exec(function(err, user){
+//      if(err){console.error(err); return;}
+//      if(!user){
+//          console.log('no user found');
+//      }
+//      console.log('hello from User.getPlayerbyName: '+user);     
+//  });
+};
+
+
 UserSchema.statics.savePlayer = function(playerObj){
   console.log('player_id: '+playerObj.nickname);
   var self = this || mongoose.model('Player');

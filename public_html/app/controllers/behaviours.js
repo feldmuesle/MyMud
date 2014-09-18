@@ -6,15 +6,15 @@ var Texter = require('./texter.js');
 var Helper = require('./helper_functions.js');
 
 var hits = [
-        '%pl hits the %npc on %npcg nose.',
+        '%pl hits the %npc on %ng nose.',
         'The %npc hits %pl with a fast fist-combo',
         'Impressingly enough the %npc kicks %pls ass while whisteling a tune.'
     ];
 
 
 var parrys = [
-        'The %npc parries and slaps %pl right on %plg the nose',
-        'The %npc parries %pls strike and then stretches gracefully %npcg back.'
+        'The %npc parries and slaps %pl right on %pg the nose',
+        'The %npc parries %pls strike and then stretches gracefully %ng back.'
     ];
 
 exports.fight = {

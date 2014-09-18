@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var Texter = require ('../controllers/texter.js');
 
 var ItemSchema = Schema({
    id           :   Number,
@@ -38,6 +39,15 @@ ItemSchema.statics.getInventoryOf = function (keeper){
         console.log('hello from getInventoryOf-function');
         console.log(items);
         
+    });
+};
+
+ItemSchema.methods.setListeners = function(){
+    
+    var self = this || mongoose.model('Item');
+    
+    self.on('look', function(data){
+        Texter.write (self.description, data['socketId']);
     });
 };
 

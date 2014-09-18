@@ -33,13 +33,13 @@ function addListeners (socketId){
     
         
     texter.once('writeOnce', function(data){
-        console.log('texter write once');
+        console.log('texter write once '+data['message']);
         socket.emit('output', {'message':data['message']});    
     });
     
     texter.once('broadcast room', function(data){
         console.log('texter broadcast room');
-        console.log('socket' +socket.id);
+        console.log('socket' +data['socketId']);
         socket.to(data['room']).emit('output', {'message':data['message']});    
     });
 };
@@ -62,7 +62,7 @@ exports.welcomeAgain = function(player){
 
 exports.broadcastRoomies = function(msg, socketId, roomName){
     texter.removeAllListeners();
-    addListeners();
+    addListeners(socketId);
     texter.emit('broadcast room',{
         'message'   : msg,
         'socketId'  : socketId,
@@ -76,10 +76,10 @@ exports.write = function(msg, socketId){
     texter.emit('writeOnce', {'message':msg, 'socketId':socketId});
 };
 
-exports.updatePlayer = function(player){  
+exports.updatePlayer = function(player, roomName){  
     texter.removeAllListeners();
     addListeners(player.socketId);
-    texter.emit('updatePlayer', player);
+    texter.emit('updatePlayer', {'player':player, 'room': roomName});
 };
 
 /***********************************************************************************/

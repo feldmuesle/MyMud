@@ -71,8 +71,8 @@ $(document).ready(function(){
     
     //get current players in room and display them in players-in-room-list
     socket.on('updatePlayer', function(data){ 
-        player = data;
-        displayPlayerStats(player, player.location);
+        player = data['player'];
+        displayPlayerStats(player, data['room']);
     });
     
     // change room
