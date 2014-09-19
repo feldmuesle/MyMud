@@ -5,6 +5,7 @@
 var Player = require('../models/player.js');
 var Npc = require('../models/npc.js');
 var User = require('../models/user.js');
+var Room = require('../models/room.js');
 var Helper = require('./helper_functions.js');
 var Texter = require('./texter.js');
 
@@ -137,7 +138,7 @@ exports.takeItem = function(item, player){
     });       
 };
 
-exports.dropItem = function(item, player){
+exports.dropItem = function(item, player, room){
     
     // get player from db to get real inventory
     User.getPlayerByName(player.nickname).exec(function(err, user){
@@ -156,11 +157,41 @@ exports.dropItem = function(item, player){
                if(err){console.error(err); return;} 
                console.log('drop item, user has been saved.');
                user.player[0].setListeners();
-               user.player[0].emit('drop item',droppedItem );
+               user.player[0].emit('drop item',droppedItem ); 
+            });
+            
+            // get npcs in room react to this
+            Room.getRoomWithNpcs(room.id).exec(function(err,room){
+                if(err){console.error(err); return;}
+
+                    var npcs = room.npcs;
+                    console.dir(npcs);
+                    // check if item is eatable
+                    var eatI = droppedItem.behaviours.indexOf('eatable');
+                    if(eatI > 0){
+                        npcs.forEach(function(npc){  
+                            var npcI = npc.behaviours.indexOf('eat');
+                            console.log('can eat: '+npc.keyword+' '+npcI);
+                            if(npcI > -1){
+                                npc.setListeners();
+                                npc.emit('eat', {
+                                    'player': user.player[0],
+                                    'item'  : droppedItem
+                                });
+                                return;
+                            }                            
+                        });
+                    }else {
+                        var rand = Math.floor(Math.random()* npcs.length);
+                        npcs[rand].setListeners();
+                        npcs[rand].emit('playerDrops', player);
+                    }
             });
         } else {
             var msg = 'You don\'t have a '+ item +' in your inventory.';  
             Texter.write(msg, player.socketId);
+            return;
         } 
+        
     });       
 };

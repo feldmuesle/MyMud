@@ -19,7 +19,7 @@ var panda = {
                                 'Do you like chocolate?',
                                 'I only want to talk about food']
             },
-        behaviours  :   ['dance'],
+        behaviours  :   ['dance', 'eat'],
         pacifist    :   true
     };
     

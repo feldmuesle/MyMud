@@ -200,15 +200,13 @@ RoomSchema.methods.setListeners = function(){
         // write room-description
         Texter.write (self.description, data['socketId']);
         // write exits-description
-        for (var i=0; i< self.exits.length; i++){
-            Texter.write(self.exits[i].description, data['socketId']);
-        }
+//        for (var i=0; i< self.exits.length; i++){
+//            Texter.write(self.exits[i].description, data['socketId']);
+//        }
         
     });  
     
     self.on('look', function(data){
-        console.log(data['nickname'] +' enters '+self.name);
-        console.log(self);
         // write room-description
         Texter.write (self.description, data['socketId']);
         // write exits-description

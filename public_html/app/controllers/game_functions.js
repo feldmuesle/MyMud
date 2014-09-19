@@ -186,11 +186,15 @@ exports.removePlayer = function(socket, callback){
         --numUsers;
         var disconnected = users.indexOf(socket.pseudo);
         users.splice(disconnected, 1);
-        //TODO: take socket out of clients, then update texter
+        //take socket out of clients, then update texter
         var clientI =  Helper.getIndexByKeyValue(clients, 'pseudo', socket.pseudo);
-        console.log('removing socket: '+clients[clientI]);
         clients.splice(clientI, 1);
         Texter.updateSockets(clients);
+        
+        var player = RoomManager.getPlayerByName(socket.pseudo, socket.roomId);
+        console.log('disconnected player: '+player);
+        // save the player
+        User.savePlayer(player);
         
         // use instead socket.nickname to search for player in roomarray in roommanager
         var roomies = RoomManager.removePlayerFromRoom(socket.roomId, socket.pseudo, 
@@ -371,7 +375,7 @@ exports.checkCommand = function(commands, player, room, callback){
             console.log('hello from drop');
             var what = commands[1];
             
-            Command.dropItem(what, player);              
+            Command.dropItem(what, player, room);              
             break;
 
         // if command isn't found
@@ -436,6 +440,8 @@ exports.changeRoom = function(oldRoom, newRoomId, player, callback){
                 npc.emit('playerEnters', player);
 
             });
+            // change players location
+            player.location = newRoom.id;
             //remove player from old roomlist and add to new roomlist
             RoomManager.removePlayerFromRoom(oldRoom.id, player.nickname,
             RoomManager.addPlayerToRoom(newRoom.id, player)); 
@@ -461,7 +467,7 @@ exports.insertTestItem = function(){
         keyword      :   'spoon',
         description  :   'The spoon looks ancient with a delicate floral carvings across the handle.'
                             +'Perfect for stirring!',
-        shortDesc    :   'A very large wooden spoon',
+        shortDesc    :   'very large wooden spoon',
         maxLoad      :   1,
         behaviours   :   ['getable','dropable']
     };
@@ -471,8 +477,8 @@ exports.insertTestItem = function(){
 var torch = {  
     id           :   2,
     keyword      :    'torch',
-    description  :   'a torch that can shed light into dark places',
-    shortDesc    :   'a small torch',
+    description  :   'The torch is small and handy',
+    shortDesc    :   'small torch',
     maxLoad      :   1,
     behaviours   :   ['getable', 'lightable', 'dropable']
 };
@@ -482,8 +488,8 @@ var torch = {
 var muffin = {
     id           :   3,
     keyword      :   'muffin',
-    description  :   'an incredibly delicious looking chocolate-muffin with blueberries and vanilla-icing.',
-    shortDesc    :   'a freshly baked muffin',
+    description  :   'This is an incredibly delicious looking chocolate-muffin with blueberries and vanilla-icing.',
+    shortDesc    :   'freshly baked muffin',
     maxLoad      :   1,
     behaviours   :   ['getable','dropable', 'eatable' ]
 };
@@ -505,7 +511,7 @@ exports.insertTestNpc = function(){
                         hp  :   15,
                         sp  :   0
                     },        
-        shortDesc   :   'On top of a shelf sits a panda. It\'s waving at you.',
+        shortDesc   :   'smiling panda waving at you.',
         description :   'It is a rather fat panda with some marmelade-stains in his fur',
         gender      :   'male',
         maxLoad     :   1,
@@ -516,7 +522,7 @@ exports.insertTestNpc = function(){
                                 'Do you like chocolate?',
                                 'I only want to talk about food']
             },
-        behaviours  :   ['dance'],
+        behaviours  :   ['eat', 'dance'],
         pacifist    :   true
     };
     
@@ -524,27 +530,53 @@ exports.insertTestNpc = function(){
     Npc.createNpcinDB(panda, items);
 
 /************************************************************************/
-
-var fakir = {
-        id          :   1,
-        keyword     :   'fakir',
+var janitor = {
+        id          :   3,
+        keyword     :   'janitor',
 //        location    :   2,
         attributes    :{
                         hp  :   15,
                         sp  :   0
                     },        
-        shortDesc   :   'In the corner sits a fakir on his bed of nails',
-        description :   'The fakir closes demonstratively his eyes and ears in order to hide from you.',
+        shortDesc   :   'drunk janitor sitting on a stool.',
+        description :   'The janitor looks like he\'s been sitting here for a long time.',
+        gender      :   'male',
+        maxLoad     :   1,
+        actions     :   {
+            playerEnters    : 'Burp!',
+            playerDrops     : 'Hey, no littering you little something',
+            playerChat      : ['This is some serious good wine.',
+                                'Have you ever seen a green horse?']
+            },
+        behaviours  :   ['eat', 'dance'],
+        pacifist    :   false
+    };
+    
+    var items = [2]; //spoon, muffin
+    Npc.createNpcinDB(janitor, items);
+
+/************************************************************************/
+
+var fakir = {
+        id          :   1,
+        keyword     :   'fakir',
+        attributes    :{
+                        hp  :   15,
+                        sp  :   0
+                    },        
+        shortDesc   :   'fakir sitting on his bed of nails',
+        description :   'It\'s a skinny little man with a pink turban and a queer looking beard.',
         gender      :   'male',
         maxLoad     :   1,
         actions     :   {
                     playerEnters    : 'Oh no, this looks like trouble',
                     playerDrops     : 'Hey, somebody might get hurt',
-                    playerChat      : ['I am not to be disturbed',
-                                        'What did you say. I can\'t hear you.']
+                    playerChat      : ['I am not in the mood to deal with you right now.',
+                                        'Darling, do you mind going away.',
+                                        'I\'m not interested in buying any hammers from you.']
                     },
-        behaviours  :   ['heal'], 
-        pacifist    : false
+        behaviours  :   ['cry'], 
+        pacifist    : true
     };
     
     var items = [2]; //torch, muffin
@@ -566,13 +598,13 @@ exports.insertTestRoom = function(){
                 description : 'There\'s a hatch in the floor',
                 exitId      : 2,
                 action      : 'You open up the hatch and climb down the stairs',
-                goodbye     : 'leaves through the hatch in the floor'};
+                goodbye     : 'slips through the hatch in the floor'};
             
     var door = {keyword     : 'door',
                 description : 'Only visible if you really look, there\'s a tiny door in the wall',
                 exitId      : 3,
                 action      : 'Even though it takes some time you manage to squeeze through the door',
-                goodbye     : 'leaves through a tiny door in the wall'};
+                goodbye     : 'squeezes through a tiny door in the wall'};
    
     var exits = [ladder, hatch, door];
     var npcs = [1, 2];
@@ -632,13 +664,13 @@ exports.insertTestRoom = function(){
 
 //exits
     var stairs = {keyword   : 'stairs',
-                description : 'The stairs leaving upstairs are pretty slippery',
+                description : 'The stairs leaving outside again are pretty slippery',
                 exitId      : 0,
                 action      : 'You climb up the narrow stairs',
-                goodbye     : 'leaves upstairs'};
+                goodbye     : 'takes up the stairs'};
    
     var exits = [stairs];
-    var npcs = [];
+    var npcs = [3];//janitor
     var items = [];
 
 // room

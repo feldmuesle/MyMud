@@ -18,7 +18,7 @@ ItemSchema.set('toObject', {getters : true});
 
 // create and save items in db
 ItemSchema.statics.createItemsInDb = function(configs){
-
+    console.log('this many items '+configs.lenght);
     for(var i=0; i< configs.length; i++){
         var ItemModel = this || mongoose.model('Item');
         var item = new ItemModel();
@@ -51,6 +51,21 @@ ItemSchema.methods.setListeners = function(){
     self.on('take', function(data){
        console.log('you want to take '+self.keyword+ '?'); 
     });
+};
+
+ItemSchema.methods.initialize = function(config){
+    
+    var self = this || mongoose.model('Item');
+    self.id = config.id;
+    self.keyword = config.keyword;
+    self.description = config.description;    
+    self.shortDesc = config.shortDesc;
+    self.maxload = config.maxLoad; 
+    
+    for (var i=0; i<config.behaviours.length; i++){
+        self.behaviours.push(config.behaviours[i]);
+    }
+    return self;
 };
 
 ItemSchema.statics.getItem = function(config){

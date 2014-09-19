@@ -39,32 +39,21 @@ UserSchema.statics.getPlayerByName = function(playerName){
     return self.findOne().where({'player.nickname' : playerName}).populate('player.inventory');
 };
 
-// add item to player and save
-//UserSchema.statics.addItemToPlayer = function(nickname, itemId){
-//    console.log('player_id: '+nickname);
-//    var self = this || mongoose.model('User');
-//    self.findOne().where({'player.nickname' : nickname}).exec(function(err, user){
-//        if(err){console.error(err); return;}  
-//        
-//        user.player[0].inventory.push(itemId);
-//        
-//        user.save(function(err, doc){
-//           if(err){console.error(err); return;} 
-//           console.log('player has been saved');
-//        });
-//    });
-//};
-
 // save a player in DB
 UserSchema.statics.savePlayer = function(playerObj){
-  console.log('player_id: '+playerObj.nickname);
+  
   var self = this || mongoose.model('User');
+  var player = Player.getPlayer(playerObj);
+  
   self.findOne().where({'player.nickname' : playerObj.nickname}).exec(function(err, user){
       if(err){console.error(err); return;}  
       
+      //replace player with new playerObject
+      user.player.pop();
+      user.player.push(player);
       user.save(function(err, doc){
          if(err){console.error(err); return;} 
-         console.log('player has been saved');
+         console.log('player has been saved' +doc);
       });
   });
  };

@@ -61,7 +61,7 @@ $(document).ready(function(){
         appendToChat('chatmeta',chatmeta);
         displayPlayerlist(data['usersOnline']);
     });
-    
+        
     //get current players in room and display them in players-in-room-list
     socket.on('playerlist', function(data){ 
         playersInRoom = data['playersInRoom'];

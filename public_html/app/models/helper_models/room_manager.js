@@ -3,6 +3,7 @@
  * for managing the players in each room
  */
 
+var Helper = require('../../controllers/helper_functions.js');
 var RoomManager = function(){
     
     var self = this; 
@@ -41,6 +42,13 @@ var RoomManager = function(){
       console.log('hello from getUsers from room: '+roomId);
       return self.activeRooms[roomId];  
     };   
+    
+    self.getPlayerByName = function (playerName, roomId){
+        console.log(self.activeRooms);
+        var playerI = Helper.getIndexByKeyValue(self.activeRooms[roomId], 'nickname', playerName);
+        var player = self.activeRooms[roomId][playerI];
+        return player;
+    };
 };
 
 /** make it a singleton! ***************/

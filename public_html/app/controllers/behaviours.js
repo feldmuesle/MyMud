@@ -22,26 +22,39 @@ var pacifist = [
         'The %npc is against violence and won\'t battle with you.',
         'The %npc does not like to fight and throws a kiss at you instead while running away from you.',
         'The anti-violence-%npc cries "Ouuuuuouuuch" before you even touched him.'
-];
+    ];
+    
+var eats = [
+        'The %npc snatches the %it and munches disturbingly loud',
+        'The %npc jumps across the room and catches the %it with %ng teeth before it hits the ground.',
+        'The %npc picks up the %it and starts mannerly eating it with a huge fork'
+    ];
 
 exports.fight = {
     
     hit : function(self, player){
         var text = Helper.getRandomIndex(hits);
-        text = Helper.replaceStringNpc(text, self, player);
+        text = Helper.replaceStringPlayer(text, self, player);
         Texter.write(text, player.socketId); 
     },
     
     parry : function(self, player){
         var text = Helper.getRandomIndex(parrys);
-        text = Helper.replaceStringNpc(text, self, player);
+        text = Helper.replaceStringPlayer(text, self, player);
         Texter.write(text, player.socketId);
     },
     
     pacifist: function(self, player){
         var text = Helper.getRandomIndex(pacifist);
-        text = Helper.replaceStringNpc(text, self, player);
+        text = Helper.replaceStringPlayer(text, self, player);
         Texter.write(text, player.socketId);
         Texter.write('Fighting '+self.keyword+' is just no fun.', player.socketId);
     }   
+};
+
+exports.eat = function(self, player, item){
+        console.log('npc eats '+item.keyword);
+        var text = Helper.getRandomIndex(eats);
+        text = Helper.replaceStringItem(text, self, item);
+        Texter.write(text, player.socketId);
 };

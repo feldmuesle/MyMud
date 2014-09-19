@@ -25,12 +25,18 @@ exports.getIndexByKeyValue = function(array, key, value){
 };
 
 
+exports.replaceStringItem = function(string, npc, item){
+    string = string.replace('%it', item.keyword).replace('%npc', npc.keyword)
+                .replace('%ng', getPronoun(npc.gender));
+    return string;
+};
+
 // replace %s with object-properties
-exports.replaceStringNpc = function(string, npc, player){
+exports.replaceStringPlayer = function(string, npc, player){
     
     string = string.replace('%npc', npc.keyword).replace('%pl', player.nickname);
     string = string.replace('%ng', getPronoun(npc.gender)).replace('%pg', getPronoun(player.gender));
-    
+ 
     return string;
 };
 

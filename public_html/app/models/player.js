@@ -76,7 +76,6 @@ PlayerSchema.methods.setListeners = function(){
     self.on('drop item', function(item){
         var msg = 'You take the '+item.keyword +' out of your backpack and drop it.';
         Texter.write(msg, self.socketId);
-        self.emit('inventory');
     });
     
     self.on('inventory', function(){

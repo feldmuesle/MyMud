@@ -164,8 +164,9 @@ module.exports.response = function(socket){
     /******* GAMEEND - DISCONNECT ***********************************************/
     
     //when a user disconnects
-    socket.on('disconnect', function(){
-                
+    socket.on('disconnect', function(data){
+        console.log('disconnecting - is there anything?');
+                console.dir(data);
         Game.removePlayer(socket , function(data){
             
             // broadcast to all users online that user has left and update players-online-list

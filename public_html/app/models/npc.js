@@ -110,6 +110,10 @@ NpcSchema.methods.initialize = function(config){
     for(var i = 0; i< config.actions['playerChat'].length; i++){
         self.actions['playerChat'].push(config.actions['playerChat'][i]);
     }
+    
+    for(var i = 0; i< config.behaviours.length; i++){
+        self.behaviours.push(config.behaviours[i]);
+    }
 };
 
 /******* Emitters ******************************************/
@@ -143,10 +147,22 @@ NpcSchema.methods.setListeners = function(){
         var rand = Math.floor(Math.random()* 4);
         if(rand == 2){
             console.log('you hit lucky '+rand); 
-            var msg = 'There is a '+ self.keyword +' in the room.';
+            var msg = 'There is a '+ self.shortDesc +' in the room.';
             msg = msg +'"'+self.actions['playerEnters']+'" says the '+self.keyword;
             Texter.write(msg, player.socketId);
         }        
+    });
+    
+    self.on('playerDrops', function(player){       
+        var msg = 'The '+self.keyword +' says "'+self.actions['playerDrops']+'"';
+        Texter.write(msg, player.socketId);
+   
+    });
+    
+    self.on('eat', function(data){
+        var player = data['player'];
+        var item = data['item'];
+        Behaviours.eat(self, player, item);
     });
     
     self.on('look', function(data){
