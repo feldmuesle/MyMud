@@ -36,25 +36,24 @@ UserSchema.methods.validPassword = function(password){
 /********* statics ********************/
 UserSchema.statics.getPlayerByName = function(playerName){
     var self = this || mongoose.model('User');
-    return self.findOne().where({'player.nickname' : playerName});
+    return self.findOne().where({'player.nickname' : playerName}).populate('player.inventory');
 };
 
 // add item to player and save
-UserSchema.statics.addItemToPlayer = function(nickname, itemId){
-    console.log('player_id: '+nickname);
-    var self = this || mongoose.model('User');
-    self.findOne().where({'player.nickname' : nickname}).exec(function(err, user){
-        if(err){console.error(err); return;}  
-        
-        user.player[0].inventory.push(itemId);
-        
-        user.save(function(err, doc){
-           if(err){console.error(err); return;} 
-           console.log('user after saving'+user);
-           console.log('player has been saved');
-        });
-    });
-};
+//UserSchema.statics.addItemToPlayer = function(nickname, itemId){
+//    console.log('player_id: '+nickname);
+//    var self = this || mongoose.model('User');
+//    self.findOne().where({'player.nickname' : nickname}).exec(function(err, user){
+//        if(err){console.error(err); return;}  
+//        
+//        user.player[0].inventory.push(itemId);
+//        
+//        user.save(function(err, doc){
+//           if(err){console.error(err); return;} 
+//           console.log('player has been saved');
+//        });
+//    });
+//};
 
 // save a player in DB
 UserSchema.statics.savePlayer = function(playerObj){

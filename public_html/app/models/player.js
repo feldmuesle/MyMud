@@ -5,6 +5,7 @@ var User = require('./user.js');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Room = require('./room.js');
+var Item = require('./item.js');
 var Helper = require('../controllers/helper_functions.js');
 var Texter = require ('../controllers/texter.js');
 
@@ -12,7 +13,7 @@ var PlayerSchema = Schema({
     nickname    :   String,
     guild       :   String,
     location    :   String,
-    inventory   :   [{type:Schema.ObjectId, ref :'Item'}],
+    inventory   :   [{type:Schema.Types.ObjectId, ref :'Item'}],
     socketId    :   String,
     gender      :   String,
     attributes  :   { 
@@ -39,26 +40,7 @@ PlayerSchema.methods.initialize = function(socket){
     self.setListeners(socket);       
 };
 
-//// add ref-id of item to inventory
-//PlayerSchema.methods.takeItem = function(item){
-//    var self = this || mongoose.model('Player');
-//    self.inventory.push(item._id);
-//    console.log(item.keyword +' has been added.');
-//    return self;
-//};
-//
-//PlayerSchema.methods.savePlayer = function(playerObj){
-//    
-//    User.findOne().where({'player.nickname' : playerObj.nickname}, function(err, user){
-//        if(err){console.error(err); return;}
-//        user.player[0].attributes['health'] = playerObj.attributes['health'];
-//        user.save(function(err){
-//           if(err){console.error(err); return;} 
-//           console.log('player has been saved');
-//        });
-//    });   
-//};
-
+// set all listeners
 PlayerSchema.methods.setListeners = function(){
     
     console.log('listeners for player set');
@@ -85,10 +67,37 @@ PlayerSchema.methods.setListeners = function(){
        Texter.write(msg, self.socketId);
     });
     
-    self.on('inventory', function(){
-       var msg = 'Your backpack holds: '+Helper.grammatize(self.inventory);
-       Texter.write(msg, self.socketId);
+    self.on('take item', function(item){
+        var msg = 'You pick up the '+item.keyword +' and stuff it into your backpack.';
+        Texter.write(msg, self.socketId);
+        self.emit('inventory');
     });
+    
+    self.on('drop item', function(item){
+        var msg = 'You take the '+item.keyword +' out of your backpack and drop it.';
+        Texter.write(msg, self.socketId);
+        self.emit('inventory');
+    });
+    
+    self.on('inventory', function(){
+        Item.getInventoryOf(self).exec(function(err, items){
+            if(err){console.error(err); return;}
+            var msg;
+            
+            if(items.length > 0){
+                 var msg = 'Your backpack holds: '+Helper.grammatize(items);
+            }else{
+                var msg = 'Your backpack is empty.';
+            }
+           
+            Texter.write(msg, self.socketId);   
+        });
+           
+    });
+};
+
+PlayerSchema.methods.tellInventory = function(){
+    
 };
 
 PlayerSchema.methods.write = function(message){
@@ -120,6 +129,28 @@ PlayerSchema.statics.getPlayer = function (config){
     return player;
 };
 
+// add ref-id of item to inventory
+PlayerSchema.statics.getInventory = function(player){
+    var self = this || mongoose.model('Player');
+    return self.findOne({'_id':player._id}).populate('inventory');
+};
+
+var Player = module.exports = mongoose.model('Player', PlayerSchema);
+
+
+//
+//PlayerSchema.methods.savePlayer = function(playerObj){
+//    
+//    User.findOne().where({'player.nickname' : playerObj.nickname}, function(err, user){
+//        if(err){console.error(err); return;}
+//        user.player[0].attributes['health'] = playerObj.attributes['health'];
+//        user.save(function(err){
+//           if(err){console.error(err); return;} 
+//           console.log('player has been saved');
+//        });
+//    });   
+//};
+
 //PlayerSchema.methods.setAttribute = function (attr,val){
 //    var self = this;
 //    console.log('hello from setAttribute');
@@ -133,7 +164,7 @@ PlayerSchema.statics.getPlayer = function (config){
 //};
 
 
-var Player = module.exports = mongoose.model('Player', PlayerSchema);
+
 
 
 //PlayerSchema.statics.savePlayer = function (player, callback){

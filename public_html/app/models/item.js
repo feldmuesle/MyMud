@@ -35,13 +35,8 @@ ItemSchema.statics.createItemsInDb = function(configs){
 
 // get the inventory of npc(param: keeper)
 ItemSchema.statics.getInventoryOf = function (keeper){
-  
-    ItemSchema.find({'_id':{$in:keeper.inventory}}, function(err, items){
-        if(err){console.error(err); return;}    
-        console.log('hello from getInventoryOf-function');
-        console.log(items);
-        
-    });
+    var self = this || mongoose.model('Item');
+    return self.find({'_id':{$in:keeper.inventory}});
 };
 
 // set all the listeners

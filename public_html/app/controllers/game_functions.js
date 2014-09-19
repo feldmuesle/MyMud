@@ -333,38 +333,21 @@ exports.checkCommand = function(commands, player, room, callback){
         case "take":
             console.log('hello from take');
             var what = commands[1];
-            // check if what exist in rooms inventory-array
-            var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', what);
             
-            console.log('keyword: '+what);
-            console.log('itemI '+itemI);
-            
+            // check if what exist in rooms inventory-array, if it does, take it
+            var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', what);            
             if(itemI != null){
-                console.log('room.inventory: '+room.inventory[itemI]._id);  
                 
-                // allow only the amount of same item as items max-load
-                // get player from db to get real inventory
-                User.getPlayerByName(player.nickname).exec(function(err, user){
-                    if(err){console.error(err); return;}
-                    var player = user.player[0];
-                    
-                    // check if item already exist in players inventory
-                    var inventI =  player.inventory.indexOf(room.inventory[itemI]._id);
-                    
-                    console.log('inventI = '+inventI);
-                    
-                    if( inventI < 0){
-                        Item.getItem(room.inventory[itemI]).exec(function(err, item){
-                            if(err){console.error(err); return;}
-
-                            Command.takeItem(item, player, room);
-                        });                 
-                    } else {
-                        var msg = 'You got already a '+ room.inventory[itemI].keyword+' in your inventory.';  
-                        Texter.write(msg, player.socketId);
-                    } 
-                });                  
+                var item = room.inventory[itemI];
+                Command.takeItem(item, player);                         
             }
+            break;  
+            
+        case "drop":
+            console.log('hello from drop');
+            var what = commands[1];
+            
+            Command.dropItem(what, player);              
             break;
 
         // if command isn't found

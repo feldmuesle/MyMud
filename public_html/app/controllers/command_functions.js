@@ -112,10 +112,55 @@ exports.battlePlayer = function(attacker, defender, room){
         Texter.broadcastRoomies(outcome, attacker.socketId, room.name); 
     };
     
-exports.takeItem = function(item, player, room){
-    Texter.write('You pick up the '+item.keyword +' and stuff it into your backpack.', player.socketId);
-    player.setListeners();
-    player.emit('inventory');
-    User.addItemToPlayer(player.nickname, item._id);
+exports.takeItem = function(item, player){
     
+    // get player from db to get real inventory
+    User.getPlayerByName(player.nickname).exec(function(err, user){
+        if(err){console.error(err); return;}
+        var player = user.player[0];
+        
+        // check if item already exist in players inventory
+        var inventI =  Helper.getIndexByKeyValue(player.inventory, 'keyword', item.keyword);
+
+        if( inventI == null){
+            player.inventory.push(item._id);
+       
+            user.save(function(err, user){
+                if(err){console.error(err); return;}
+                console.log('user with item has been saved.');
+                user.player[0].setListeners();
+                user.player[0].emit('take item', item);
+            });                
+        } else {
+            var msg = 'You got already a '+ item.keyword+' in your inventory.';  
+            Texter.write(msg, player.socketId);
+        } 
+    });       
+};
+
+exports.dropItem = function(item, player){
+    
+    // get player from db to get real inventory
+    User.getPlayerByName(player.nickname).exec(function(err, user){
+        if(err){console.error(err); return;}
+        console.log('param-item inside exec '+item);
+        var player = user.player[0];
+
+        // check if item already exist in players inventory
+        var inventI =  Helper.getIndexByKeyValue(player.inventory, 'keyword', item);
+
+        if( inventI != null){
+            var droppedItem = player.inventory[inventI];
+            player.inventory.splice(inventI, 1);
+            user.save(function(err, user){
+               if(err){console.error(err); return;} 
+               console.log('drop item, user has been saved.');
+               user.player[0].setListeners();
+               user.player[0].emit('drop item',droppedItem );
+            });
+        } else {
+            var msg = 'You don\'t have a '+ item +' in your inventory.';  
+            Texter.write(msg, player.socketId);
+        } 
+    });       
 };
