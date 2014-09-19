@@ -119,8 +119,6 @@ exports.startNewGame = function(userId, nickname, guild, gender, socket, callbac
 
        // call init-function, set default-values and set-up eventlisteners;
        newPlayer.initialize(socket);
-       // now we can call the write-listner which emits a message to the player
-        newPlayer.write('Here is a written message!');
 
         // when all is good, push the player into users-array and increment
         users.push(newPlayer.nickname);
@@ -132,7 +130,7 @@ exports.startNewGame = function(userId, nickname, guild, gender, socket, callbac
             if(err){console.error(err); return;}  
             if(user){
                 //console.log('yes we have found an user to save at player in');
-                user.player = newPlayer;
+                user.player.push(newPlayer);
                 user.save(function(err){
                     if(err){ console.error(err); return;}
                     console.log(newPlayer);
@@ -219,29 +217,29 @@ exports.checkCommand = function(commands, player, room, callback){
         Texter.write(msg, player.socketId);
         return;
     }    
-    console.log('room');
-    console.dir(room.npcs[0].inventory);
+    
     switch(commands[0]){
 
         case 'look': 
                 var who = commands[1];
                                 
-                // check if there are npcs and check them if there are any
+                // check if who matches a npc, item or other player in the arrays
                 var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
                 var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', who);
                 var playerI = users.indexOf(who);
                         
                 switch(true){
                     case (who == room.name || who == room.name.toLowerCase()):
+                        
                         player.emit('look', who);
-                        Texter.write('You take at good look at the '+who, player.socketId);
                         Room.getRoomWithNpcs(room.id).exec(function(err,room){
                             if(err){console.error(err); return;}
                             room.setListeners();
                             room.look(player);                            
                         });
                         break;
-                    case (npcI != null):
+                    
+                    case (npcI != null): // if it matched an npc
                         
                         Npc.getInventory(room.npcs[npcI]['_id']).exec(function(err,npc){
                             if(err){console.error(err); return;}
@@ -251,7 +249,7 @@ exports.checkCommand = function(commands, player, room, callback){
                                var what = commands[2]; 
                                var itemI = Helper.getIndexByKeyValue(room.npcs[npcI].inventory, 'keyword', what);
                                
-                               if(itemI != null){
+                               if(itemI != null){ // if an npc-item got matched
                                    
                                    player.emit('look', what);
                                    Item.findOne({'_id':room.npcs[npcI].inventory[itemI]['_id']}, function(err,item){
@@ -264,14 +262,14 @@ exports.checkCommand = function(commands, player, room, callback){
                             }else { 
                                 player.emit('look', who);
                                 npc.setListeners();
-                                npc.look(player); 
-                            }
-                                                       
+                                npc.emit('look', player); 
+                            }                                                       
                         });
                         break;
                     
                     case (itemI != null):
                         player.emit('look', who);
+                        //OBS! this should not come from db, since the room could have a droped item
                         Item.findOne({'_id':room.inventory[itemI]['_id']}, function(err,item){
                             if(err){console.error(err); return;}
                             item.setListeners();
@@ -285,7 +283,7 @@ exports.checkCommand = function(commands, player, room, callback){
                         break;
                 
                     default:
-                        var msg = 'There\'s nothing to look at my dear.';
+                        var msg = 'There\'s nothing to look at darling.';
                         Texter.write(msg, player.socketId);
                         break;
                 
@@ -294,8 +292,8 @@ exports.checkCommand = function(commands, player, room, callback){
             
 
         case "attack":
-            console.log('hello from attack');
             var who = commands[1];
+            
             // check if there are any npcs and if there are any find the right one
             var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
             var playerI = users.indexOf(who);
@@ -309,7 +307,7 @@ exports.checkCommand = function(commands, player, room, callback){
                         break;
                         
                     case (who == player.nickname):
-                        var msg = 'Apperently you got some masocistic issues and slap yourself. This doesn\'t really make sense.';  
+                        var msg = 'Apperently you got some masochistic issues and slap yourself. This doesn\'t really make sense.';  
                         Texter.write(msg, player.socketId);
                         break;
                     
@@ -319,26 +317,55 @@ exports.checkCommand = function(commands, player, room, callback){
                             if(err){console.error(err); return;}
                             var attacker = PlayerModel.getPlayer(player);
                             var defender = PlayerModel.getPlayer(user.player[0]);
-//                            defender.setListeners();
-//                            defender.emit('regen');
                             Command.battlePlayer(attacker, defender, room);
                         });
                         
                         break;
                 
                     default:
-                        var msg = 'There\'s nothing to look at my dear.';
+                        var msg = 'No '+who+ ' around you could attack.';
                         Texter.write(msg, player.socketId);
                         break;
                 
                 }
-                //TODO: check for what to look at and get it if we can
-                //check for commands[1]
-                //->check for player through room-manager and fight if true
-                //->check room for npcs and fight if true
-                //->check if npcs are pacifists, fight accordingly
-                break;           
+                break;  
+            
+        case "take":
+            console.log('hello from take');
+            var what = commands[1];
+            // check if what exist in rooms inventory-array
+            var itemI = Helper.getIndexByKeyValue(room.inventory, 'keyword', what);
+            
+            console.log('keyword: '+what);
+            console.log('itemI '+itemI);
+            
+            if(itemI != null){
+                console.log('room.inventory: '+room.inventory[itemI]._id);  
+                
+                // allow only the amount of same item as items max-load
+                // get player from db to get real inventory
+                User.getPlayerByName(player.nickname).exec(function(err, user){
+                    if(err){console.error(err); return;}
+                    var player = user.player[0];
+                    
+                    // check if item already exist in players inventory
+                    var inventI =  player.inventory.indexOf(room.inventory[itemI]._id);
+                    
+                    console.log('inventI = '+inventI);
+                    
+                    if( inventI < 0){
+                        Item.getItem(room.inventory[itemI]).exec(function(err, item){
+                            if(err){console.error(err); return;}
 
+                            Command.takeItem(item, player, room);
+                        });                 
+                    } else {
+                        var msg = 'You got already a '+ room.inventory[itemI].keyword+' in your inventory.';  
+                        Texter.write(msg, player.socketId);
+                    } 
+                });                  
+            }
+            break;
 
         // if command isn't found
         default:
@@ -385,7 +412,7 @@ exports.test = function(roomId) {
 exports.changeRoom = function(oldRoom, newRoomId, player, callback){
     
     Room.findOne({id: newRoomId})
-    .populate('npcs')
+    .populate('npcs inventory')
     .exec(function(err) {
         if(err){console.error(err); return;}
       

@@ -20,7 +20,6 @@ $(document).ready(function(){
     
     // simply output a message to the client
     socket.on('output', function(data){
-        console.log('so you wanna output something'+data['message']);
         textStream.add(data['message']);
     });
     
@@ -78,6 +77,7 @@ $(document).ready(function(){
     // change room
     socket.on('enterRoom', function(data){
        room = data['room'];
+       console.log('inventory in new room: '+room.inventory);
        var roomies = data['roomies'];
        displayRoomPlayerlist(roomies, room.name);
        setLocation(room.name);

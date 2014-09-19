@@ -37,25 +37,33 @@ UserSchema.methods.validPassword = function(password){
 UserSchema.statics.getPlayerByName = function(playerName){
     var self = this || mongoose.model('User');
     return self.findOne().where({'player.nickname' : playerName});
-//            .exec(function(err, user){
-//      if(err){console.error(err); return;}
-//      if(!user){
-//          console.log('no user found');
-//      }
-//      console.log('hello from User.getPlayerbyName: '+user);     
-//  });
 };
 
+// add item to player and save
+UserSchema.statics.addItemToPlayer = function(nickname, itemId){
+    console.log('player_id: '+nickname);
+    var self = this || mongoose.model('User');
+    self.findOne().where({'player.nickname' : nickname}).exec(function(err, user){
+        if(err){console.error(err); return;}  
+        
+        user.player[0].inventory.push(itemId);
+        
+        user.save(function(err, doc){
+           if(err){console.error(err); return;} 
+           console.log('user after saving'+user);
+           console.log('player has been saved');
+        });
+    });
+};
 
+// save a player in DB
 UserSchema.statics.savePlayer = function(playerObj){
   console.log('player_id: '+playerObj.nickname);
-  var self = this || mongoose.model('Player');
-  self.findOne({player :{'nickname' : playerObj.nickname}}, function(err, user){
-      if(err){console.error(err); return;}
-      var pl = Player.getPlayer(playerObj);
-      console.log(user);
-      user.player[0] = pl; 
-      user.save(function(err){
+  var self = this || mongoose.model('User');
+  self.findOne().where({'player.nickname' : playerObj.nickname}).exec(function(err, user){
+      if(err){console.error(err); return;}  
+      
+      user.save(function(err, doc){
          if(err){console.error(err); return;} 
          console.log('player has been saved');
       });

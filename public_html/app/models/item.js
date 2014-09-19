@@ -32,6 +32,8 @@ ItemSchema.statics.createItemsInDb = function(configs){
     }    
 };
 
+
+// get the inventory of npc(param: keeper)
 ItemSchema.statics.getInventoryOf = function (keeper){
   
     ItemSchema.find({'_id':{$in:keeper.inventory}}, function(err, items){
@@ -42,6 +44,7 @@ ItemSchema.statics.getInventoryOf = function (keeper){
     });
 };
 
+// set all the listeners
 ItemSchema.methods.setListeners = function(){
     
     var self = this || mongoose.model('Item');
@@ -49,21 +52,27 @@ ItemSchema.methods.setListeners = function(){
     self.on('look', function(data){
         Texter.write (self.description, data['socketId']);
     });
+    
+    self.on('take', function(data){
+       console.log('you want to take '+self.keyword+ '?'); 
+    });
 };
 
-ItemSchema.methods.initialize = function(config){
+ItemSchema.statics.getItem = function(config){
     
-    var self = this;
-    self.id = config.id;
-    self.keyword = config.keyword;
-    self.description = config.description;    
-    self.shortDesc = config.shortDesc;
-    self.maxload = config.maxLoad; 
-    
-    for (var i=0; i<config.behaviours.length; i++){
-        self.behaviours.push(config.behaviours[i]);
-    }
-    
+    var self = this || mongoose.model('Item');
+    return self.findOne({'_id':config._id});
+//    var item = new ItemModel();
+//    item.id = config.id;
+//    item.keyword = config.keyword;
+//    item.description = config.description;    
+//    item.shortDesc = config.shortDesc;
+//    item.maxload = config.maxLoad; 
+//    
+//    for (var i=0; i<config.behaviours.length; i++){
+//        item.behaviours.push(config.behaviours[i]);
+//    }
+//    return item;
 };
 
 var ItemModel = mongoose.model('Item', ItemSchema);

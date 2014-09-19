@@ -33,7 +33,6 @@ function addListeners (socketId){
     
         
     texter.once('writeOnce', function(data){
-        console.log('texter write once '+data['message']);
         socket.emit('output', {'message':data['message']});    
     });
     

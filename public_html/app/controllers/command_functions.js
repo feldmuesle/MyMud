@@ -21,14 +21,23 @@ exports.battleNpc = function (action, npc, playerObj, room){
         player.setListeners();
         npc.setListeners();
         
-        if(action == 'attack'){
-            Texter.write(player.nickname +' attacks the '+npc.keyword, player.socketId);
-            
-        }else {
-            Texter.write('The '+npc.keyword +' attacks '+player.nickname, player.socketId);            
+        // check if the npc is a pacifist who doesn't fight
+        if(npc.pacifist == true){
+            Texter.write('You attack the '+npc.keyword, player.socketId);
+            npc.emit('pacifist', player);
+            return;
         }
         
-        npc.emit(action ,player); // dependend if action is attack or defend
+        if(action == 'attack'){
+            Texter.write('You attack the '+npc.keyword, player.socketId);
+            Texter.broadcastRoomies(player.nickname +' attacks the '+npc.keyword, player.socketId, room.name);
+            npc.emit('defend' ,player);
+            
+        }else {
+            Texter.write('The '+npc.keyword +' attacks '+player.nickname, player.socketId); 
+            Texter.broadcastRoomies('The '+npc.keyword +' attacks '+player.nickname, player.socketId, room.name);
+            npc.emit('attack' ,player);
+        }
         
         var attPoints = Math.floor(Math.random()* player.attributes['hp'] +1);
         var defPoints = Math.floor(Math.random()* npc.attributes['hp'] +1);        
@@ -102,3 +111,11 @@ exports.battlePlayer = function(attacker, defender, room){
         Texter.write(outcome, attacker.socketId); 
         Texter.broadcastRoomies(outcome, attacker.socketId, room.name); 
     };
+    
+exports.takeItem = function(item, player, room){
+    Texter.write('You pick up the '+item.keyword +' and stuff it into your backpack.', player.socketId);
+    player.setListeners();
+    player.emit('inventory');
+    User.addItemToPlayer(player.nickname, item._id);
+    
+};

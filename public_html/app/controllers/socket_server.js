@@ -195,6 +195,7 @@ module.exports.response = function(socket){
         Game.changeRoom(oldRoom, newRoomId, player, function(data){
             
             console.log('hello from socket_server changeRoom-function-callback');
+
             var room = data['newRoom'];
             var oldRoomies = data['oldRoomies'];
             var newRoomies = data['newRoomies'];

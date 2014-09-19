@@ -83,6 +83,34 @@ NpcSchema.methods.getItems = function(){
             });
 };
 
+// initialize with config
+NpcSchema.methods.initialize = function(config){
+    console.log('hello from initialize npc');
+    var self = this;
+    self.id = config.id;
+    self.keyword = config.keyword;
+//    self.location = config.location;
+    self.attributes = {
+        hp      : config.attributes['hp'],
+        health  : 100,
+        sp      : config.attributes['sp']
+    };    
+    self.shortDesc = config.shortDesc;
+    self.description = config.description;
+    self.gender = config.gender;
+    self.maxLoad = config.maxLoad;
+    self.inventory =[];
+    self.pacifist = config.pacifist;
+    self.actions = {
+        playerEnters    :   config.actions['playerEnters'],
+        playerDrops     :   config.actions['playerDrops'],
+        playerChat      :   []
+    };
+    
+    for(var i = 0; i< config.actions['playerChat'].length; i++){
+        self.actions['playerChat'].push(config.actions['playerChat'][i]);
+    }
+};
 
 /******* Emitters ******************************************/
 NpcSchema.methods.playerEnters = function(player){
@@ -125,6 +153,7 @@ NpcSchema.methods.setListeners = function(){
         // write description
         var rand = Math.floor(Math.random()* self.actions['playerChat'].length);
         Texter.write (self.description, data['socketId']);
+        self.emit('prompt', data);
         Texter.write('The ' + self.keyword +' says: "'
                 +self.actions['playerChat'][rand]+'"', data['socketId']);
         
@@ -144,44 +173,24 @@ NpcSchema.methods.setListeners = function(){
     });
     
     self.on('attack', function(player){
-        console.log(player['nickname'] +' wants to fight ');
-        Behaviours.fight.hit(self, player);
+        
+        // only non-pacifist attack a player
+        if(!self.pacifist){
+            Behaviours.fight.hit(self, player);
+        }
+        
     });
     
     self.on('defend', function(player){
-        console.log(player['nickname'] +' wants to fight ');
-        Behaviours.fight.parry(self, player);
+        Behaviours.fight.parry(self, player);        
+    });
+    
+    self.on('pacifist', function(player){
+        Behaviours.fight.pacifist(self, player); 
     });
 };
 
-// initialize with config
-NpcSchema.methods.initialize = function(config){
-    console.log('hello from initialize npc');
-    var self = this;
-    self.id = config.id;
-    self.keyword = config.keyword;
-//    self.location = config.location;
-    self.attributes = {
-        hp      : config.attributes['hp'],
-        health  : 100,
-        sp      : config.attributes['sp']
-    };    
-    self.shortDesc = config.shortDesc;
-    self.description = config.description;
-    self.gender = config.gender;
-    self.maxLoad = config.maxLoad;
-    self.inventory =[];
-    self.pacifist = config.pacifist;
-    self.actions = {
-        playerEnters    :   config.actions['playerEnters'],
-        playerDrops     :   config.actions['playerDrops'],
-        playerChat      :   []
-    };
-    
-    for(var i = 0; i< config.actions['playerChat'].length; i++){
-        self.actions['playerChat'].push(config.actions['playerChat'][i]);
-    }
-};
+
 
 
 
