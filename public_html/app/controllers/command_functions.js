@@ -69,7 +69,6 @@ exports.battleNpc = function (action, npc, playerObj, room){
     });              
 };    
     
-    // battle 
 exports.battlePlayer = function(attacker, defender, room){
     
         attacker.setListeners();
@@ -143,7 +142,7 @@ exports.dropItem = function(item, player){
     // get player from db to get real inventory
     User.getPlayerByName(player.nickname).exec(function(err, user){
         if(err){console.error(err); return;}
-        console.log('param-item inside exec '+item);
+        
         var player = user.player[0];
 
         // check if item already exist in players inventory
@@ -152,6 +151,7 @@ exports.dropItem = function(item, player){
         if( inventI != null){
             var droppedItem = player.inventory[inventI];
             player.inventory.splice(inventI, 1);
+            
             user.save(function(err, user){
                if(err){console.error(err); return;} 
                console.log('drop item, user has been saved.');

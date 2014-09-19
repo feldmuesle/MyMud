@@ -96,7 +96,7 @@ function slideGameSignup(){
                 };
                 console.log('somebody is trying to send a message.');
                 // send message to the server
-                socket.emit('message', data);
+                socket.emit('chat', data);
                 // add message to screen
                 addAction('say' ,msg, 'you');
             }

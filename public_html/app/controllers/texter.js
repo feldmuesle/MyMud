@@ -11,6 +11,7 @@ var clients = []; // all socket online
 
 exports.updateSockets = function(sockets){
     clients = sockets;
+    console.log('clients: '+clients);
 };
 
 

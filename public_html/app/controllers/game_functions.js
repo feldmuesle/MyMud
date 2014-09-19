@@ -184,10 +184,14 @@ exports.removePlayer = function(socket, callback){
     
     if(users.length > 0){ // in case server shut down and avoid negative numbers
         --numUsers;
-        //TODO: take socket out of clients, then update texter
-        Texter.updateSockets(clients);
         var disconnected = users.indexOf(socket.pseudo);
         users.splice(disconnected, 1);
+        //TODO: take socket out of clients, then update texter
+        var clientI =  Helper.getIndexByKeyValue(clients, 'pseudo', socket.pseudo);
+        console.log('removing socket: '+clients[clientI]);
+        clients.splice(clientI, 1);
+        Texter.updateSockets(clients);
+        
         // use instead socket.nickname to search for player in roomarray in roommanager
         var roomies = RoomManager.removePlayerFromRoom(socket.roomId, socket.pseudo, 
                                         RoomManager.getPlayersInRoom(socket.roomId));
@@ -210,14 +214,34 @@ exports.checkCommand = function(commands, player, room, callback){
     // get the player as mongoose-doc and set listeners
     var player = PlayerModel.getPlayer(player);
     player.setListeners();
-    
     // if there's only one word
     if(commands.length < 2){
-        var msg = '*'+commands[0]+' alone won\'t work. You are missing arguments.';
-        Texter.write(msg, player.socketId);
+        console.log('hello from only one argument. '+commands[0]);
+        switch(commands[0]){
+            case 'backpack':
+                // get the player from DB
+                User.getPlayerByName(player.nickname).exec(function(err, user){
+                    if(err){console.error(err); return;}
+                    
+                    var player = user.player[0];
+                    player.setListeners();
+                    player.emit('inventory');                    
+                });
+                break;
+            
+            case 'help':
+                //TODO: show help-info
+                break;
+            
+            default:
+                var msg = '*'+commands[0]+' alone won\'t work. You are missing arguments.';
+                Texter.write(msg, player.socketId);
+                break;
+        }        
         return;
     }    
     
+    // if there are at least two commands
     switch(commands[0]){
 
         case 'look': 

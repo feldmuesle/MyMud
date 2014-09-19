@@ -37,15 +37,7 @@
         }
         else { // if it's not a moving-command, check for other commands
             
-            // all other commands contain more than one argument, so check for that first
-            if(command.length == 1){
-                var msg = '*'+command[0]+' alone won\'t work. You are missing arguments.';
-                appendToChat('chatmeta', msg);
-                return;
-            }else{
-                socket.emit('command',{'command' : command, 'player' : player, 'room':room});
-            }
-            
+            socket.emit('command',{'command' : command, 'player' : player, 'room':room});
                
         }       
     }

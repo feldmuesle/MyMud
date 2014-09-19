@@ -259,7 +259,7 @@ module.exports.response = function(socket){
     }); // socket.on 'changeRoom' -> end
     
     
-    /******** CHANGE ROOM ****************************************************************/
+    /******** COMMANDS ****************************************************************/
     socket.on('command', function(data){
         var commands = data['command'];
         var player = data['player'];
@@ -270,4 +270,9 @@ module.exports.response = function(socket){
         
     });
     
+    /******** CHAT ****************************************************************/
+    socket.on('chat',function(data){
+          socket.broadcast.to(socket.room).emit('message',data);
+          console.log('user '+ data['username'] + ' sends '+ data['msg']+' on socket.room' + socket.room);
+    });
 }; // module.exports.response -> end
