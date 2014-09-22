@@ -32,7 +32,6 @@ ItemSchema.statics.createItemsInDb = function(configs){
     }    
 };
 
-
 // get the inventory of npc(param: keeper)
 ItemSchema.statics.getInventoryOf = function (keeper){
     var self = this || mongoose.model('Item');

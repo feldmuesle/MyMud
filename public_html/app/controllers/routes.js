@@ -4,6 +4,11 @@
  * and open the template in the editor.
  */
 
+var RoomModel = require('../models/room.js');
+var NpcModel = require('../models/npc.js');
+var ItemModel = require('../models/item.js');
+var Helper = require('./helper_functions.js');
+
 module.exports = function(app, passport, game){
         
     // homepage (with login-links)
@@ -53,9 +58,108 @@ module.exports = function(app, passport, game){
         });
     });  
     
-//    app.post('/game', checkNickname, function(req, res){
-//        // check middleware to see whats going on :)        
-//    });
+    app.get('/crud', isLoggedIn, function (req, res){
+        
+        var npcListen = require('./npc_listeners.js').listeners;
+        var itemListen = require('./item_listeners.js').listeners;
+        RoomModel.find(function(err, rooms){
+            if(err){ return console.log(err);}
+            
+            NpcModel.find(function(err, npcs){
+                if(err){ return console.log(err);}
+                
+                ItemModel.find(function(err, items){
+                   if(err){ return console.log(err);}
+                    
+                    res.render('crud.ejs', {
+                    locations   :   rooms,
+                    npcListen   :   npcListen,
+                    itemListen  :   itemListen,
+                    npcs        :   npcs,
+                    items       :   items,
+                    user        :   req.user,
+                    message     :   ''
+                    });                    
+                   
+                });
+            });          
+        });
+    });  
+    
+    app.post('/crud',isLoggedIn, function(req, res){
+        
+        if(req.body.form == 'createItem'){
+            console.log('a new item wants to be created');
+            ItemModel.find(function(err, items){
+                var id = Helper.autoIncrementId(items); 
+                var item = new ItemModel();
+                item.id = id;
+                item.keyword = req.body.keyword;
+                item.description = req.body.description;
+                item.shortDesc = req.body.shortDesc;
+                item.maxLoad = req.body.maxLoad;
+                item.behaviours = req.body.behaviours;
+                
+                item.save(function(err){
+                   if(err){console.error(err); return;} 
+                   console.log('item has been saved');
+                });
+            
+            
+            });
+            
+        }
+        
+        if(req.body.form == 'createRoom'){
+            console.log('a new room wants to be created');
+            RoomModel.find(function(err, rooms){
+                var id = Helper.autoIncrementId(rooms); 
+                var room = new RoomModel();
+                room.id = id;
+                room.keyword = req.body.keyword;
+                room.description = req.body.description;
+                var npcs = req.body.npcs;
+                var items = req.body.items;
+                var exits = [];
+                
+                RoomModel.createRoomWithNpc(room, exits, npcs, items);
+            
+            console.log(room);
+            });
+        }
+        
+        if(req.body.form == 'createNpc'){
+            console.log('a new npc wants to be created');
+            NpcModel.find(function(err, npcs){
+                var id = Helper.autoIncrementId(npcs); 
+                var npc = {
+                    'id': id,
+                    'keyword' : req.body.keyword,
+                    'gender' : req.body.gender,
+                    'description' : req.body.description,
+                    'shortDesc' : req.body.shortDesc,
+                    'maxLoad' : req.body.maxLoad,
+                    'pacifist' : req.body.pacifist,
+                    'actions':{
+                        'playerDrops': req.body.playerDrops,
+                        'playerEnters': req.body.playerEnters,
+                        'playerChat': req.body.playerChat
+                    },
+                    'attributes':{
+                        'hp':req.body.hp,
+                        'sp': req.body.sp,
+                        'health': req.body.health
+                    },
+                    behaviours : req.body.behaviours                    
+                };                
+                var items = req.body.items;
+                NpcModel.createNpcinDB(npc, items);
+            
+            console.log(npc);
+            });
+        }
+        // check middleware to see whats going on :)        
+    });
     
 //    app.get('/start', isLoggedIn, function (req, res){
 //        var GuildModel = require('../models/guilds.js');

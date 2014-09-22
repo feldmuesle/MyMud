@@ -24,6 +24,38 @@ exports.getIndexByKeyValue = function(array, key, value){
     return null;
 };
 
+//exports.countObjsInObject = function(object){
+//    var i=0;
+//    for(var key in object){
+//        i++;
+//    }
+//    return i;
+//    
+//};
+
+exports.getCheckBoxes = function(checkboxClass){
+    var checkboxes = document.getElementsByName(chkboxName);
+  var checkboxesChecked = [];
+  // loop over them all
+  for (var i=0; i<checkboxes.length; i++) {
+     // And stick the checked ones onto an array...
+     if (checkboxes[i].checked) {
+        checkboxesChecked.push(checkboxes[i]);
+     }
+  }
+  // Return the array if it is non-empty, or null
+  return checkboxesChecked.length > 0 ? checkboxesChecked : null;
+    
+};
+
+exports.autoIncrementId = function(mongooseArray){
+    var ids=[];
+    for(var i=0; i<mongooseArray.length; i++){
+           ids.push(mongooseArray[i].id);
+       }
+    var largest = Math.max.apply(Math, ids);
+    return largest + 1;  
+};
 
 exports.replaceStringItem = function(string, npc, item){
     string = string.replace('%it', item.keyword).replace('%npc', npc.keyword)

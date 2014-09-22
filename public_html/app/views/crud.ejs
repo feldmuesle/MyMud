@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+<head>
+	<title>Create Game</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+        <link rel="stylesheet" href="custom.css">
+</head>
+<body>
+<div id="wrapper" class="container-fluid">
+    <div id="topBar" class="row">        
+        <div id="greeting" class="col-xs-12 col-sm-7 col-sm-offset-5 col-md-4 col-md-offset-8 pull-right text-right">
+            <div class="col-xs-10">
+                <span class="fa fa-user"></span>
+                Hello very very long username<!--<%= user.email %>-->
+            </div>            
+            <a href="/logout" class="col-xs-2  btn btn-default btn-xs">Logout</a>
+        </div>
+    </div>
+    
+        <div id="createNpcs" class="row">
+            <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-lg-6 col-lg-offset-3">
+
+                <h3><span class="glyphicon glyphicon-plus"></span> create new NPC</h3>
+                <!-- show any messages that come back with authentication -->
+                <% if (message.strLength > 0){%>
+                 <div id="alert" class="alert alert-danger"></div>
+                <%}%>
+                <form id="createNpc" class="form-horizontal">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" name="keyword">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <div>
+                            <label class="radio-inline">
+                            <input type="radio" name="gender" value="male" checked> male
+                            </label>
+                            <label class="radio-inline">
+                              <input type="radio" name="gender" value="female"> female
+                            </label>
+                        </div>
+                    </div>                                         
+                    <div class="form-group">                        
+                        <label>Short description</label>
+                        <input type="text" class="form-control" name="shortDesc">
+                    
+                        <label>Description</label>
+                        <input type="text" class="form-control" name="description">
+                        <label>Max-load</label>
+                        <input type="text" class="form-control" name="maxLoad">
+                    </div>
+                     
+                    <div class="form-group">
+                        <label>Pacifist</label>
+                        <div>
+                            <label class="radio-inline">
+                            <input type="radio" name="pacifist" value="true" checked> true
+                            </label>
+                            <label class="radio-inline">
+                            <input type="radio" name="pacifist" value="false"> false
+                            </label>
+                        </div>
+                    </div> 
+                    <div class="form-inline">
+                        <label>Attributes</label>
+                        <div class="form-group">                            
+                            <label for="hp" class="col-xs-2">Hitpoints</label>
+                            <div class="col-xs-2">
+                                <input id="hp" type="text" class="form-control" name="hp">
+                            </div>                                                
+                            <label id="sp" class="col-xs-2">Spellpoints</label>
+                            <div class="col-xs-2">
+                                <input id="sp" type="text" class="form-control" name="sp">
+                            </div>                            
+                            <label for="health" class="col-xs-2" >Health</label>
+                            <div class="col-xs-2">
+                                <input id="health" type="text" class="form-control" name="health">
+                            </div>                            
+                        </div>
+                    </div>
+                    <div class="form-group">                        
+                        <label>Player enters room</label>
+                        <input type="text" class="form-control" name="playerEnters">
+                    
+                        <label>Player drops item</label>
+                        <input type="text" class="form-control" name="playerDrops">
+                        <input type="hidden" name="count" value="1" />
+                    </div>
+                    <div class="form-group" id="fields">
+                        <label class="col-xs-2" >Chat with player</label>
+                            <div class="field col-xs-9">
+                                <input class="dynamic form-control" id="field1" name="chat1" type="text" data-items="8"/>
+                            </div>
+                            <div class="fieldBtn col-xs-1">
+                                <button id="b1" class="dynamic btn add-more" type="button">+</button>
+                            </div>
+                        <br>
+                        <small>Press + to add another form field :)</small>
+                        <input id="count" type="hidden" name="fieldCount" value="">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Add Items</label>
+                        <%for (var i=0; i<npcs.length; i++){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="items" value="<%=items[i].id%>"><%=items[i].keyword%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Behaviours</label>
+                        <%for (var key in npcListen){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="behaviours" value="<%=key%>"><%=key%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <div class="form-group">
+                        <button id="btnCreateNpc" type="button" class="btn btn-info btn-lg">Create new NPC</button>
+                    </div>
+                    <input type="hidden" name="form" value="createNpc">
+                </form>
+            </div> <!-- form-column end -->
+        </div> <!--row end -->
+
+        <div id="createRooms" class="row">
+            <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-lg-6 col-lg-offset-3">
+
+                <h3><span class="glyphicon glyphicon-plus"></span> create new room</h3>
+                <!-- show any messages that come back with authentication -->
+                <% if (message.strLength > 0){%>
+                 <div id="alert" class="alert alert-danger"></div>
+                <%}%>
+                <form id="createRoom" class="form-horizontal">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" name="keyword">
+                    </div>                   
+                    <div class="form-group">                                            
+                        <label>Description</label>
+                        <input type="text" class="form-control" name="description">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Add Npcs</label>
+                        <%for (var i=0; i<npcs.length; i++){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="npcs" value="<%=npcs[i].id%>"><%=npcs[i].keyword%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Add Items</label>
+                        <%for (var i=0; i<npcs.length; i++){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="items" value="<%=items[i].id%>"><%=items[i].keyword%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <div><p>add exits to room after the room is created.</p></div>
+                    <div class="form-group">
+                        <button id="btnCreate" type="button" class="btn btn-info btn-lg">Create room</button>
+                    </div>
+                    <input type="hidden" name="form" value="createRoom">
+                </form>
+            </div> <!-- form-column end -->
+        </div> <!--row end -->
+
+        <div id="createItems" class="row">
+            <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-lg-6 col-lg-offset-3">
+
+                <h3><span class="glyphicon glyphicon-plus"></span> create new item</h3>
+                <!-- show any messages that come back with authentication -->
+                <% if (message.strLength > 0){%>
+                 <div id="alert" class="alert alert-danger"></div>
+                <%}%>
+                <form id="createItem" class="form-horizontal" role="form" action="/crud" method="post">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" class="form-control" name="keyword">
+                    </div>                   
+                    <div class="form-group">   
+                        <label>Short description</label>
+                        <input type="text" class="form-control" name="shortDesc">
+                        <label>Description</label>
+                        <input type="text" class="form-control" name="description">
+                        <label>Max-load</label>
+                        <input type="text" class="form-control" name="maxLoad">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Add behaviours</label>
+                        <%for (var key in itemListen){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="behaviours" value="<%=key%>"><%=key%></label>
+                            </div>
+                        <%}%>
+                    </div>                    
+                    <div class="form-group">
+                        <button id="btnCreateItem" type="button" class="btn btn-info btn-lg">Create item</button>
+                    </div>
+                    <input type="hidden" name="form" value="createItem">
+                </form>
+            </div> <!-- form-column end -->
+        </div> <!--row end -->
+
+
+</div>
+<script>  
+    var user = <%-JSON.stringify(user)%>;
+    console.log(user);
+</script>
+<script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+<script src="crud_functions.js"></script>
+</body>
+</html>

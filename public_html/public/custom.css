@@ -8,16 +8,53 @@ and open the template in the editor.
     Author     : Lisa
 */
 
+/*
+colors:
+topbar = #F7EDBF;
+game-bg = #2E221F;
+chat-bg = #F1EED9;
+button-green = #798616;
+thumbnails = #F7EDBF;
+
+*/
+
 @import url(http://fonts.googleapis.com/css?family=Source+Code+Pro:500,700,600);
 
 #wrapper{
     margin:0px 10px;
 }
 
+#topBar{
+    height:50px;
+    background-color: #382313;
+    padding: 7px 0;
+    color: #fff;
+    
+}
+
+#user{
+    margin-right: 20px;
+}
+
+#game{
+    background-color: #2E221F;
+    padding-top: 25px;
+    
+}
+
+/********* sidebar *****************/
+
+#sidebar{    
+    
+}
+
 /**************** buttons *****************/
 
 #loadGame, #newGame{
     width: 180px;
+}
+.btn-info {
+    background-color:#58351A; 
 }
 
 /***************** list-styles *************/
@@ -39,9 +76,52 @@ and open the template in the editor.
 .thumbnail{
     padding: 10px;
     margin-right: 10px;
+    border-radius: 25px;
+    background-color: #Fefefe;
 }
+
+
 
 /**chat***************/
 .highlight{
     font-weight: bold;
+}
+
+#chatWrapper{
+    bottom: 0px; 
+    position: relative;
+    height: 300px;
+    overflow-y: hidden;
+    background-color: #Fefefe;
+    border-radius: 25px;
+    margin-bottom: 30px;
+    
+}
+
+
+#chatEntries{
+    position: absolute;
+    bottom: 60px;
+    
+}
+
+/*#chatEntries li:first-child { 
+    position: absolute; 
+    bottom: 0; 
+}*/
+
+#chatControls { 
+    position: absolute;
+    bottom: -20px;
+    z-index: 10;
+    height: 70px; 
+}
+
+#chatInput:focus{
+    border: 2px solid #F7EDBF;
+}
+
+/******** forms ***************/
+#fields .dynamic{
+    margin-bottom: 15px;
 }

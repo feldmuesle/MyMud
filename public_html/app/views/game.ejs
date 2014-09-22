@@ -12,7 +12,7 @@
 <div id="wrapper" class="container-fluid">
     <div id="topBar" class="row">        
         <div id="greeting" class="col-xs-10 col-offset-2 pull-right text-right">
-            <span class="fa fa-user"> Hello <%= user.email %></span>
+            <span class="fa fa-user"> </span><span id="user"> Hello <%= user.email %></span>
             <a href="/logout" class="btn btn-default btn-xs">Logout</a>
         </div>
     </div>
@@ -110,9 +110,10 @@
         
         <div id="game" class="row">        
             
-            <section id="chatWrapper" class="col-sm-9 col-lg-10 col-sm-push-3 col-lg-push-2">
+            <section id="chatWrapper" class="col-sm-8 col-lg-9 col-sm-push-3 col-lg-push-2">
                 <ul id="chatEntries" class="list-unstyled"><li><li></ul>
-                <div id="chatControls" class="row form-group"> 
+                <div class="row">
+                <div id="chatControls" class="col-xs-12 panel-footer footer form-group"> 
                     <div class="col-md-10 col-xs-10">
                         <input id="chatInput" class="form-control" autocomplete="off" />
                     </div>
@@ -120,9 +121,10 @@
                         <button id="btnChatSubmit" class="btn btn-info btn-md btn-block">Send</button>
                     </div>                    
                 </div>
+                </div>
             </section>
             
-            <section id="sidebar" class="col-sm-3 col-lg-2 col-sm-pull-9 col-lg-pull-10">
+            <section id="sidebar" class="col-sm-3 col-sm-offset-1 col-lg-2 col-lg-offset-1 col-sm-pull-9 col-lg-pull-10">
                 <div class="thumbnail col-xs-4 col-sm-12">
                     <dl id="profile" class="dl-horizontal"></dl>
                 </div>

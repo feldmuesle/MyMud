@@ -8,6 +8,7 @@
 
 //initialize screen - show starup-form, hide rest of game
 $(function(){
+       $('#game').hide();
        $('#chatWrapper').hide();
        $('#profile').hide();
        $('#playerlist').hide();
@@ -15,6 +16,7 @@ $(function(){
        $('#gameSignup').hide();
        $('#alert').hide();       
        $('#pseudoInput').focus();
+       $('.thumbnail').hide();
        $('#loadGame').click(function(){loadGame();});
        $('#loadGame1').click(function(){loadGame();});
        $('#newGame').click(function(){slideGameSignup();});
@@ -28,6 +30,8 @@ $(function(){
           }
        });
     });
+    
+
   
 // initialize game with existing player
 function loadGame(){    
@@ -69,11 +73,13 @@ function slideGameSignup(){
     // set screen-height, hide startup-form and show the game!!
     function gameInit(){
 
-        setAutoHeight();            
+        setAutoHeight();  
+        $('#game').show();
         $('#profile').show();
         $('#playerlist').show();
         $('#roomPlayerlist').show();
         $('#chatWrapper').show();
+        $('.thumbnail').show();
         $('#pseudoSet').hide();
         $('#chatInput').focus();
     }
@@ -134,17 +140,20 @@ function slideGameSignup(){
     function highlight(word, string, callback) {
         var rgxp = new RegExp(word, 'gi');
         var repl = '>' + word + '<';
-        string = string.replace(rgxp, repl);
+        string = string.replace(rgxp, repl);    
         callback(string);
     }
 
     
     // append messages to chat in typewriter-style
     function typeOnScreen(msg, index){
-        $('<li></li>').appendTo('#chatEntries').slideDown('fast');
-        var currLi = $('#chatEntries').children('li').last();
+        $('<li></li>').appendTo('#chatEntries');
+        var currLi = $('#chatEntries').children('li').last().slideDown('fast');
+        scrollToBottom();
         newMsg = true;
-        type(msg, 0, currLi, index);     
+        type(msg, 0, currLi, index); 
+        
+//        $('#chatEntries').slideUp();
     }    
     
     // typewriter-effect    
@@ -159,12 +168,14 @@ function slideGameSignup(){
                 console.log('no more messages!');
                 textStream.remove(0);
                 textStream.ready = true;
+                
                 return;
             }
             // else 
             textStream.remove(0); //remove the message from array
             textStream.readyAgain(); // emit that we are ready to type next msg in array
             textStream.write(); // write it!
+            
             
         }else {
             setTimeout(function(){
@@ -254,9 +265,18 @@ function slideGameSignup(){
     
     // adjust height of chatlist to current window
     function setAutoHeight(){
-        var windowH = $(window).height();
+        var windowH = $(document).height();
+        $('#sidebar').height(windowH);
+        var sidebarH = $('#sidebar').height(); 
+        
         console.log('window height is '+windowH);
-        $('#chatWrapper').height(windowH);
+        $('#chatWrapper').height(windowH -80); 
+         
+    }
+    
+    function scrollToBottom(){
+        console.log('scroll to bottom');
+        $('#chatEntries').scrollTop($('#chatEntries').height());
     }
     
     // check if the defender exists in room

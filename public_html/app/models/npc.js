@@ -8,6 +8,7 @@ var Item = require('./item.js');
 var Behaviours = require('../controllers/behaviours.js');
 var Texter = require ('../controllers/texter.js');
 var Helper = require('../controllers/helper_functions.js');
+var Listeners = require('../controllers/npc_listeners.js');
 
 //var autoIncrement = require('mongoose-auto-increment');
 var NpcSchema = new Schema({
@@ -86,13 +87,13 @@ NpcSchema.methods.getItems = function(){
 // initialize with config
 NpcSchema.methods.initialize = function(config){
     console.log('hello from initialize npc');
-    var self = this;
+    var self = this || mongoose.model('Npc');
     self.id = config.id;
     self.keyword = config.keyword;
-//    self.location = config.location;
+//    self.location = config.location; 
     self.attributes = {
         hp      : config.attributes['hp'],
-        health  : 100,
+        health  : config.attributes['health'],
         sp      : config.attributes['sp']
     };    
     self.shortDesc = config.shortDesc;
@@ -110,11 +111,19 @@ NpcSchema.methods.initialize = function(config){
     for(var i = 0; i< config.actions['playerChat'].length; i++){
         self.actions['playerChat'].push(config.actions['playerChat'][i]);
     }
-    
+    console.log('no mapping error');
     for(var i = 0; i< config.behaviours.length; i++){
         self.behaviours.push(config.behaviours[i]);
     }
+    
+    console.log('done');
 };
+
+NpcSchema.post('init', function(doc){
+   console.log('post init'+doc.keyword);
+   
+      
+});
 
 /******* Emitters ******************************************/
 NpcSchema.methods.playerEnters = function(player){
@@ -142,6 +151,29 @@ NpcSchema.methods.setListeners = function(){
     this.getItems();
     var self = this || mongoose.model('Npc');
     
+    // get custom listeners
+    for(var i=0; i< self.behaviours.length; i++){
+        // because of the way js treats variables in loops, 
+        // we need to wrap it into a anonymous function
+        // otherwise the function will first execute after loop is done
+        
+        (function(){
+            var j = i;
+            var listener = self.behaviours[j];
+            console.log('loading listener '+listener);
+            
+            self.on(listener, function(data){
+                data['npc'] = self;
+                console.log('triggered listener '+listener);
+                Listeners.listeners[self.behaviours[j]](data);
+                console.log('finished - get next');
+            });
+            
+        })();        
+        
+    }
+    
+    
     self.on('playerEnters', function(player){
         
         var rand = Math.floor(Math.random()* 4);
@@ -158,12 +190,7 @@ NpcSchema.methods.setListeners = function(){
         Texter.write(msg, player.socketId);
    
     });
-    
-    self.on('eat', function(data){
-        var player = data['player'];
-        var item = data['item'];
-        Behaviours.eat(self, player, item);
-    });
+
     
     self.on('look', function(data){
         // write description
@@ -183,7 +210,7 @@ NpcSchema.methods.setListeners = function(){
     self.on('prompt', function(player){        
         var msg = 'The '+self.keyword+' has '+self.attributes['hp']+' hitpoints, '+self.attributes['sp']+' spellpoints';
         msg = msg + ', while %ng health is '+self.attributes['health'];
-        msg = Helper.replaceStringNpc(msg, self, player);
+        msg = Helper.replaceStringPlayer(msg, self, player);
         Texter.write(msg, player.socketId);
         
     });

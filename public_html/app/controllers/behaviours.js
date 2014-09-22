@@ -25,7 +25,7 @@ var pacifist = [
     ];
     
 var eats = [
-        'The %npc snatches the %it and munches disturbingly loud',
+        'The %npc snatches the %it and munches happily until no crumb is left.',
         'The %npc jumps across the room and catches the %it with %ng teeth before it hits the ground.',
         'The %npc picks up the %it and starts mannerly eating it with a huge fork'
     ];

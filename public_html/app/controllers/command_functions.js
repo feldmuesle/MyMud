@@ -164,28 +164,31 @@ exports.dropItem = function(item, player, room){
             Room.getRoomWithNpcs(room.id).exec(function(err,room){
                 if(err){console.error(err); return;}
 
-                    var npcs = room.npcs;
-                    console.dir(npcs);
-                    // check if item is eatable
-                    var eatI = droppedItem.behaviours.indexOf('eatable');
-                    if(eatI > 0){
-                        npcs.forEach(function(npc){  
-                            var npcI = npc.behaviours.indexOf('eat');
-                            console.log('can eat: '+npc.keyword+' '+npcI);
-                            if(npcI > -1){
-                                npc.setListeners();
-                                npc.emit('eat', {
-                                    'player': user.player[0],
-                                    'item'  : droppedItem
-                                });
-                                return;
-                            }                            
-                        });
-                    }else {
-                        var rand = Math.floor(Math.random()* npcs.length);
-                        npcs[rand].setListeners();
-                        npcs[rand].emit('playerDrops', player);
-                    }
+                var npcs = room.npcs;
+
+                // check if item is eatable and theres a npc with eat-behaviour
+                var eatI = droppedItem.behaviours.indexOf('eatable');
+
+                if(eatI > 0){
+                    npcs.forEach(function(npc){  
+                        var npcI = npc.behaviours.indexOf('eat');
+                        npc.setListeners();
+                        if(npcI > -1){
+                            console.log('npc going to eat');
+
+                            npc.emit('eat', {
+                                'player': user.player[0],
+                                'item'  : droppedItem
+                            });
+                            return;
+                        }                            
+                    });
+                }else {
+                    // get random npc react to drop with custom reaction
+                    var rand = Math.floor(Math.random()* npcs.length);
+                    npcs[rand].setListeners();
+                    npcs[rand].emit('playerDrops', player);
+                }
             });
         } else {
             var msg = 'You don\'t have a '+ item +' in your inventory.';  
