@@ -10,25 +10,28 @@ var Texter = require ('../controllers/texter.js');
 var Helper = require('../controllers/helper_functions.js');
 var Listeners = require('../controllers/npc_listeners.js');
 
-//var autoIncrement = require('mongoose-auto-increment');
+
+//validators
+var valEmpty = [Helper.valEmpty, '{PATH} must just not be empty.'];
+
 var NpcSchema = new Schema({
     id          :   Number,
-    keyword     :   String,
+    keyword     :   {type:String, trim:true, validate:valEmpty},
 //    location    :   {type: Schema.ObjectId, ref:'Room'},
-    shortDesc   :   String,
-    description :   String,
+    shortDesc   :   {type:String, trim:true, validate:valEmpty},
+    description :   {type:String, trim:true, validate:valEmpty},
     gender      :   String,
     attributes    : {
-            health  :   Number,
-            hp      :   Number,
-            sp      :   Number
+            health  :   {type : Number, required:true},
+            hp      :   {type : Number, required:true},
+            sp      :   {type : Number, required:true}
         },
-    maxLoad     :   Number,
-    pacifist      :   { type:Boolean, default:true},
+    maxLoad     :   {type : Number, required:true},
+    pacifist      :   { type:Boolean},
     inventory   :   [{type:Schema.ObjectId, ref:'Item'}],
     actions   :{
-            playerEnters    :   String,
-            playerDrops     :   String,
+            playerEnters    :   {type:String, trim:true, validate:valEmpty},
+            playerDrops     :   {type:String, trim:true, validate:valEmpty},
             playerChat      :   [String]
         },
     behaviours      :   [String]
@@ -37,31 +40,52 @@ var NpcSchema = new Schema({
 
 NpcSchema.set('toObject', {getters : true});
 
-NpcSchema.statics.createNpcinDB = function(npcConf, items){
+
+// create a new npc and populate inventory with ref-ids to items
+NpcSchema.statics.createNpcinDB = function(npcConf, items, cb){
     var NpcModel = this || mongoose.model('Npc');
     var npc = new NpcModel();
     npc.initialize(npcConf);
-      
-        Item.find({'id' : {$in :items}}, function(err,docs){
-            if(err){console.error(err); return;};             
-            
-            for (var i=0; i<docs.length; i++){
-                npc.inventory.push(docs[i]._id);
-                console.log('pushing '+docs[i]._id);
-            }
-            
-        }).exec()
-            .then(function(){
-                npc.save(function(err){
-                if(err){console.error(err); return;}          
-                console.log('npc '+npc.keyword+' has been saved.');
-            });
-        }); 
     
-        
-            
-   
+        if(items){
+            Item.find({'id' : {$in :items}},function(err,docs){
+//                if(err){console.error(err); return;};             
+
+                    for (var i=0; i<docs.length; i++){
+                        npc.inventory.push(docs[i]._id);
+                        console.log('pushing '+docs[i]._id);
+                    }
+                    return cb(err, npc);
+            });            
+        }
+    cb(null, npc);    
 };
+
+NpcSchema.statics.updateNpc = function(npcConfig, items, cb){
+  
+    var NpcModel = this || mongoose.model('Npc');    
+
+    NpcModel.findOne({'id':npcConfig.id}, function(err, npc){ 
+        if(err){console.error(err); return;};
+        npc.initialize(npcConfig);
+    
+        if(items){
+            Item.find({'id' : {$in :items}},function(err,docs){
+//                if(err){console.error(err); return;};             
+
+                    for (var i=0; i<docs.length; i++){
+                        npc.inventory.push(docs[i]._id);
+                        console.log('pushing '+docs[i]._id);
+                    }
+                    return cb(err, npc);
+            });            
+        }
+    cb(null, npc);
+        
+    }); 
+};
+
+
 
 NpcSchema.statics.getInventory = function(objectId){
     var NpcModel = this || mongoose.model('Npc');
@@ -111,19 +135,21 @@ NpcSchema.methods.initialize = function(config){
     for(var i = 0; i< config.actions['playerChat'].length; i++){
         self.actions['playerChat'].push(config.actions['playerChat'][i]);
     }
-    console.log('no mapping error');
-    for(var i = 0; i< config.behaviours.length; i++){
+    
+    if(config.behaviours){
+        for(var i = 0; i< config.behaviours.length; i++){
         self.behaviours.push(config.behaviours[i]);
     }
+    }
     
-    console.log('done');
+    
 };
 
-NpcSchema.post('init', function(doc){
-   console.log('post init'+doc.keyword);
-   
-      
-});
+//NpcSchema.post('init', function(doc){
+//   console.log('post init'+doc.keyword);
+//   
+//      
+//});
 
 /******* Emitters ******************************************/
 NpcSchema.methods.playerEnters = function(player){

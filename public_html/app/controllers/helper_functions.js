@@ -1,8 +1,12 @@
 /* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * This file contains helper-functions for calculations or checking values
  */
+
+//validation-helpers
+
+exports.valEmpty = function(val){
+    return val.length > 0;
+};
 
 
 
@@ -54,7 +58,12 @@ exports.autoIncrementId = function(mongooseArray){
            ids.push(mongooseArray[i].id);
        }
     var largest = Math.max.apply(Math, ids);
-    return largest + 1;  
+    if (largest > 0){
+            return largest + 1; 
+    }else {
+        return 1;
+    }
+     
 };
 
 exports.replaceStringItem = function(string, npc, item){

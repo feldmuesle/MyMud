@@ -9,19 +9,22 @@ var Texter = require ('../controllers/texter.js');
 var Helper = require('../controllers/helper_functions.js');
 
 
+//validators
+var valEmpty = [Helper.valEmpty, '{PATH} must just not be empty.'];
+
 var ExitSchema = new Schema({ 
-   keyword      : String, // the keyword player types to leave 
-   description  : String,   
+   keyword      : {type:String, trim:true, validate:valEmpty}, // the keyword player types to leave 
+   description  : {type:String, trim:true, validate:valEmpty}, 
    exitId       : Number, // roomId of the room it leads to
-   action       : String, // action of player when leaving room
-   goodbye      : String, // leaving-msg to other users in room 
-   hello        : String  // arrival-msg to other user in room
+   action       : {type:String, trim:true, validate:valEmpty}, // action of player when leaving room
+   goodbye      : {type:String, trim:true, validate:valEmpty}, // leaving-msg to other users in room 
+   hello        : {type:String, trim:true, validate:valEmpty}  // arrival-msg to other user in room
 });
 
 var RoomSchema = new Schema({
-    name        : String,
-    id          : Number,
-    description : String,
+    name        : {type:String, trim:true},
+    id          : {type:Number, required:true, unique:true},
+    description : {type:String, trim:true, validate:valEmpty},
     exits       : [ExitSchema],
     npcs        :[{type: Schema.ObjectId, ref:'Npc'}],
     inventory   :[{type: Schema.ObjectId, ref:'Item'}]
@@ -31,7 +34,11 @@ var RoomSchema = new Schema({
 RoomSchema.set('toObject', {getters : true});
 ExitSchema.set('toObject', {getters : true});
 
-RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds){
+// set the validations
+RoomSchema.path('name').validate(Helper.valEmpty, 'name must not be empty');
+
+
+RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds, cb){
     console.log('hello from createRoom');
     var RoomModel = this || mongoose.model('Room');
     var Room = new RoomModel();
@@ -41,8 +48,7 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds){
     Room.exits = [];
     Room.npcs = [];
     Room.inventory = [];
-    
-    console.log('The Exit-array-length id: '+exits.length);
+            
     for(var i=0; i< exits.length; i++){
         var Exit = new ExitModel();
         console.log('hello from exit-loop.');
@@ -54,38 +60,119 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds){
         Room.exits.push(Exit);
     }
     
-    // find all npcs by id and push their ref onto rooms npc-array
     
-    
-    Npc.find({'id' : {$in : npcIds}}).exec(function(err,npcs){
-        if(err){console.error(err); return;};             
-
-        for (var i=0; i<npcs.length; i++){
-            Room.npcs.push(npcs[i]._id);
-            console.log('pushing '+npcs[i]._id);
-        }
-
-    }).then(function(){
-
-        Item.find({'id' : {$in : itemIds}}).exec(function(err,items){
+    // find all npcs by id and push their ref onto rooms npc-array   - if there are any
+    if(npcIds){
+        Npc.find({'id' : {$in : npcIds}}).exec(function(err,npcs){
             if(err){console.error(err); return;};             
 
-            for (var i=0; i<items.length; i++){
-                Room.inventory.push(items[i]._id);
-                console.log('pushing '+items[i]._id);
+            for (var i=0; i<npcs.length; i++){
+                Room.npcs.push(npcs[i]._id);
+                console.log('pushing '+npcs[i]._id);
             }
-        }).then(function(){
-                
-                Room.save(function(err){
-                    if(err){
-                        console.log('something went wrong when creating a room.');
-                        return null; 
-                    }    
-                    console.log(Room.npcs);
-                    console.log('new room created:');
-                });  
-        });
-    });       
+            if(!itemIds){
+                return cb(err, Room);
+            }
+        }).then(function(err){
+
+            // check also if there are any items 
+            if(itemIds){
+                Item.find({'id' : {$in : itemIds}}).exec(function(err,items){
+                    if(err){console.error(err); return;};             
+
+                    for (var i=0; i<items.length; i++){
+                        Room.inventory.push(items[i]._id);
+                        console.log('pushing '+items[i]._id);
+                    }
+
+                    return cb(err,Room);
+                });
+            }
+        });       
+    }else if(itemIds){ 
+            
+            Item.find({'id' : {$in : itemIds}}).exec(function(err,items){
+                if(err){console.error(err); return;};             
+
+                for (var i=0; i<items.length; i++){
+                    Room.inventory.push(items[i]._id);
+                    console.log('pushing '+items[i]._id);
+                }
+
+                return cb(err,Room);
+            });
+    }else {
+        cb(null,Room);
+    }
+    
+};
+
+RoomSchema.statics.updateRoom = function(room, exits, npcIds, itemIds, cb){
+    var RoomModel = this || mongoose.model('Room');    
+    
+    RoomModel.findOne({'id':room.id}, function(err, doc){
+        doc.name = room.name;
+        doc.description = room.description;
+        doc.exits = []; // empty the array
+        doc.npcs = [];
+        doc.inventory = [];
+        
+        for(var i=0; i<exits.length; i++){
+            var Exit = new ExitModel();
+            console.log('hello from exit-loop.');
+            Exit.description = exits[i].description;
+            Exit.exitId = exits[i].exitId;
+            Exit.keyword = exits[i].keyword;
+            Exit.goodbye = exits[i].goodbye;
+            Exit.action = exits[i].action;
+            doc.exits.push(Exit);
+        }
+        
+        
+            // find all npcs by id and push their ref onto rooms npc-array   - if there are any
+    if(npcIds){
+        Npc.find({'id' : {$in : npcIds}}).exec(function(err,npcs){
+            if(err){console.error(err); return;};             
+
+                for (var i=0; i<npcs.length; i++){
+                    doc.npcs.push(npcs[i]._id);
+                    console.log('pushing '+npcs[i]._id);
+                }
+                if(!itemIds){
+                    return cb(err, doc);
+                }
+            }).then(function(err){
+
+                // check also if there are any items 
+                if(itemIds){
+                    Item.find({'id' : {$in : itemIds}}).exec(function(err,items){
+                        if(err){console.error(err); return;};             
+
+                        for (var i=0; i<items.length; i++){
+                            doc.inventory.push(items[i]._id);
+                            console.log('pushing '+items[i]._id);
+                        }
+
+                        return cb(err,doc);
+                    });
+                }
+            });       
+        }else if(itemIds){ 
+
+                Item.find({'id' : {$in : itemIds}}).exec(function(err,items){
+                    if(err){console.error(err); return;};             
+
+                    for (var i=0; i<items.length; i++){
+                        doc.inventory.push(items[i]._id);
+                        console.log('pushing '+items[i]._id);
+                    }
+
+                    return cb(err,doc);
+                });
+        }else {
+            cb(null,doc);
+        }
+    });
 };
 
 RoomSchema.statics.getRoomById = function(roomId){
@@ -97,6 +184,8 @@ RoomSchema.statics.getRoomById = function(roomId){
     
     });
 };
+
+
 
 RoomSchema.statics.getRoomWithNpcs = function(roomId){
     var RoomModel = this || mongoose.model('Room');

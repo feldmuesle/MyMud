@@ -125,3 +125,37 @@ thumbnails = #F7EDBF;
 #fields .dynamic{
     margin-bottom: 15px;
 }
+
+/////// CRUD ////////////////////
+
+/******* lists ***************/
+
+li{
+    background-color: red !important;
+}
+
+.margin {
+    margin-left: 10px;
+}
+
+.modal-form{
+    padding: 5px 10px;
+}
+
+#fields .dynamic{
+    margin-bottom: 15px;
+}
+
+li.description h5, li.exitDesc h6{
+    display: inline-block;
+    margin: 5px 0px;
+    font-weight: bold;
+}
+
+li.exitDesc h6{
+    font-size: 13px;    
+}
+
+li.exitDesc{
+    margin-left:10px;
+}

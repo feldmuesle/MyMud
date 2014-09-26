@@ -19,7 +19,7 @@ function addListeners (socketId){
     var socket = getSocket(socketId);
     
     texter.once('welcome', function(data){
-       var welcome = 'Welcome '+data['nickname']+' - nice you are visiting!';        
+       var welcome =' Welcome '+data['nickname']+' - nice you are visiting!';        
        socket.emit('output', {'message':welcome}); 
     });
     

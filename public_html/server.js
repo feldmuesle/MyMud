@@ -5,6 +5,8 @@ This is the start-up file
 // get all tools/modules needed
 
 var express = require('express');
+//var expressValidator = require('express-validator');
+
 var app = express();
 var http = require ('http');
 var server = http.createServer(app);
@@ -37,6 +39,8 @@ app.use(morgan('dev')); //log every http-request to console
 app.use(cookieParser()); //read cooies (needed for auth)
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true})); // get input-values from forms
+//app.use(expressValidator);
+
 // Do not advertise that we use ExpressJS.
 app.disable('x-powered-by');
 

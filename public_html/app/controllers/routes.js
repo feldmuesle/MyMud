@@ -13,6 +13,7 @@ module.exports = function(app, passport, game){
         
     // homepage (with login-links)
     app.get('/', function(req, res){
+        console.log('hello from index');
         res.render('index.ejs'); // load index.ejs as template
     });
     
@@ -60,12 +61,14 @@ module.exports = function(app, passport, game){
     
     app.get('/crud', isLoggedIn, function (req, res){
         
+        console.log('hello from get/crud ');
+        
         var npcListen = require('./npc_listeners.js').listeners;
         var itemListen = require('./item_listeners.js').listeners;
-        RoomModel.find(function(err, rooms){
+        RoomModel.find().populate('npcs inventory').exec(function(err, rooms){
             if(err){ return console.log(err);}
             
-            NpcModel.find(function(err, npcs){
+            NpcModel.find().populate('inventory').exec(function(err,npcs){
                 if(err){ return console.log(err);}
                 
                 ItemModel.find(function(err, items){
@@ -88,7 +91,19 @@ module.exports = function(app, passport, game){
     
     app.post('/crud',isLoggedIn, function(req, res){
         
+        console.log('the form sent is: '+req.body.form);
+        
+        /********** CREATE ***************/
         if(req.body.form == 'createItem'){
+            
+            req.assert('keyword','The room must have a name.').notEmpty();
+            
+            var errors = req.validationErrors();
+            
+            if(errors){
+                
+            }else {};
+            
             console.log('a new item wants to be created');
             ItemModel.find(function(err, items){
                 var id = Helper.autoIncrementId(items); 
@@ -103,30 +118,56 @@ module.exports = function(app, passport, game){
                 item.save(function(err){
                    if(err){console.error(err); return;} 
                    console.log('item has been saved');
-                });
-            
-            
-            });
-            
+                });        
+            });            
         }
         
         if(req.body.form == 'createRoom'){
             console.log('a new room wants to be created');
+            
             RoomModel.find(function(err, rooms){
                 var id = Helper.autoIncrementId(rooms); 
                 var room = new RoomModel();
                 room.id = id;
-                room.keyword = req.body.keyword;
+                console.log('new id is : '+id);
+                room.name = req.body.keyword;
                 room.description = req.body.description;
                 var npcs = req.body.npcs;
                 var items = req.body.items;
-                var exits = [];
-                
-                RoomModel.createRoomWithNpc(room, exits, npcs, items);
-            
-            console.log(room);
-            });
-        }
+                var exits = req.body.exits;
+
+
+                RoomModel.createRoomWithNpc(room, exits, npcs, items, function(err, newRoom){
+                    if(err){console.error(err); return;}; 
+                    console.log('hello from callback' +newRoom);
+
+                    newRoom.save(function(err){
+                        if(err){
+                            console.log('something went wrong when creating a room.');
+                            console.log('error '+err); 
+                            res.send({
+                                'success'   : false,
+                                'msg'       : 'could not save room, due to',
+                                'errors'    : err.errors});
+                        }else{
+                            RoomModel.find().populate('npcs inventory').exec(function(err, rooms){
+                                if(err){ return console.log(err);}
+
+                                res.send({
+                                    'success'   : true,
+                                    'msg'       : 'yuppi! - room has been updated.',
+                                    'locations'   :   rooms
+
+                                });
+
+                            });
+
+                        }    
+                    });  
+
+                });
+            });                
+        };
         
         if(req.body.form == 'createNpc'){
             console.log('a new npc wants to be created');
@@ -153,12 +194,157 @@ module.exports = function(app, passport, game){
                     behaviours : req.body.behaviours                    
                 };                
                 var items = req.body.items;
-                NpcModel.createNpcinDB(npc, items);
-            
-            console.log(npc);
+                
+                // attach item-objectId-references properly
+                NpcModel.createNpcinDB(npc, items, function(err, npc){
+                    if(err){ return console.log(err);}
+                     
+                    npc.save(function(err){
+                    
+                        if(err){
+                            console.log('something went wrong when creating a npc.');
+                            console.log('error '+err); 
+                            res.send({
+                                'success'   : false,
+                                'msg'       : 'could not save room, due to',
+                                'errors'    : err.errors
+                            });
+                        }else{
+                            // get all the npcs including the new one    
+                            NpcModel.find().populate('inventory').exec(function(err,npcs){
+                                if(err){ return console.log(err);}
+
+                                res.send({
+                                    'success'   : true,
+                                    'msg'       : 'hurray! - npc has been created.',
+                                    'npcs'        :   npcs
+                                });
+
+                            }); 
+                        } 
+                    });
+                });
             });
         }
-        // check middleware to see whats going on :)        
+        
+        /********* UPDATE **************/     
+        if(req.body.form == 'updateRoom'){
+            console.log('want to update room');
+            var room = {
+                    id      :   req.body.id,
+                    name    :   req.body.keyword,
+                    description : req.body.description
+                };
+            
+            var npcs = req.body.npcs;
+            var items = req.body.items;
+            var exits = req.body.exits;
+            
+            RoomModel.updateRoom(room, exits, npcs, items, function(err, room){
+                if(err){console.error(err); return;};
+                console.log('hello from updateRoom-callback '+room);
+                room.save(function(err){
+                    if(err){
+                        console.log('something went wrong when creating a room.');
+                        console.log('error '+err); 
+                        res.send({
+                            'success'   : false,
+                            'msg'       : 'could not update room, due to',
+                            'errors'    : err.errors});
+                    }else{
+                        RoomModel.find().populate('npcs inventory').exec(function(err, rooms){
+                            if(err){ return console.log(err);}
+                            res.send({
+                                    'success'   : true,
+                                    'msg'       : 'yuppi! - room has been updated.',
+                                    'locations'   :   rooms
+                                });
+
+                        });  
+                    }    
+                }); 
+            });
+        }
+        
+        if(req.body.form == 'updateNpc'){
+            
+            var npc = {
+                    'id': req.body.id,
+                    'keyword' : req.body.keyword,
+                    'gender' : req.body.gender,
+                    'description' : req.body.description,
+                    'shortDesc' : req.body.shortDesc,
+                    'maxLoad' : req.body.maxLoad,
+                    'pacifist' : req.body.pacifist,
+                    'actions':{
+                        'playerDrops': req.body.playerDrops,
+                        'playerEnters': req.body.playerEnters,
+                        'playerChat': req.body.playerChat
+                    },
+                    'attributes':{
+                        'hp':req.body.hp,
+                        'sp': req.body.sp,
+                        'health': req.body.health
+                    },
+                    behaviours : req.body.behaviours                    
+                };
+                console.log('npc to update: '+npc);
+            var items = req.body.items;
+            
+            NpcModel.updateNpc(npc, items, function(err, npc){
+                console.log('hello from updateNpc-callback');
+                npc.save(function(err){
+//                    if(err){ return console.log(err);}
+                    if(err){
+                        console.log('something went wrong when creating a npc.');
+                        console.log('error '+err); 
+                        res.send({
+                            'success'   : false,
+                            'msg'       : 'could not save npc, due to',
+                            'errors'    : err.errors
+                        });
+                    }else{
+                        // get all the npcs including the new one    
+                        NpcModel.find().populate('inventory').exec(function(err,npcs){
+                            if(err){ return console.log(err);}
+
+                            res.send({
+                                'success'   : true,
+                                'msg'       : 'hurray! - npc has been created.',
+                                'npcs'      :   npcs
+                            });
+
+                        }); 
+                    } 
+                });                
+            });            
+        }
+        
+        /********* DELETE **************/      
+        if(req.body.delete == 'itemDel'){
+            var itemId = req.body.itemId;
+           ItemModel.findOne({'id':itemId}).remove().exec(function(err){
+               if(err){console.error(err); return;}
+               console.log('item has been removed');
+           }); 
+        }
+        
+        if(req.body.delete == 'npcDel'){
+            var npcId = req.body.npcId;
+           NpcModel.findOne({'id':npcId}).remove().exec(function(err){
+               if(err){console.error(err); return;}
+               console.log('npc has been removed');
+           }); 
+        }
+        
+        if(req.body.delete == 'roomDel'){
+            var roomId = req.body.roomId;
+           RoomModel.findOne({'id':roomId}).remove().exec(function(err){
+               if(err){console.error(err); return;}
+               console.log('room has been removed');
+           }); 
+        }
+        
     });
     
 //    app.get('/start', isLoggedIn, function (req, res){
@@ -255,6 +441,40 @@ function checkNickname(req, res){
         }              
     });
 }
+
+
+//middleware to get all the stuff out of db (room, npcs, items)
+function getEverything(res, req, next){
+    
+    var npcListen = require('./npc_listeners.js').listeners;
+    var itemListen = require('./item_listeners.js').listeners;
+    RoomModel.find().populate('npcs inventory').exec(function(err, rooms){
+            if(err){ return console.log(err);}
+            
+            NpcModel.find().populate('inventory').exec(function(err,npcs){
+                if(err){ return console.log(err);}
+                
+                ItemModel.find(function(err, items){
+                   if(err){ return console.log(err);}
+                    
+                    var data = {
+                    locations   :   rooms,
+                    npcListen   :   npcListen,
+                    itemListen  :   itemListen,
+                    npcs        :   npcs,
+                    items       :   items,
+                    user        :   req.user,
+                    message     :   ''
+                    };
+                    
+                    req.everything = data;
+                    return next();
+                   
+                });
+            });          
+        });
+}
+
 
 
 //middleware to get guild-model and render it
