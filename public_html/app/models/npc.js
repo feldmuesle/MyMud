@@ -5,6 +5,7 @@ Model for Non-person-characters
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Item = require('./item.js');
+var Room = require('./room.js');
 var Behaviours = require('../controllers/behaviours.js');
 var Texter = require ('../controllers/texter.js');
 var Helper = require('../controllers/helper_functions.js');
@@ -12,34 +13,83 @@ var Listeners = require('../controllers/npc_listeners.js');
 
 
 //validators
-var valEmpty = [Helper.valEmpty, '{PATH} must just not be empty.'];
+var valEmpty = [Helper.valEmpty, 'The field \'{PATH}:\' must just not be empty.'];
 
 var NpcSchema = new Schema({
-    id          :   Number,
-    keyword     :   {type:String, trim:true, validate:valEmpty},
+    id         :   Number,
+    keyword     :   {type:String, trim:true, unique:true, validate:valEmpty},
 //    location    :   {type: Schema.ObjectId, ref:'Room'},
-    shortDesc   :   {type:String, trim:true, validate:valEmpty},
-    description :   {type:String, trim:true, validate:valEmpty},
-    gender      :   String,
-    attributes    : {
-            health  :   {type : Number, required:true},
-            hp      :   {type : Number, required:true},
-            sp      :   {type : Number, required:true}
+    shortDesc    :   {type:String, trim:true, validate:valEmpty},
+    description  :   {type:String, trim:true, validate:valEmpty},
+    gender      :   String, //{type:String, trim:true, validate:valEmpty},
+    attributes   : {
+            health   :   {type : Number, min:50, max:100, required:true},
+            hp      :   {type : Number, min: 1, max: 25, required:true},
+            sp      :   {type : Number, min: 0, max: 25, required:true}
         },
-    maxLoad     :   {type : Number, required:true},
-    pacifist      :   { type:Boolean},
-    inventory   :   [{type:Schema.ObjectId, ref:'Item'}],
+    maxLoad     :   {type : Number, min: 1, required:true},
+    pacifist    :   { type:Boolean},
+    inventory   :   [{type:Schema.ObjectId, ref:'Item', index:true}],
     actions   :{
-            playerEnters    :   {type:String, trim:true, validate:valEmpty},
-            playerDrops     :   {type:String, trim:true, validate:valEmpty},
-            playerChat      :   [String]
+            playerEnters    :   {type:String, trim:true},
+            playerDrops     :   {type:String, trim:true},
+            playerChat      : [{type:String, trim:true}]
         },
     behaviours      :   [String]
 });
 
+// validation on actions
+NpcSchema.path('actions.playerEnters').validate(Helper.valEmpty, 'Action \'{PATH}:\' must not be empty');
+NpcSchema.path('actions.playerDrops').validate(Helper.valEmpty, 'Action \'{PATH}:\' must not be empty');
+NpcSchema.path('actions.playerChat').validate(Helper.arrayEmpty, 'Action \'{PATH}:\' must not be empty');
 
 NpcSchema.set('toObject', {getters : true});
 
+//sanitize string before saving
+NpcSchema.pre('save', function(next){
+    console.log('hello from npc-pre-save');
+    // sanitize all strings
+    var self = this || mongoose.model('Npc');
+    var chat = self.actions['playerChat']; 
+    var behave = self.behaviours;
+    self.keyword = Helper.sanitizeString(self.keyword);
+    self.shortDesc = Helper.sanitizeString(self.shortDesc);
+    self.description = Helper.sanitizeString(self.description);
+    self.gender = Helper.sanitizeString(self.gender);
+    self.pacifist = Helper.sanitizeString(self.pacifist.toString());
+    self.actions = {
+        playerEnters    :   Helper.sanitizeString(self.actions['playerEnters']),
+        playerDrops     :   Helper.sanitizeString(self.actions['playerDrops']),
+        playerChat      :   []
+    };
+    console.log('chat-array = '+chat);
+    console.log('chat-array = '+chat.lengt);
+    self.behaviours = [];
+    for(var i=0; i<chat.length;i++){
+        self.actions['playerChat'].push(Helper.sanitizeString(chat[i]));
+    }
+    
+    for(var i=0; i<behave.length;i++){
+        self.behaviours.push(Helper.sanitizeString(behave[i]));
+    }
+    console.log('npc sanitized is'+self);
+    next();
+});
+
+// cascade-delete: delete ref. in rooms for npc, when npc is deleted
+NpcSchema.post('remove', function(next){
+    console.log('hello from npc pre-remove');
+    var self = this || mongoose.model('Npc');
+    self.model('Room').update(
+            {npcs: mongoose.Types.ObjectId(self._id)},
+            {$pull: {npcs : mongoose.Types.ObjectId(self._id)}},
+            {multi:true},
+            function(err,next){
+                if(err){console.error(err); return;}
+                next;
+            }
+            );
+});
 
 // create a new npc and populate inventory with ref-ids to items
 NpcSchema.statics.createNpcinDB = function(npcConf, items, cb){
@@ -61,15 +111,22 @@ NpcSchema.statics.createNpcinDB = function(npcConf, items, cb){
     cb(null, npc);    
 };
 
+
+// update npc in DB
 NpcSchema.statics.updateNpc = function(npcConfig, items, cb){
   
+    console.log('items in update:'+items);
     var NpcModel = this || mongoose.model('Npc');    
-
+    // find npc in db by id
     NpcModel.findOne({'id':npcConfig.id}, function(err, npc){ 
         if(err){console.error(err); return;};
+        
+        // initialize with config from form
         npc.initialize(npcConfig);
-    
-        if(items){
+        
+        if(!items){
+            cb(err, npc);
+        }else {
             Item.find({'id' : {$in :items}},function(err,docs){
 //                if(err){console.error(err); return;};             
 
@@ -80,7 +137,7 @@ NpcSchema.statics.updateNpc = function(npcConfig, items, cb){
                     return cb(err, npc);
             });            
         }
-    cb(null, npc);
+    
         
     }); 
 };
@@ -131,9 +188,12 @@ NpcSchema.methods.initialize = function(config){
         playerDrops     :   config.actions['playerDrops'],
         playerChat      :   []
     };
-    
-    for(var i = 0; i< config.actions['playerChat'].length; i++){
-        self.actions['playerChat'].push(config.actions['playerChat'][i]);
+    self.behaviours = [];
+    console.log('behaviours lengths in initialization: '+self.behaviours.length);
+    if(config.actions['playerChat']){
+        for(var i = 0; i< config.actions['playerChat'].length; i++){
+            self.actions['playerChat'].push(config.actions['playerChat'][i]);
+        }
     }
     
     if(config.behaviours){
@@ -144,6 +204,8 @@ NpcSchema.methods.initialize = function(config){
     
     
 };
+
+
 
 //NpcSchema.post('init', function(doc){
 //   console.log('post init'+doc.keyword);

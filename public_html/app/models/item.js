@@ -3,18 +3,61 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var Texter = require ('../controllers/texter.js');
+var Helper = require('../controllers/helper_functions.js');
+
+//validators
+var valEmpty = [Helper.valEmpty, 'The field \'{PATH}:\' must just not be empty.'];
 
 var ItemSchema = Schema({
-   id           :   Number,
-   keyword      :   String,
+   id:   Number,
+   keyword:   {type:String, trim:true, validate:valEmpty},
 //   location     :   Number,
-   description  :   String,
-   shortDesc    :   String,
-   maxLoad      :   Number,
-   behaviours   :   [String]
+   description:   {type:String, trim:true, validate:valEmpty},
+   shortDesc:  {type:String, trim:true, validate:valEmpty},
+   maxLoad:   {type : Number, min: 1, required:true},
+   behaviours:   [String]
 });
 
 ItemSchema.set('toObject', {getters : true});
+
+//sanitize strings before saving
+ItemSchema.pre('save', function(next){
+    var self = this || mongoose.model('Item');
+    self.keyword = Helper.sanitizeString(self.keyword);
+    self.description = Helper.sanitizeString(self.description);
+    self.shortDesc = Helper.sanitizeString(self.shortDesc);
+    next();
+});
+
+// cascade-delete: delete ref. in rooms for npc, when npc is deleted
+ItemSchema.post('remove', function(next){
+    console.log('hello from npc pre-remove');
+    var self = this || mongoose.model('Item');
+    self.model('Room').update(
+            {inventory: mongoose.Types.ObjectId(self._id)},
+            {$pull: {inventory : mongoose.Types.ObjectId(self._id)}},
+            {multi:true},
+            function(err,next){
+                if(err){console.error(err); return;}                
+                next;
+            }
+            );
+});
+
+// cascade-delete: delete ref. in rooms for npc, when npc is deleted
+ItemSchema.post('remove', function(next){
+    console.log('hello from npc pre-remove');
+    var self = this || mongoose.model('Item');
+    self.model('Npc').update(
+            {inventory: mongoose.Types.ObjectId(self._id)},
+            {$pull: {inventory : mongoose.Types.ObjectId(self._id)}},
+            {multi:true},
+            function(err,next){
+                if(err){console.error(err); return;}                
+                next;
+            }
+            );
+});
 
 // create and save items in db
 ItemSchema.statics.createItemsInDb = function(configs){

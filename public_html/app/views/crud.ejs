@@ -28,14 +28,14 @@
             </div>            
             <a href="/logout" class="col-xs-2  btn btn-default btn-xs">Logout</a>
         </div>
-    </div>
-    
+    </div>    
     <!-- display room-list -->
     <div class="row">
         <div class="lists col-xs-12 col-lg-6 col-lg-offset-3">
+            <div id="roomSuccess" class="alert alert-success"></div>
             <h3>Rooms<button id="addRoom" class="margin btn btn-xs" type="button"><span class="glyphicon glyphicon-plus"></span> new</button></h3>
             
-            <ul class="list-group list-unstyled">
+            <ul id="roomList" class="list-group list-unstyled">
                 <!--<%for(var i=0; i<locations.length; i++){%>-->
                     <li class="list-group-item">
                         <a id="room<%=locations[i].id%>" class="showRoom" href="#"><%=locations[i].name%></a>
@@ -50,8 +50,9 @@
     <!-- dispaly NPC-list -->
     <div class="row">
         <div class="col-xs-12 col-lg-6 col-lg-offset-3">
+            <div id="npcSuccess" class="alert alert-success"></div>
             <h3>Npcs<button id="addNpc" class="margin btn btn-xs" type="button"><span class="glyphicon glyphicon-plus"></span> new</button></h3>
-            <ul class="list-group list-unstyled">
+            <ul id="npcList" class="list-group list-unstyled">
                 <!--<%for(var i=0; i<npcs.length; i++){%>-->
                     <li class="list-group-item">
                         <a id="room<%=npcs[i].id%>" class="showNpc" href="#"><%=npcs[i].keyword%></a>
@@ -66,9 +67,10 @@
     <!-- display items list -->
         <div class="row">
         <div class="col-xs-12 col-lg-6 col-lg-offset-3">
+            <div id="itemSuccess" class="alert alert-success"></div>
             <h3>Items<button id="addItem" class="margin btn btn-xs" type="button"><span class="glyphicon glyphicon-plus"></span> new</button></h3>
             
-            <ul class="list-group list-unstyled">
+            <ul id="itemList" class="list-group list-unstyled">
                 <!--<%for(var i=0; i<items.length; i++){%>-->
                     <li class="list-group-item">
                         <a id="item<%=items[i].id%>" class="showItem" href="#"><%=items[i].keyword%></a>
@@ -100,9 +102,9 @@
                     </div>
                     <div class="form-group">
                         <label>Gender:</label>
-                        <div>
+                        <div id="gender">
                             <label class="radio-inline">
-                                <input type="radio" name="gender" value="male" checked> male
+                                <input type="radio" name="gender" value="male"> male
                             </label>
                             <label class="radio-inline">
                               <input type="radio" name="gender" value="female"> female
@@ -125,7 +127,7 @@
                         <label>Pacifist:</label>
                         <div>
                             <label class="radio-inline">
-                                <input type="radio" name="pacifist" value="true" checked> true
+                                <input type="radio" name="pacifist" value="true"> true
                             </label>
                             <label class="radio-inline">
                                 <input type="radio" name="pacifist" value="false"> false
@@ -137,28 +139,31 @@
                         <div class="form-group"> 
                             <div class="col-xs-2">
                                 <label for="hp" >HP</label>
-                                <input id="hp" type="text" class="form-control" name="hp" value="155">
+                                <input id="hp" type="text" class="form-control" name="hp" placeholder="0-25" value="">
                             </div>
                             <div class="col-xs-2 col-xs-offset-1">
                                 <label id="sp">SP</label>
-                                <input id="sp" type="text" class="form-control" name="sp" value="">
+                                <input id="sp" type="text" class="form-control" name="sp" placeholder="0-25" value="">
                             </div>
                             <div class="col-xs-2 col-xs-offset-1">                            
                                 <label for="health">Health</label>
-                                <input id="health" type="text" class="form-control" name="health" value="">                                                        
+                                <input id="health" type="text" class="form-control" placeholder="50-100" name="health" value="">                                                        
                             </div>
                         </div>                
                     </div>
+                    <div class="form-group">
+                        <label>Npc says when:</label>
+                    </div>
                     <div class="form-group">                        
-                        <label>Player enters room:</label>
+                        <label class="subfield">Player enters room:</label>
                         <input type="text" class="form-control" name="playerEnters">
                     </div>
                     <div class="form-group">
-                        <label>Player drops item:</label>
+                        <label class="subfield">Player drops item:</label>
                         <input type="text" class="form-control" name="playerDrops">
                     </div>
                     <div class="form-group" id="fields">
-                        <label >Chat with player:</label>
+                        <label class="subfield">Chats with player:</label>
                         <div id="field1" class="input-group">
                             <input class="form-control" name="chat1" type="text" data-items="8"/>
                             <span class="input-group-btn">
@@ -167,8 +172,9 @@
                         </div>
                         </br>
                     </div>
+                    
                     <div class="form-group">
-                        <label class="col-xs-12">Add Items</label>
+                        <label class="col-xs-12">Inventory</label>
                             <%for (var i=0; i<items.length; i++){%>
                             <div class="checkbox col-xs-6">
                                 <label><input type="checkbox" name="items" value="<%=items[i].id%>"><%=items[i].keyword%></label>
@@ -297,6 +303,7 @@
                 </h4>
             </div>
             <div class="modal-body">
+                <div id="alertItem" class="alert alert-danger"></div>
                 <form id="createItem" class="modal-form form-horizontal" role="form" action="/crud" method="post">
                     <div class="form-group">
                         <label>Name:</label>
@@ -323,11 +330,12 @@
                         <%}%>
                     </div>
                     <input type="hidden" name="form" value="createItem">
+                    <input id="itemId" type="hidden" name="form" value="">
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <button id="btnCreateItem" type="button" class="btn btn-info" data-dismiss="modal">Create item</button>
+                <button id="btnCreateItem" type="button" class="btn btn-info" >Create item</button>
             </div>
         </div>
       </div>
@@ -352,12 +360,12 @@
     <!-- record-display end -->
 
 </div><!-- wrapper end-->
-<script>  
+<script>  <!--
     var user = <%-JSON.stringify(user)%>;
     var locations = <%-JSON.stringify(locations)%>;
     var npcs = <%-JSON.stringify(npcs)%>;
     var items = <%-JSON.stringify(items)%>;
-    console.log(locations);
+    -->
 </script>
 <script src="crud_functions.js"></script>
 </body>

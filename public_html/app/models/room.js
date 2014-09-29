@@ -13,7 +13,7 @@ var Helper = require('../controllers/helper_functions.js');
 var valEmpty = [Helper.valEmpty, '{PATH} must just not be empty.'];
 
 var ExitSchema = new Schema({ 
-   keyword      : {type:String, trim:true, validate:valEmpty}, // the keyword player types to leave 
+   keyword      : {type:String, trim:true, unique: true, validate:valEmpty}, // the keyword player types to leave 
    description  : {type:String, trim:true, validate:valEmpty}, 
    exitId       : Number, // roomId of the room it leads to
    action       : {type:String, trim:true, validate:valEmpty}, // action of player when leaving room
@@ -37,6 +37,25 @@ ExitSchema.set('toObject', {getters : true});
 // set the validations
 RoomSchema.path('name').validate(Helper.valEmpty, 'name must not be empty');
 
+//sanitize string before saving
+RoomSchema.pre('save', function(next){
+    console.log('hello from room-pre-save');
+    // sanitize all strings
+    var self = this || mongoose.model('Room');
+    var exits = self.exits;
+    self.name = Helper.sanitizeString(self.name);
+    self.description = Helper.sanitizeString(self.description);
+    
+    for(var i=0; i< self.exits.length; i++){        
+        self.exits[i]['keyword'] = Helper.sanitizeString(self.exits[i]['keyword']);
+        self.exits[i]['description'] = Helper.sanitizeString(self.exits[i]['description']);
+        self.exits[i]['goodbye'] = Helper.sanitizeString(self.exits[i]['goodbye']);
+        self.exits[i]['hello'] = Helper.sanitizeString(self.exits[i]['hello']);
+        self.exits[i]['action'] = Helper.sanitizeString(self.exits[i]['action']);
+    }
+    next();
+});
+
 
 RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds, cb){
     console.log('hello from createRoom');
@@ -57,6 +76,7 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds, cb
         Exit.keyword = exits[i].keyword;
         Exit.goodbye = exits[i].goodbye;
         Exit.action = exits[i].action;
+        Exit.hello = exits[i].hello;
         Room.exits.push(Exit);
     }
     
@@ -103,7 +123,7 @@ RoomSchema.statics.createRoomWithNpc = function(room, exits, npcIds, itemIds, cb
             });
     }else {
         cb(null,Room);
-    }
+    }  
     
 };
 
@@ -125,6 +145,7 @@ RoomSchema.statics.updateRoom = function(room, exits, npcIds, itemIds, cb){
             Exit.keyword = exits[i].keyword;
             Exit.goodbye = exits[i].goodbye;
             Exit.action = exits[i].action;
+            Exit.hello = exits[i].hello; 
             doc.exits.push(Exit);
         }
         

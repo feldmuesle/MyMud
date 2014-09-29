@@ -24,7 +24,7 @@ module.exports.response = function(socket){
 //    Game.insertTestNpc();
 //    Game.insertTestRoom();
 //    Game.deleteRoomById(3);
-    Game.deleteNpcById(5);
+//    Game.deleteNpcById(7);
 
 
 //      Game.test(3);

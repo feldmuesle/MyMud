@@ -35,6 +35,7 @@ $(function(){
   
 // initialize game with existing player
 function loadGame(){    
+    console.log('you want to load an existing game?');
     socket.emit('loadGame', {'userId' : user._id}); 
 }
 

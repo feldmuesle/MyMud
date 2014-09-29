@@ -4,12 +4,20 @@
 
 $(document).ready(function(){
     
-    // hide alert-window for now
+    // hide alert-windows for now
+    $('#alertItem').hide();    
     $('#alertNpc').hide();
     $('#alertRoom').hide();
+    $('#itemSuccess').hide();    
+    $('#npcSuccess').hide();
+    $('#roomSuccess').hide();
     
     //create item
     $('#btnCreateItem').click(function(){
+    
+        //empty validation-alert
+        $('#alertItem').text(''); 
+        
        var form = $('#createItem input[name=form]').val();
        console.log(form);
        var name = $('#createItem input[name=keyword]').val();
@@ -31,12 +39,46 @@ $(document).ready(function(){
            'behaviours' :   behaviours
        };
        
-       //$.post('/crud',JSON.stringify(item));
-       $.post('/crud',item);
+       if(form == 'updateItem'){
+           console.log('item to update: id '+$('#itemId').val());
+           item.id = $('#itemId').val();
+       }
        
-       // clear all inputs in form
-       $('#createItem').trigger('reset');
-       clearCheckboxes($('#createItem'));
+       //$.post('/crud',JSON.stringify(item));
+       $.post('/crud',item, function(data){
+           console.log('hello back from server');
+           if(!data['success']){
+                var errors = data['errors'];
+                console.log(typeof errors);
+                $('#alertItem').show();
+                $('#alertItem').append('<h3>'+data['msg']+'</h3>');
+                for(var key in errors){
+                    var err = errors[key];
+                    console.log('error-message: '+err.message);
+                    $('#alertItem').append('<p>'+err.message+'</p>');
+                };
+            }else{
+                
+                // close modal 
+                $('#createItems').modal('hide');
+                // reset modal-button again
+                $('#createItems input[name=form]').val('createItem');
+                $('#btnCreateItem').text('create');
+                // empty error- alert and hide
+//                $('#alertItem').text('');
+//                $('#alertItem').hide();
+//                
+                // show success-message
+                alertSuccess('#itemSuccess',data['msg']);
+                items = data['items'];
+                updateItemList();
+                console.log(items);
+                // clear all inputs in form
+                $('#createItem').trigger('reset');
+                clearCheckboxes($('#createItem'));
+                
+            }
+       });
        console.dir(item);
     });
     
@@ -49,6 +91,8 @@ $(document).ready(function(){
        //empty validation-alert
         $('#alertNpc').text(''); 
        
+        // get all values from form
+        
         var npcId = $('#npcId').val();
         var form = $('#createNpc input[name=form]').val();
         var name = $('#createNpc input[name=keyword]').val();
@@ -66,71 +110,45 @@ $(document).ready(function(){
         var behaviours = [];
         var items = [];
         console.log('npcId before sending: '+npcId);
-        for(var i=countFields; i>0; i--){
-            var msg = $('#createNpc input[name=chat'+i+']').val();
+        for(var i=0; i<countFields; i++){
+            var msg = $('#createNpc input[name=chat'+(i+1)+']').val();
             playerChat.push(msg);
-            console.log(msg);
             console.log('i in loop '+i);
         }
        
        $('#createNpc input[name=behaviours]:checked').each(function(){
-           console.log($(this).val());
-          behaviours.push($(this).val()); 
+            console.log($(this).val());
+            behaviours.push($(this).val()); 
        });
        
        $('#createNpc input[name=items]:checked').each(function(){
-           console.log($(this).val());
+            console.log($(this).val());
             items.push($(this).val()); 
-       });
+       });       
        
-       
-       if(form == 'updateNpc'){
-            var npc = {
-                        'id'        :   npcId,
-                        'form'      :   form,
-                        'keyword'   :   name,
-                        'gender'    :   gender,
-                        'shortDesc' :   shortDesc,
-                        'description':   description,
-                        'maxLoad'   :    maxLoad,
-                        'pacifist'  :   pacifist,
-                        'hp'        :   hp,
-                        'sp'        :   sp,
-                        'health'    :   health,
-                        'playerEnters':  playerEnters,
-                        'playerDrops':   playerDrops,
-                        'playerChat':   playerChat,
-                        'behaviours':   behaviours,
-                        'items'      :   items
-                    };
+        var npc = {
+                'form'       :   form,
+                'keyword'    :   name,
+                'gender'     :   gender,
+                'shortDesc'  :   shortDesc,
+                'description':   description,
+                'maxLoad'   :    maxLoad,
+                'pacifist'   :   pacifist,
+                'hp'         :   hp,
+                'sp'         :   sp,
+                'health'     :   health,
+                'playerEnters':  playerEnters,
+                'playerDrops':   playerDrops,
+                'playerChat' :   playerChat,
+                'behaviours' :   behaviours,
+                'items'      :   items
+            };
             
-            // reset modal-button again
-            $('#createNpc input[name=form]').val('createNpc');
-            
-       }else {
-            var npc = {
-           'form'       :   form,
-           'keyword'    :   name,
-           'gender'     :   gender,
-           'shortDesc'  :   shortDesc,
-           'description':   description,
-           'maxLoad'   :    maxLoad,
-           'pacifist'   :   pacifist,
-           'hp'         :   hp,
-           'sp'         :   sp,
-           'health'     :   health,
-           'playerEnters':  playerEnters,
-           'playerDrops':   playerDrops,
-           'playerChat' :   playerChat,
-           'behaviours' :   behaviours,
-           'items'      :   items
-       };
-       }
-       
-       
-       
-       //$.post('/crud',JSON.stringify(item));
-       $.post('/crud',npc, function(data){
+        // add also Id if it's an update    
+        if(form == 'updateNpc'){npc.id = npcId;}  
+              
+       console.log(npc);
+        $.post('/crud',npc, function(data){
            console.log('hello back from server');
            if(!data['success']){
                 var errors = data['errors'];
@@ -140,7 +158,7 @@ $(document).ready(function(){
                 for(var key in errors){
                     var err = errors[key];
                     console.log('error-message: '+err.message);
-                     console.log('error-message twice: '+err['message']);
+                    console.log('error-message twice: '+err['message']);
 
                     $('#alertNpc').append('<p>'+err.message+'</p>');
                 };
@@ -148,11 +166,16 @@ $(document).ready(function(){
                 
                 // hide modal 
                 $('#createNpcs').modal('hide');
-                
-                // set submit-button to default again
+                // reset modal-button again
+                $('#createNpc input[name=form]').val('createNpc');
                 $('#btnCreateNpc').text('create');
-                console.log(data['msg']);
+                // empty alert and hide
+//                $('#alertNpc').text('');
+//                $('#alertNpc').hide();
+                // show success-msg
+                alertSuccess('#npcSuccess', data['msg']);
                 npcs = data['npcs'];
+                updateNpcList();
                 console.log(npcs);
                 // clear all inputs in form
                 $('#createNpc').trigger('reset');
@@ -209,22 +232,7 @@ $(document).ready(function(){
            console.log('i in loop '+i);
        }
        
-       if(form == 'updateRoom'){
-            var room = {
-                'form'       :   form,
-                'id'         :   roomId,
-                'keyword'    :   name,
-                'description':   description,
-                'npcs'       :   formNpcs,
-                'items'      :   formItems,
-                'exits'      :   exits
-            };
-            
-            // reset modal-button again
-            $('#createRoom input[name=form]').val('createRoom');
-            
-       }else {
-            var room = {
+       var room = {
                 'form'       :   form,
                 'keyword'    :   name,
                 'description':   description,
@@ -232,8 +240,10 @@ $(document).ready(function(){
                 'items'      :   formItems,
                 'exits'      :   exits
             };
-       }
        
+       if(form == 'updateRoom'){
+            room.id = roomId;                       
+       }
        
        // send data to server and get response back
        $.post('/crud',room, function(data){
@@ -253,18 +263,16 @@ $(document).ready(function(){
             }else{
                 
                 // hide modal 
-                $('#createRooms').modal('hide');
-                
-                // set submit-button to default again
-                $('#btnCreateRoom').text('create');
-                console.log(data['msg']);
+                $('#createRooms').modal('hide');                
+                // set submit-button to default and empty alert
+                $('#btnCreateRoom').text('create'); 
+                $('#alertRoom').hide();
+                alertSuccess('#roomSuccess',data['msg']);
                 // update locations
                 locations = data['locations'];
+                updateRoomList();
                 console.log(locations);
-                // clear all inputs in form
-                $('#createRoom').trigger('reset');
-                clearCheckboxes($('#createRoom'));
-                removeExitFields(exits.length);
+                
             }
            
            
@@ -274,22 +282,31 @@ $(document).ready(function(){
        console.dir(room);
     });
     
-    // button for showing modal form for updating npc
-    $('.updateNpc').click(function(){
-        $('#createNpc').trigger('reset');
-        console.log('want to update npc?');
-        var npcId = this.id.charAt(this.id.length-1);
-        var npc = getRecordById(npcs, npcId);
-        console.log(npc.gender);
+    // button for showing modal form for updating npc, needs to be document because added dynamically
+    $(document).on('click','.updateNpc',function(){
         
-        // populate npc in modal form
-        $('#createNpc input[name=form]').val('updateNpc');
+        console.log('want to update npc?');
+                                
+        // get id from button-element
+        var npcId = this.id.substr(6,this.id.length);
+        
+        // get npc out of npcs-array
+        var npc = getRecordById(npcs, npcId);
+        
+        // make sure the form is clean
+        $('#alertNpc').hide();
+        $('#createNpc').trigger('reset');
+        clearCheckboxes($('#createNpc'));
+        removePlayerChat(countFields);
+        console.log('gender is: '+npc.gender);
+        
+        // populate npc in modal form        
         $('#createNpc input[name=keyword]').val(npc.keyword);
-        $('#createNpc input[name=gender]:checkbox[value ='+npc.gender+']').attr('checked',true);
+        $('#createNpc input[name=gender]:radio[value='+npc.gender+']').attr('checked',true);
         $('#createNpc input[name=shortDesc]').val(npc.shortDesc);
         $('#createNpc input[name=description]').val(npc.description);
         $('#createNpc input[name=maxLoad]').val(npc.maxLoad);
-        $('#createNpc input[name=pacifist]').attr('value',npc.pacifist.toString()).attr('checked', true);
+        $('#createNpc input[name=pacifist]:radio[value='+npc.pacifist+']').attr('checked', true);
         $('#createNpc input[id=hp]').val(npc.attributes['hp']);
         $('#createNpc input[id=sp]').val(npc.attributes['sp']);
         $('#createNpc input[id=health]').val(npc.attributes['health']);
@@ -308,32 +325,43 @@ $(document).ready(function(){
         for(var i=0; i<npc.inventory.length; i++){
             $('#createNpc input[name=items]:checkbox[value = '+npc.inventory[i].id+']').attr('checked', true);
         }
-        console.log(npc);
+        
         //set checkboxes for behaviours
         for(var i=0; i<npc.behaviours.length; i++){
             console.log('behaviour: '+npc.behaviours[i]);
             $('#createNpc input[name=behaviours]:checkbox[value ='+npc.behaviours[i]+']').attr('checked', true);
         }
-        console.log('npcId: '+npcId);
+        
+        // set hidden id in form
         $('#npcId').val(npcId);
+        // change button and form from create to update
         $('#btnCreateNpc').text('Update');
+        $('#createNpc input[name=form]').val('updateNpc');
+        
+        // show form in modal
         $("#createNpcs").modal('show');
     });
 
-
     //button for showing modal form for updation item
-    $('.updateItem').click(function(){
+    $(document).on('click','.updateItem', function(){
         console.log('want to update item?');
-        var itemId = this.id.charAt(this.id.length-1);
+        // make sure form is clean
+        $('#alertItem').hide();
+        $('#createItem').trigger('reset');
+        clearCheckboxes($('#createItem'));
+        
+        // get id from button-element and item-object from items-array
+        var itemId = this.id.substr(7,this.id.length);
         var item = getRecordById(items, itemId);
         console.log('itemId to update: '+itemId);
-
+ 
         // populate item in modal form
         $('#createItem input[name=form]').val('updateItem');
         $('#createItem input[name=keyword]').val(item.keyword);
         $('#createItem input[name=shortDesc]').val(item.shortDesc);
         $('#createItem input[name=description]').val(item.description);
         $('#createItem input[name=maxLoad]').val(item.maxLoad);
+        $('#itemId').val(item.id);
 
         console.log(item);
         // set checkboxes for behaviours
@@ -346,11 +374,18 @@ $(document).ready(function(){
 
     
     // button for showing modal form for updating room
-    $('.updateRoom').click(function(){
-        console.log('want to update room?');
-        var roomId = this.id.charAt(this.id.length-1);
+    $(document).on('click','.updateRoom', function(){
+        
+        // get id from button-element
+        var roomId = this.id.substr(7,this.id.length);
         console.log('want to update room '+roomId);
         var room = getRecordById(locations, roomId);
+        
+        //make sure the form is cleaned up
+        $('#createRoom').trigger('reset');
+        clearCheckboxes($('#createRoom'));
+        removeExitFields(countExits);
+        $('#alertRoom').hide();
 
         // populate room in modal-form
         $('#createRoom input[name=form]').val('updateRoom');
@@ -392,40 +427,61 @@ $(document).ready(function(){
 
 
     // button for deleting room
-    $('.deleteRoom').click(function(e){
-        e.preventDefault();
+    $(document).on('click','.deleteRoom', function(){
         console.log('want to delete?');
-        var roomId = this.id.charAt(this.id.length-1);
+        var roomId = this.id.substr(10,this.id.length);
         console.log('roomId to delete: '+roomId);
         $.post('/crud', {
             'roomId'    :   roomId,
             'delete'    :   'roomDel'
+        }, function(data){
+            if(data['success']){
+                alertSuccess('#roomSuccess', data['msg']);
+                locations = data['locations'];
+                updateRoomList();
+                console.log(data['locations']);
+            }
         });
 
     });
 
     // button for deleting npc
-    $('.deleteNpc').click(function(e){
-        e.preventDefault();
+    $(document).on('click','.deleteNpc',function(){
         console.log('want to delete?');
-        var npcId = this.id.charAt(this.id.length-1);
+        var npcId = this.id.substr(9,this.id.length); // because btn-id-name has 9 chars before id starts
+        
+        
         console.log('npcId to delete: '+npcId);
         $.post('/crud', {
             'npcId'    :   npcId,
             'delete'    :   'npcDel'
+        }, function(data){
+            if(data['success']){
+                alertSuccess('#npcSuccess', data['msg']);
+                npcs = data['npcs'];
+                updateNpcList();
+                console.log(data['npcs']);
+            }
         });
 
     });
 
     // button for deleting item
-    $('.deleteItem').click(function(e){
-        e.preventDefault();
+    $(document).on('click','.deleteItem', function(){
+        
         console.log('want to delete?');
-        var itemId = this.id.charAt(this.id.length-1);
+        var itemId = this.id.substr(10,this.id.length); //because del-button-name has 10 chars before id starts
         console.log('itemId to delete: '+itemId);
         $.post('/crud', {
             'itemId'    :   itemId,
             'delete'   :    'itemDel'
+        }, function(data){
+            if(data['success']){
+                alertSuccess('#itemSuccess', data['msg']);
+                items = data['items'];
+                updateItemList();
+                console.log(data['items']);
+            }
         });
 
     });
@@ -515,9 +571,11 @@ $(document).ready(function(){
 
 
     // make item-li-items clickable and show details in modal window
-    $('.showItem').click(function(){
+    $(document).on('click','.showItem', function(e){
+        
+        e.preventDefault();
        console.log('you have clicked a list-item');  
-       var itemId = this.id.charAt(this.id.length-1);
+       var itemId = this.id.substr(4,this.id.length);
        var item = getRecordById(items, itemId);
        
        var html = '<ul class="list-unstyled">'+
@@ -538,13 +596,14 @@ $(document).ready(function(){
     });    
 
     // make room-li-items clickable and show details in modal window
-    $('.showRoom').click(function(){
-       console.log('you have clicked a list-item');  
-       var roomId = this.id.charAt(this.id.length-1);
-       var room = getRecordById(locations, roomId);
-       var html = '<ul class="list-unstyled">'+
+    $(document).on('click','.showRoom', function(e){
+        e.preventDefault();
+        console.log('you have clicked a list-item');  
+        var roomId = this.id.substr(4,this.id.length);
+        var room = getRecordById(locations, roomId);
+        var html = '<ul class="list-unstyled">'+
                 '<li class="description"><h5>Description:</h5>'+room.description+'</li>';
-        console.log(room.exits.length);
+        
             for(var j=0; j<room.exits.length; j++){
 
                 var roomName = $('#createRoom select[name=exitId1] option[value='+room.exits[j].exitId+']').text();
@@ -565,12 +624,14 @@ $(document).ready(function(){
     });
 
     // make npc-li-items clickable and show details in modal window
-    $('.showNpc').click(function(){
+    $(document).on('click','.showNpc',function(e){
+        
+        e.preventDefault();
        console.log('you have clicked a npc-list-item');  
-       var npcId = this.id.charAt(this.id.length-1);
-       var npc = getRecordById(npcs, npcId);
-       
-       var html = '<ul class="list-unstyled">'+
+        var npcId = this.id.substr(3,this.id.length);
+        var npc = getRecordById(npcs, npcId);
+
+        var html = '<ul class="list-unstyled"> '+
                 '<li class="description"><h5>Description:</h5>'+npc.description+'</li>'+
                 '<li class="description"><h5>Gender:</h5>'+npc.gender+'</li>'+
                 '<li class="description"><h5>Short description:</h5>'+npc.shortDesc+'</li>'+
@@ -605,21 +666,38 @@ $(document).ready(function(){
 
     // show modal windows for creation-forms
     $('#addRoom').click(function(){
-       console.log('want to create new room?'); 
+       console.log('want to create new room?');
+       //make sure the form is cleaned up
+        $('#createRoom').trigger('reset');
+        clearCheckboxes($('#createRoom'));
+        removeExitFields(countExits - (countExits-1));
        $("#createRooms").modal('show'); 
     });
 
     $('#addNpc').click(function(){
         console.log('want to create a npc?');
+        // make sure the form is clean
+        $('#createNpc').trigger('reset');
+        clearCheckboxes($('#createNpc'));
+        removePlayerChat(countFields-1);
+        
+        // set radios to default
+        $('#createNpc input[name=gender]:radio[value = male]').attr('checked',true);
+       $('#createNpc input[name=pacifist]:radio[value = true]').attr('checked','checked');
+        
        $("#createNpcs").modal('show'); 
+       
     });
 
     $('#addItem').click(function(){
-        console.log('want to create a npc?');
+        console.log('want to create an item?');
+        //make sure the form is cleaned up
+        $('#createItem').trigger('reset');
+        clearCheckboxes($('#createItem'));
        $("#createItems").modal('show'); 
     });
     
-// misc-functions for helping
+    // misc-functions for helping
     function getRecordById(recordArray, recordId){
         for(var i=0; i<recordArray.length; i++){
                 if(recordArray[i].id == recordId){
@@ -646,7 +724,7 @@ $(document).ready(function(){
         
         // reset counters
         next = 1;
-        countFields = 0;
+        countFields = 1;
         console.log('countFields after remove: '+countFields);
     }
     
@@ -663,6 +741,60 @@ $(document).ready(function(){
         nextExit = 1;
         countExits = 1;
         
+    }
+    
+    function updateRoomList(){
+        var html='';
+        for(var i=0; i<locations.length; i++){
+            html =  html+'<li class="list-group-item">'+
+                        '<a id="room'+locations[i].id+'" class="showRoom" href="#">'+locations[i].name+'</a>'+
+                        '<button class="deleteRoom pull-right btn btn-xs margin" id="roomBtnDel'+locations[i].id+'">Delete</button>'+
+                        '<button class="updateRoom pull-right btn btn-xs" id="roomBtn'+locations[i].id+'">Update</button>'+                       
+                    '</li>';
+        }
+        $('#roomList').html(html);
+    }
+    
+    function updateItemList(){
+        var html='';
+        for(var i=0; i<items.length; i++){
+            html = html+ '<li class="list-group-item">'+
+                        '<a id="item'+items[i].id+'" class="showItem" href="#">'+items[i].keyword+'</a>'+
+                        '<button class="deleteItem pull-right btn btn-xs margin" id="itemBtnDel'+items[i].id+'">Delete</button>'+
+                        '<button class="updateItem pull-right btn btn-xs" id="itemBtn'+items[i].id+'">Update</button>'+                       
+                    '</li>';
+        }
+        $('#itemList').html(html);
+    }
+    
+    function updateNpcList(){
+        var html='';        
+        for(var i=0; i<npcs.length; i++){
+            console.log('looping through npcs');
+            html = html+ '<li class="list-group-item">'+
+                        '<a id="npc'+npcs[i].id+'" class="showNpc" href="#">'+npcs[i].keyword+'</a>'+
+                        '<button class="deleteNpc pull-right btn btn-xs margin" id="npcBtnDel'+npcs[i].id+'">Delete</button>'+
+                        '<button class="updateNpc pull-right btn btn-xs" id="npcBtn'+npcs[i].id+'">Update</button>'+
+                    '</li>';
+        }
+        
+        $('#npcList').html(html);
+    }
+    
+    
+    // show success-alert depending on alertId
+    function alertSuccess(alertId, msgString){
+        // make sure it's clean and empty
+        $(alertId).text('');
+        
+        var msg = '<p>'+msgString+'</p>';
+        $(alertId).append(msg);
+        $(alertId).slideDown('slow').fadeIn(3000, function(){
+            setTimeout(function(){
+                $(alertId).fadeOut({duration:1000, queue:false}).slideUp('slow');
+            },2000);
+            
+        });
     }
     
 });

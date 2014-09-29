@@ -2,16 +2,37 @@
  * This file contains helper-functions for calculations or checking values
  */
 
-//validation-helpers
+/********* validation-helpers **********************/
 
+// check if value is empty
 exports.valEmpty = function(val){
     return val.length > 0;
+};
+
+// check if array is empty
+exports.arrayEmpty = function(array){
+    // is 0 if one record exist
+    return array.length >= 0;
+};
+
+
+// strip all 'mal-chars' and replace with ''
+exports.sanitizeString = function(string){
+    if(typeof stringValue && string.length >0){
+        console.log('string to sanitize '+string);
+        return string.replace(/[&<>${}\[\]/]/g,'');
+    }    
+};
+
+exports.sanitizeNumber = function (numb){
+    console.log('number to sanitize: '+numb);
+    return numb.replace(/[^0-9]/g, '');
 };
 
 
 
 exports.getRandomIndex = function(array){
-  
+   
     var rand = Math.floor(Math.random()* array.length);
     return array[rand];
 };
@@ -58,10 +79,12 @@ exports.autoIncrementId = function(mongooseArray){
            ids.push(mongooseArray[i].id);
        }
     var largest = Math.max.apply(Math, ids);
-    if (largest > 0){
+    
+    // if no records, start at 0 and increment
+    if (largest > -1){
             return largest + 1; 
     }else {
-        return 1;
+        return 0;
     }
      
 };

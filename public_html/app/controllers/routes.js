@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 
+
 var RoomModel = require('../models/room.js');
 var NpcModel = require('../models/npc.js');
 var ItemModel = require('../models/item.js');
@@ -96,14 +97,6 @@ module.exports = function(app, passport, game){
         /********** CREATE ***************/
         if(req.body.form == 'createItem'){
             
-            req.assert('keyword','The room must have a name.').notEmpty();
-            
-            var errors = req.validationErrors();
-            
-            if(errors){
-                
-            }else {};
-            
             console.log('a new item wants to be created');
             ItemModel.find(function(err, items){
                 var id = Helper.autoIncrementId(items); 
@@ -115,9 +108,27 @@ module.exports = function(app, passport, game){
                 item.maxLoad = req.body.maxLoad;
                 item.behaviours = req.body.behaviours;
                 
+                console.log('item to create: '+item);
+                
                 item.save(function(err){
-                   if(err){console.error(err); return;} 
-                   console.log('item has been saved');
+                   if(err){
+                        console.log('something went wrong when creating an item.');
+                        console.log('error '+err); 
+                        res.send({
+                            'success'   : false,
+                            'msg'       : 'could not save item',
+                            'errors'    : err.errors});
+                    }else{
+                        ItemModel.find(function(err, items){
+                            if(err){ return console.log(err);}
+                            res.send({
+                                    'success'   : true,
+                                    'msg'       : 'yuppi! - item has been created.',
+                                    'items'   :   items
+                                });
+
+                        });  
+                    }    
                 });        
             });            
         }
@@ -206,7 +217,7 @@ module.exports = function(app, passport, game){
                             console.log('error '+err); 
                             res.send({
                                 'success'   : false,
-                                'msg'       : 'could not save room, due to',
+                                'msg'       : 'could not save npc:',
                                 'errors'    : err.errors
                             });
                         }else{
@@ -227,11 +238,47 @@ module.exports = function(app, passport, game){
             });
         }
         
-        /********* UPDATE **************/     
+        /********* UPDATE **************/   
+        if(req.body.form == 'updateItem'){
+            
+            var itemId = Helper.sanitizeNumber(req.body.id);
+            ItemModel.findOne({'id':itemId}, function(err, item){
+               if(err){console.log(err); return;}
+               
+                item.keyword = req.body.keyword;
+                item.description = req.body.description;
+                item.shortDesc = req.body.shortDesc;
+                item.maxLoad = req.body.maxLoad;
+                item.behaviours = req.body.behaviours;
+                
+                item.save(function(err){
+                    if(err){
+                        console.log('something went wrong when updating a room.');
+                        console.log('error '+err); 
+                        res.send({
+                            'success'   : false,
+                            'msg'       : 'could not update item',
+                            'errors'    : err.errors});
+                    }else{
+                        ItemModel.find(function(err, items){
+                            if(err){ return console.log(err);}
+                            res.send({
+                                    'success'   : true,
+                                    'msg'       : 'yuppi! - item has been updated.',
+                                    'items'   :   items
+                                });
+
+                        });  
+                    }    
+                });
+            });
+        }
+        
         if(req.body.form == 'updateRoom'){
             console.log('want to update room');
+            var roomId = Helper.sanitizeNumber(req.body.id);
             var room = {
-                    id      :   req.body.id,
+                    id      :   roomId,
                     name    :   req.body.keyword,
                     description : req.body.description
                 };
@@ -286,21 +333,22 @@ module.exports = function(app, passport, game){
                         'sp': req.body.sp,
                         'health': req.body.health
                     },
-                    behaviours : req.body.behaviours                    
+                    'behaviours' : req.body.behaviours                    
                 };
-                console.log('npc to update: '+npc);
+                
             var items = req.body.items;
             
             NpcModel.updateNpc(npc, items, function(err, npc){
+                if(err){ return console.log(err);}
                 console.log('hello from updateNpc-callback');
                 npc.save(function(err){
 //                    if(err){ return console.log(err);}
                     if(err){
-                        console.log('something went wrong when creating a npc.');
+                        console.log('something went wrong when updating a npc.');
                         console.log('error '+err); 
                         res.send({
                             'success'   : false,
-                            'msg'       : 'could not save npc, due to',
+                            'msg'       : 'could not update npc:',
                             'errors'    : err.errors
                         });
                     }else{
@@ -310,7 +358,7 @@ module.exports = function(app, passport, game){
 
                             res.send({
                                 'success'   : true,
-                                'msg'       : 'hurray! - npc has been created.',
+                                'msg'       : 'hurray! - npc has been updated.',
                                 'npcs'      :   npcs
                             });
 
@@ -323,17 +371,49 @@ module.exports = function(app, passport, game){
         /********* DELETE **************/      
         if(req.body.delete == 'itemDel'){
             var itemId = req.body.itemId;
-           ItemModel.findOne({'id':itemId}).remove().exec(function(err){
-               if(err){console.error(err); return;}
+            ItemModel.findOne({'id':itemId},function(err, item){
+                if(err){console.error(err); return;}
+               
+                item.remove(function(err){
+                    if(err){console.log(err); return;}
+                   
+                    ItemModel.find(function(err, items){
+                        if(err){console.log(err); return;}
+
+                        res.send({
+                        'success':   true,
+                        'msg'    :   'item has been removed.',
+                        'items'  :   items
+                   }); 
+            });
+                   
+                                  
+                   
+               });
                console.log('item has been removed');
            }); 
         }
         
         if(req.body.delete == 'npcDel'){
             var npcId = req.body.npcId;
-           NpcModel.findOne({'id':npcId}).remove().exec(function(err){
+            console.log(npcId);
+           NpcModel.findOne({'id':npcId},function(err, npc){
                if(err){console.error(err); return;}
-               console.log('npc has been removed');
+               
+               npc.remove(function(err){
+                    if(err){console.log(err); return;}
+                   
+                    NpcModel.find(function(err, npcs){
+                        if(err){console.log(err); return;}
+
+                        res.send({
+                            'success':   true,
+                            'msg'    :   'npc has been removed.',
+                            'npcs'  :    npcs
+                        });
+                   }); 
+                   
+               });
            }); 
         }
         
@@ -342,7 +422,18 @@ module.exports = function(app, passport, game){
            RoomModel.findOne({'id':roomId}).remove().exec(function(err){
                if(err){console.error(err); return;}
                console.log('room has been removed');
+               
+               RoomModel.find(function(err, rooms ){
+                        if(err){console.log(err); return;}
+
+                        res.send({
+                            'success'   :   true,
+                            'msg'       :   'room has been removed.',
+                            'locations' :    rooms
+                        });
+                   });
            }); 
+           
         }
         
     });
