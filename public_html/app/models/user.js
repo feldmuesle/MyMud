@@ -47,9 +47,8 @@ UserSchema.statics.savePlayer = function(playerObj){
   
   self.findOne().where({'player.nickname' : playerObj.nickname}).exec(function(err, user){
       if(err){console.error(err); return;}  
-      
+      console.log(user);
       //replace player with new playerObject
-//      user.player.pop();
       user.player[0] = player; // [0] because there is always only one player
 //      user.player.push(player);
       user.save(function(err, doc){
