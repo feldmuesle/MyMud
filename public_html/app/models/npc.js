@@ -136,9 +136,7 @@ NpcSchema.statics.updateNpc = function(npcConfig, items, cb){
                     }
                     return cb(err, npc);
             });            
-        }
-    
-        
+        }        
     }); 
 };
 

@@ -49,8 +49,9 @@ UserSchema.statics.savePlayer = function(playerObj){
       if(err){console.error(err); return;}  
       
       //replace player with new playerObject
-      user.player.pop();
-      user.player.push(player);
+//      user.player.pop();
+      user.player[0] = player; // [0] because there is always only one player
+//      user.player.push(player);
       user.save(function(err, doc){
          if(err){console.error(err); return;} 
          console.log('player has been saved' +doc);
