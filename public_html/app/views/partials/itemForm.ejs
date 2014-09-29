@@ -1,0 +1,48 @@
+<!-- partial view displaying modal for item-form -->
+<div class="modal fade" id="createItems" tabindex="-1" role="dialog" aria-labelledby="createItems" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span class="glyphicon glyphicon-plus"></span> create new item
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div id="alertItem" class="alert alert-danger"></div>
+                <form id="createItem" class="modal-form form-horizontal" role="form" action="/crud" method="post">
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="keyword">
+                    </div>                   
+                    <div class="form-group">   
+                        <label>Short description:</label>
+                        <input type="text" class="form-control" name="shortDesc">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" class="form-control" name="description">
+                    </div>
+                    <div class="form-group">
+                        <label>Max-load</label>
+                        <input type="text" class="form-control" name="maxLoad">
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Add behaviours</label>
+                        <%for (var key in itemListen){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="behaviours" value="<%=key%>"><%=key%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <input type="hidden" name="form" value="createItem">
+                    <input id="itemId" type="hidden" name="form" value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button id="btnCreateItem" type="button" class="btn btn-info" >Create item</button>
+            </div>
+        </div>
+      </div>
+    </div>

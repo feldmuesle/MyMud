@@ -17,18 +17,18 @@ var valEmpty = [Helper.valEmpty, 'The field \'{PATH}:\' must just not be empty.'
 
 var NpcSchema = new Schema({
     id         :   Number,
-    keyword     :   {type:String, trim:true, unique:true, validate:valEmpty},
+    keyword     :   {type:String, trim:true, lowercase:true, unique:true, validate:valEmpty},
 //    location    :   {type: Schema.ObjectId, ref:'Room'},
     shortDesc    :   {type:String, trim:true, validate:valEmpty},
     description  :   {type:String, trim:true, validate:valEmpty},
-    gender      :   String, //{type:String, trim:true, validate:valEmpty},
+    gender      :   {type:String, trim:true, validate:valEmpty},
     attributes   : {
             health   :   {type : Number, min:50, max:100, required:true},
             hp      :   {type : Number, min: 1, max: 25, required:true},
             sp      :   {type : Number, min: 0, max: 25, required:true}
         },
     maxLoad     :   {type : Number, min: 1, required:true},
-    pacifist    :   { type:Boolean},
+    pacifist    :   { type:Boolean, required:true},
     inventory   :   [{type:Schema.ObjectId, ref:'Item', index:true}],
     actions   :{
             playerEnters    :   {type:String, trim:true},
@@ -56,14 +56,13 @@ NpcSchema.pre('save', function(next){
     self.shortDesc = Helper.sanitizeString(self.shortDesc);
     self.description = Helper.sanitizeString(self.description);
     self.gender = Helper.sanitizeString(self.gender);
-    self.pacifist = Helper.sanitizeString(self.pacifist.toString());
     self.actions = {
         playerEnters    :   Helper.sanitizeString(self.actions['playerEnters']),
         playerDrops     :   Helper.sanitizeString(self.actions['playerDrops']),
         playerChat      :   []
     };
     console.log('chat-array = '+chat);
-    console.log('chat-array = '+chat.lengt);
+    console.log('chat-array = '+chat.length);
     self.behaviours = [];
     for(var i=0; i<chat.length;i++){
         self.actions['playerChat'].push(Helper.sanitizeString(chat[i]));

@@ -5,7 +5,7 @@
 //commands
     function checkCommand(cmd, socket){
     
-        var command = cmd.split(' ');
+        var command = cmd.split(/[ ,]+/);
         var leave = false;
         var index;
         console.log(command[0]);

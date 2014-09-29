@@ -91,22 +91,19 @@ function slideGameSignup(){
         console.log('somebody is trying to send a message');
         if($('#chatInput').val() !== ''){
             var msg = $('#chatInput').val();
-            if(msg.charAt(0)=='*'){             // if there's a * it means command, check it!
-                var command = msg.split('*');
-                console.log('There\'s a command:' +command[1]);
-                checkCommand(command[1], socket);
-            } else { // otherwise just post the msg
-                var data ={
-                'action'  : 'says',  
-                'msg'     :   msg,
-                'username':   player.nickname   
-                };
-                console.log('somebody is trying to send a message.');
+                checkCommand(msg, socket);
+            
+//                var data ={
+//                'action'  : 'says',  
+//                'msg'     :   msg,
+//                'username':   player.nickname   
+//                };
+//                console.log('somebody is trying to send a message.');
                 // send message to the server
-                socket.emit('chat', data);
-                // add message to screen
-                addAction('say' ,msg, 'you');
-            }
+//                socket.emit('chat', data);
+//                // add message to screen
+//                addAction('say' ,msg, 'you');
+            
             
             // empty inputfield
             $('#chatInput').val('');

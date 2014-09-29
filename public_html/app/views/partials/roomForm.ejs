@@ -1,0 +1,89 @@
+<div class="modal fade" id="createRooms" tabindex="-1" role="dialog" aria-labelledby="createRooms" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span class="glyphicon glyphicon-plus"></span> create new room
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div id="alertRoom" class="alert alert-danger"></div>
+                <form id="createRoom" class="modal-form form-horizontal">
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="keyword">
+                    </div>                   
+                    <div class="form-group">                                            
+                        <label>Description:</label>
+                        <input type="text" class="form-control" name="description">
+                    </div>            
+                    
+                    <div class="form-group">
+                        <label class="col-xs-12">Add Npcs</label>
+                        <%for (var i=0; i<npcs.length; i++){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="npcs" value="<%=npcs[i].id%>"><%=npcs[i].keyword%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Add Items</label>
+                        <%for (var i=0; i<items.length; i++){%>
+                            <div class="checkbox col-xs-6"><!--  -->
+                                <label><input type="checkbox" name="items" value="<%=items[i].id%>"><%=items[i].keyword%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <!-- EXITS -->
+                    
+                    <div class=" form-group">
+                        <label>Add exits</label>
+                        <button id="addExit" class="btn" type="button">+</button>
+                    </div>
+                    <div id="exits" class="form-group">
+                        <div id="exit1" class="col-xs-11 col-xs-push-1 form-group"> 
+                            <label>Exit 1</label>
+                            <div class="form-group">
+                                <label class="">Keyword:</label>
+                                <input type="text" class="form-control" name="exitKey1">
+                            </div>                   
+                            <div class="form-group">                                            
+                                <label>Description:</label>
+                                <input type="text" class="form-control" name="exitDesc1">
+                            </div>
+                            <div class="form-group">
+                                <label>Leading to room:</label>
+                                <select class="form-control" name="exitId1">
+                                    <%for( var i=0; i<locations.length; i++){%>
+                                        <option value="<%=locations[i].id%>"><%=locations[i].name%></option>
+                                    <%}%>
+                                </select>
+                            </div>  
+                            <div class="form-group">
+                                <label>Action for player when leaving room:</label>
+                                <input type="text" class="form-control" name="action1">
+                            </div>                   
+                            <div class="form-group">                                            
+                                <label>Message for other users in room when player leaves:</label>
+                                <input type="text" class="form-control" name="goodbye1">
+                            </div>
+                            <div class="form-group">                                            
+                                <label>Message for other users in room when player arrives:</label>
+                                <input type="text" class="form-control" name="hello1">
+                            </div>
+                        </div>
+                    </div><!-- EXITS end -->
+                    <input type="hidden" name="form" value="createRoom">
+                    <input id="roomId" type="hidden" value="">
+                    
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button id="btnCreateRoom" type="button" class="btn btn-info" >Create room</button>
+            </div>
+        </div>
+      </div>
+    </div>

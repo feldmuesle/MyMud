@@ -47,10 +47,8 @@ UserSchema.statics.savePlayer = function(playerObj){
   
   self.findOne().where({'player.nickname' : playerObj.nickname}).exec(function(err, user){
       if(err){console.error(err); return;}  
-      console.log(user);
       //replace player with new playerObject
-      user.player[0] = player; // [0] because there is always only one player
-//      user.player.push(player);
+      user.player[0] = player; // [0] because there is always only one player 
       user.save(function(err, doc){
          if(err){console.error(err); return;} 
          console.log('player has been saved' +doc);
@@ -59,9 +57,3 @@ UserSchema.statics.savePlayer = function(playerObj){
  };
 
 module.exports = mongoose.model('user', UserSchema);
-
-//                User.findOneAndUpdate({_id : userId}, {nickname : nickname}, function(err, user){
-//                   if(err){console.error(err); return;}
-////                   socket.emit('initialize game');
-//                    
-//                }); 

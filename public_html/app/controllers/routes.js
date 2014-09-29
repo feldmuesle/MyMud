@@ -8,6 +8,7 @@
 var RoomModel = require('../models/room.js');
 var NpcModel = require('../models/npc.js');
 var ItemModel = require('../models/item.js');
+var GuildModel = require('../models/guilds.js');
 var Helper = require('./helper_functions.js');
 
 module.exports = function(app, passport, game){
@@ -66,25 +67,31 @@ module.exports = function(app, passport, game){
         
         var npcListen = require('./npc_listeners.js').listeners;
         var itemListen = require('./item_listeners.js').listeners;
+        // get all the stuff out of DB
         RoomModel.find().populate('npcs inventory').exec(function(err, rooms){
-            if(err){ return console.log(err);}
+            if(err){ console.log(err); return;}
             
             NpcModel.find().populate('inventory').exec(function(err,npcs){
-                if(err){ return console.log(err);}
+                if(err){ console.log(err); return;}
                 
                 ItemModel.find(function(err, items){
-                   if(err){ return console.log(err);}
-                    
-                    res.render('crud.ejs', {
-                    locations   :   rooms,
-                    npcListen   :   npcListen,
-                    itemListen  :   itemListen,
-                    npcs        :   npcs,
-                    items       :   items,
-                    user        :   req.user,
-                    message     :   ''
-                    });                    
+                   if(err){ console.log(err); return;}
                    
+                    GuildModel.find(function(err, guilds){
+                        if(err){ console.log(err); return;}
+                        
+                        res.render('crud.ejs', {
+                                'locations'   :   rooms,
+                                'npcListen'   :   npcListen,
+                                'itemListen'  :   itemListen,
+                                'npcs'        :   npcs,
+                                'items'       :   items,
+                                'guilds'      :   guilds,
+                                'user'        :   req.user,
+                                'message'     :   ''
+                            });   
+                        
+                    });               
                 });
             });          
         });
@@ -238,6 +245,42 @@ module.exports = function(app, passport, game){
             });
         }
         
+        if(req.body.form == 'createGuild'){
+            
+            console.log('a new item wants to be created');
+            GuildModel.find(function(err, guilds){
+                var id = Helper.autoIncrementId(guilds); 
+                var guild = new GuildModel();
+                guild.id = id;
+                guild.name = req.body.name;
+                guild.hp = req.body.hp;
+                guild.sp = req.body.sp;
+                
+                console.log('guild to create: '+guild);
+                
+                guild.save(function(err){
+                   if(err){
+                        console.log('something went wrong when creating an guild.');
+                        console.log('error '+err); 
+                        res.send({
+                            'success'   : false,
+                            'msg'       : 'could not save guild',
+                            'errors'    : err.errors});
+                    }else{
+                        GuildModel.find(function(err, guilds){
+                            if(err){ return console.log(err);}
+                            res.send({
+                                    'success'   : true,
+                                    'msg'       : 'yuppi! - guild has been created.',
+                                    'guilds'   :   guilds
+                                });
+
+                        });  
+                    }    
+                });        
+            });            
+        }
+        
         /********* UPDATE **************/   
         if(req.body.form == 'updateItem'){
             
@@ -368,6 +411,39 @@ module.exports = function(app, passport, game){
             });            
         }
         
+        if(req.body.form == 'updateGuild'){
+            
+            var guildId = Helper.sanitizeNumber(req.body.id);
+            GuildModel.findOne({'id':guildId}, function(err, guild){
+               if(err){console.log(err); return;}
+               
+                guild.name = req.body.name;
+                guild.hp = req.body.hp;
+                guild.sp = req.body.sp;
+                
+                guild.save(function(err){
+                    if(err){
+                        console.log('something went wrong when updating a room.');
+                        console.log('error '+err); 
+                        res.send({
+                            'success'   : false,
+                            'msg'       : 'could not update guild',
+                            'errors'    : err.errors});
+                    }else{
+                        GuildModel.find(function(err, guilds){
+                            if(err){ return console.log(err);}
+                            res.send({
+                                    'success'   : true,
+                                    'msg'       : 'yuppi! - item has been updated.',
+                                    'guilds'   :   guilds
+                                });
+
+                        });  
+                    }    
+                });
+            });
+        }
+        
         /********* DELETE **************/      
         if(req.body.delete == 'itemDel'){
             var itemId = req.body.itemId;
@@ -381,15 +457,12 @@ module.exports = function(app, passport, game){
                         if(err){console.log(err); return;}
 
                         res.send({
-                        'success':   true,
-                        'msg'    :   'item has been removed.',
-                        'items'  :   items
-                   }); 
-            });
-                   
-                                  
-                   
-               });
+                            'success':   true,
+                            'msg'    :   'item has been removed.',
+                            'items'  :   items
+                        }); 
+                    });
+                });
                console.log('item has been removed');
            }); 
         }
@@ -434,6 +507,28 @@ module.exports = function(app, passport, game){
                    });
            }); 
            
+        }
+        
+        if(req.body.delete == 'guildDel'){
+            var guildId = Helper.sanitizeNumber(req.body.itemId);
+            GuildModel.findOne({'id':guildId},function(err, guild){
+                if(err){console.error(err); return;}
+               
+                guild.remove(function(err){
+                    if(err){console.log(err); return;}
+                   
+                    GuildModel.find(function(err, guilds){
+                        if(err){console.log(err); return;}
+
+                        res.send({
+                            'success':   true,
+                            'msg'    :   'guild has been removed.',
+                            'guilds'  :   guilds
+                        }); 
+                    });
+                });
+               console.log('guild has been removed');
+           }); 
         }
         
     });

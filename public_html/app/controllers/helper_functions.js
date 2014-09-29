@@ -6,7 +6,12 @@
 
 // check if value is empty
 exports.valEmpty = function(val){
-    return val.length > 0;
+    if(val){
+        return val.length > 0;
+    }else {
+        return false;
+    }
+    
 };
 
 // check if array is empty
@@ -18,8 +23,9 @@ exports.arrayEmpty = function(array){
 
 // strip all 'mal-chars' and replace with ''
 exports.sanitizeString = function(string){
-    if(typeof stringValue && string.length >0){
-        console.log('string to sanitize '+string);
+    console.log('string to sanitize '+string);
+    if(typeof stringValue && string){
+        console.log('string sanitized '+string);
         return string.replace(/[&<>${}\[\]/]/g,'');
     }    
 };

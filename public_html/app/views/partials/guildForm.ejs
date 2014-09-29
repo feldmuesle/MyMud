@@ -1,0 +1,36 @@
+<!-- partial view displaying modal for guild-form -->
+<div class="modal fade" id="createGuilds" tabindex="-1" role="dialog" aria-labelledby="createItems" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span class="glyphicon glyphicon-plus"></span> create new guild
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div id="alertGuild" class="alert alert-danger"></div>
+                <form id="createGuild" class="modal-form form-horizontal" role="form" action="/crud" method="post">
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="name">
+                    </div>                   
+                    <div class="form-group">   
+                        <label>Hitpoints:</label>
+                        <input type="text" class="form-control" name="hp">
+                    </div>
+                    <div class="form-group">
+                        <label>Spellpoints</label>
+                        <input type="text" class="form-control" name="sp">
+                    </div>
+                    <input type="hidden" name="form" value="createGuild">
+                    <input id="guildId" type="hidden" name="form" value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button id="btnCreateGuild" type="button" class="btn btn-info" >Create guild</button>
+            </div>
+        </div>
+      </div>
+    </div>

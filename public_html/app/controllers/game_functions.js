@@ -217,10 +217,10 @@ exports.removePlayer = function(socket, callback){
     }
 };
 
-exports.checkCommand = function(commands, player, room, callback){
+exports.checkCommand = function(commands, playerObj, room, callback){
     
     // get the player as mongoose-doc and set listeners
-    var player = PlayerModel.getPlayer(player);
+    var player = PlayerModel.getPlayer(playerObj);
     player.setListeners();
     // if there's only one word
     if(commands.length < 2){
@@ -380,6 +380,17 @@ exports.checkCommand = function(commands, player, room, callback){
             var what = commands[1];
             
             Command.dropItem(what, player, room);              
+            break;
+            
+        case "say":
+            console.log('do you want to say something?');
+            var msg='';
+            for(var i=1; i<commands.length; i++ ){
+                msg += commands[i] + ' ';
+            }
+            msg = Helper.sanitizeString(msg);
+            Texter.broadcastRoomies(player.nickname+' says: \''+msg+'\'', player.socketId, room.name);
+            console.log('say '+msg);
             break;
 
         // if command isn't found

@@ -13,7 +13,7 @@ var Helper = require('../controllers/helper_functions.js');
 var valEmpty = [Helper.valEmpty, '{PATH} must just not be empty.'];
 
 var ExitSchema = new Schema({ 
-   keyword      : {type:String, trim:true, unique: true, validate:valEmpty}, // the keyword player types to leave 
+   keyword      : {type:String, trim:true, lowercase:true, validate:valEmpty}, // the keyword player types to leave 
    description  : {type:String, trim:true, validate:valEmpty}, 
    exitId       : Number, // roomId of the room it leads to
    action       : {type:String, trim:true, validate:valEmpty}, // action of player when leaving room
@@ -22,7 +22,7 @@ var ExitSchema = new Schema({
 });
 
 var RoomSchema = new Schema({
-    name        : {type:String, trim:true},
+    name        : {type:String, trim:true, lowercase:true, unique:true},
     id          : {type:Number, required:true, unique:true},
     description : {type:String, trim:true, validate:valEmpty},
     exits       : [ExitSchema],

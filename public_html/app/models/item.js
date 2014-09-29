@@ -10,7 +10,7 @@ var valEmpty = [Helper.valEmpty, 'The field \'{PATH}:\' must just not be empty.'
 
 var ItemSchema = Schema({
    id:   Number,
-   keyword:   {type:String, trim:true, validate:valEmpty},
+   keyword:   {type:String, trim:true, lowercase:true, validate:valEmpty},
 //   location     :   Number,
    description:   {type:String, trim:true, validate:valEmpty},
    shortDesc:  {type:String, trim:true, validate:valEmpty},

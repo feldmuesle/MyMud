@@ -8,9 +8,11 @@ $(document).ready(function(){
     $('#alertItem').hide();    
     $('#alertNpc').hide();
     $('#alertRoom').hide();
+    $('#alertGuild').hide();
     $('#itemSuccess').hide();    
     $('#npcSuccess').hide();
     $('#roomSuccess').hide();
+    $('#guildSuccess').hide();
     
     //create item
     $('#btnCreateItem').click(function(){
@@ -282,6 +284,70 @@ $(document).ready(function(){
        console.dir(room);
     });
     
+    //create item
+    $('#btnCreateGuild').click(function(){
+    
+        //empty validation-alert
+        $('#alertGuild').text(''); 
+        
+       var form = $('#createGuild input[name=form]').val();
+       console.log(form);
+       var name = $('#createGuild input[name=name]').val();
+       var hp = $('#createGuild input[name=hp]').val();
+       var sp = $('#createGuild input[name=sp]').val();
+       
+       $('#createGuild input[name=behaviours]:checked').each(function(){
+          behaviours.push($(this).val()); 
+       });
+       
+       var guild = {
+           'form'   :   form,
+           'name'   :   name,
+           'hp'     :   hp,
+           'sp'     :   sp
+       };
+       
+       if(form == 'updateGuild'){
+           console.log('guild to update: id '+$('#guildId').val());
+           guild.id = $('#guildId').val();
+       }
+       
+       $.post('/crud',guild, function(data){
+           console.log('hello back from server');
+           if(!data['success']){
+                var errors = data['errors'];
+                console.log(typeof errors);
+                $('#alertGuild').show();
+                $('#alertGuild').append('<h3>'+data['msg']+'</h3>');
+                for(var key in errors){
+                    var err = errors[key];
+                    console.log('error-message: '+err.message);
+                    $('#alertGuild').append('<p>'+err.message+'</p>');
+                };
+            }else{
+                
+                // close modal 
+                $('#createGuilds').modal('hide');
+                // reset modal-button again
+                $('#createGuild input[name=form]').val('createGuild');
+                $('#btnCreateGuild').text('create');
+                // empty error- alert and hide
+//                $('#alertItem').text('');
+//                $('#alertItem').hide();
+//                
+                // show success-message
+                alertSuccess('#guildSuccess',data['msg']);
+                guilds = data['guilds'];
+                updateGuildList();
+                console.log(guilds);
+                // clear all inputs in form
+                $('#createGuild').trigger('reset');
+                
+            }
+       });
+       console.dir(guild);
+    });
+    
     // button for showing modal form for updating npc, needs to be document because added dynamically
     $(document).on('click','.updateNpc',function(){
         
@@ -371,7 +437,6 @@ $(document).ready(function(){
         $('#btnCreateItem').text('Update');
         $("#createItems").modal('show');
     });
-
     
     // button for showing modal form for updating room
     $(document).on('click','.updateRoom', function(){
@@ -425,6 +490,27 @@ $(document).ready(function(){
         $("#createRooms").modal('show');
     });
 
+    //button for showing modal form for updation item
+    $(document).on('click','.updateGuild', function(){
+        console.log('want to update guild?');
+        // make sure form is clean
+        $('#alertGuild').hide();
+        $('#createGuild').trigger('reset');
+        
+        // get id from button-element and item-object from items-array
+        var guildId = this.id.substr(8,this.id.length);
+        var guild = getRecordById(guilds, guildId);
+        console.log('guildId to update: '+guildId);
+ 
+        // populate item in modal form
+        $('#createGuild input[name=form]').val('updateGuild');
+        $('#createGuild input[name=name]').val(guild.name);
+        $('#createGuild input[name=hp]').val(guild.hp);
+        $('#createGuild input[name=sp]').val(guild.sp);
+        $('#guildId').val(guild.id);
+        $('#btnCreateGuild').text('Update');
+        $("#createGuilds").modal('show');
+    });
 
     // button for deleting room
     $(document).on('click','.deleteRoom', function(){
@@ -481,6 +567,26 @@ $(document).ready(function(){
                 items = data['items'];
                 updateItemList();
                 console.log(data['items']);
+            }
+        });
+
+    });
+    
+    // button for deleting guild
+    $(document).on('click','.deleteGuild', function(){
+        
+        console.log('want to delete?');
+        var guildId = this.id.substr(11,this.id.length); //because del-button-name has 11 chars before id starts
+        console.log('guildId to delete: '+guildId);
+        $.post('/crud', {
+            'itemId'    :   guildId,
+            'delete'   :    'guildDel'
+        }, function(data){
+            if(data['success']){
+                alertSuccess('#guildSuccess', data['msg']);
+                guilds = data['guilds'];
+                updateGuildList();
+                console.log(data['guilds']);
             }
         });
 
@@ -663,6 +769,24 @@ $(document).ready(function(){
 
 
     });
+    
+    // make guild-li-items clickable and show details in modal window
+    $(document).on('click','.showGuild', function(e){
+        
+        e.preventDefault();
+       console.log('you have clicked a list-item');  
+       var guildId = this.id.substr(5,this.id.length);
+       var guild = getRecordById(guilds, guildId);
+       
+       var html = '<ul class="list-unstyled">'+
+                '<li class="description"><h5>Hitpoints:</h5>'+guild.hp+'</li>'+
+                '<li class="description"><h5>Spellpoints:</h5>'+guild.sp+'</li></ul>'; 
+        
+        $('#displayRecord').modal('show');
+        $('#displayTitle').text(guild.name);
+        $('#displayBody').text('');
+        $('#displayBody').append(html); 
+    });    
 
     // show modal windows for creation-forms
     $('#addRoom').click(function(){
@@ -695,6 +819,14 @@ $(document).ready(function(){
         $('#createItem').trigger('reset');
         clearCheckboxes($('#createItem'));
        $("#createItems").modal('show'); 
+    });
+    
+    $('#addGuild').click(function(){
+        console.log('want to create guild?');
+        //make sure the form is cleaned up
+        $('#createGuild').trigger('reset');
+        $('#alertGuild').hide();
+        $("#createGuilds").modal('show'); 
     });
     
     // misc-functions for helping
@@ -779,6 +911,20 @@ $(document).ready(function(){
         }
         
         $('#npcList').html(html);
+    }
+    
+    function updateGuildList(){
+        var html='';        
+        for(var i=0; i<guilds.length; i++){
+            console.log('looping through guilds');
+            html = html+ '<li class="list-group-item">'+
+                        '<a id="guild'+guilds[i].id+'" class="showGuild" href="#">'+guilds[i].name+'</a>'+
+                        '<button class="deleteGuild pull-right btn btn-xs margin" id="guildBtnDel'+guilds[i].id+'">Delete</button>'+
+                        '<button class="updateGuild pull-right btn btn-xs" id="guildBtn'+guilds[i].id+'">Update</button>'+
+                    '</li>';
+        }
+        
+        $('#guildList').html(html);
     }
     
     

@@ -1,0 +1,118 @@
+<!-- displaying modal window for npc-form -->
+
+<div class="modal fade" id="createNpcs" tabindex="-1" role="dialog" aria-labelledby="createNpcs" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">
+                    <span class="glyphicon glyphicon-plus"></span> create new npc
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div id="alertNpc" class="alert alert-danger"></div>
+                <form id="createNpc" class="modal-form form-horizontal">
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="keyword">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender:</label>
+                        <div id="gender">
+                            <label class="radio-inline">
+                                <input type="radio" name="gender" value="male"> male
+                            </label>
+                            <label class="radio-inline">
+                              <input type="radio" name="gender" value="female"> female
+                            </label>                        
+                        </div>
+                    </div>                                         
+                    <div class="form-group">                        
+                        <label>Short description:</label>
+                        <input type="text" class="form-control" name="shortDesc">
+                    </div>                                         
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <input type="text" class="form-control" name="description">
+                    </div>                                         
+                    <div class="form-group">    
+                        <label>Max-load:</label>
+                        <input type="text" class="form-control" name="maxLoad">
+                    </div>                     
+                    <div class="form-group">
+                        <label>Pacifist:</label>
+                        <div>
+                            <label class="radio-inline">
+                                <input type="radio" name="pacifist" value="true"> true
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="pacifist" value="false"> false
+                            </label>
+                        </div>                        
+                    </div> 
+                    <div class="form-group">
+                        <label>Attributes:</label>
+                        <div class="form-group"> 
+                            <div class="col-xs-2">
+                                <label for="hp" >HP</label>
+                                <input id="hp" type="text" class="form-control" name="hp" placeholder="0-25" value="">
+                            </div>
+                            <div class="col-xs-2 col-xs-offset-1">
+                                <label id="sp">SP</label>
+                                <input id="sp" type="text" class="form-control" name="sp" placeholder="0-25" value="">
+                            </div>
+                            <div class="col-xs-2 col-xs-offset-1">                            
+                                <label for="health">Health</label>
+                                <input id="health" type="text" class="form-control" placeholder="50-100" name="health" value="">                                                        
+                            </div>
+                        </div>                
+                    </div>
+                    <div class="form-group">
+                        <label>Npc says when:</label>
+                    </div>
+                    <div class="form-group">                        
+                        <label class="subfield">Player enters room:</label>
+                        <input type="text" class="form-control" name="playerEnters">
+                    </div>
+                    <div class="form-group">
+                        <label class="subfield">Player drops item:</label>
+                        <input type="text" class="form-control" name="playerDrops">
+                    </div>
+                    <div class="form-group" id="fields">
+                        <label class="subfield">Chats with player:</label>
+                        <div id="field1" class="input-group">
+                            <input class="form-control" name="chat1" type="text" data-items="8"/>
+                            <span class="input-group-btn">
+                                <button id="addMore" class="btn" type="button">+</button>
+                            </span>
+                        </div>
+                        </br>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-xs-12">Inventory</label>
+                            <%for (var i=0; i<items.length; i++){%>
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="items" value="<%=items[i].id%>"><%=items[i].keyword%></label>
+                            </div>
+                        <%}%>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12">Behaviours</label>
+                        <!--<%for (var key in npcListen){%>-->
+                            <div class="checkbox col-xs-6">
+                                <label><input type="checkbox" name="behaviours" value="<%=key%>"><%=key%></label>
+                            </div>
+                        <!--<%}%>-->
+                    </div>
+                    <input type="hidden" name="form" value="createNpc">
+                    <input id="npcId" type="hidden" value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button id="btnCreateNpc" type="button" class="btn btn-info">Create new NPC</button>
+            </div>
+        </div>
+      </div>
+    </div>
