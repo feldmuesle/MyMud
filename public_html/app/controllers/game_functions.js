@@ -217,6 +217,21 @@ exports.removePlayer = function(socket, callback){
     }
 };
 
+exports.createGuild = function(){
+  var conf = {
+      name : 'elf',
+      hp   :   15,
+      sp    :   7
+  }  ;
+  
+  var guild = new Guild(conf);
+  guild.save(function(err, doc){
+     if(err){console.log('could not save guild'); return;}
+     console.log('guild has been saved: '+guild);
+  });
+  
+};
+
 exports.checkCommand = function(commands, player, room, callback){
     
     console.log(player);

@@ -79,7 +79,7 @@ module.exports = function(app, passport, game){
                    
                     GuildModel.find(function(err, guilds){
                         if(err){ console.log(err); return;}
-                        
+                        console.log(guilds);
                         res.render('crud.ejs', {
                                 'locations'   :   rooms,
                                 'npcListen'   :   npcListen,
