@@ -30,6 +30,26 @@ var eats = [
         'The %npc picks up the %it and starts mannerly eating it with a huge fork'
     ];
 
+var trades = [
+        'The %npc reaches into %ng pocket and gives you %it while %ng eyes sparkle of joy',
+        'The %npc claps into %ng hands and gives you a hug. In return your new friend gives you a %it',
+        'The %npc says \'coooool! - in return you get this %it. It was fun trading with you.\'',
+        'The %npc screams hysterically and throws a salto mortale and rewards you with a %it'
+    ];
+var chats = [
+        'The %npc steps from one foot to the other and says: ',
+        'The %npc waves you close and whispers in your ear: ',
+        'Interrupted by small hysterical laughs, the %npc tells you: ',
+        'The %npc makes an important face, clears %ng throat a couple of times and says: '
+    ];
+    
+var rejects = [
+        '\'No way, you can give this to your granny\' says the %npc and shakes %ng head.',
+        '\'Now that\'s really a lame offer. Maybe you should think a bit more into direction of a %it\' says the %npc',
+        'The %npc wrinkles %ng forehead and mumbles:\'Sorry, I don\' have any use for this\'',
+        'The %npc stamps with %ng foot on the ground and shouts: \'No, I want a %it\'',
+        'The %npc has a phobia for your offer and runs away'
+    ];
 exports.fight = {
     
     hit : function(self, player){
@@ -48,7 +68,7 @@ exports.fight = {
         var text = Helper.getRandomIndex(pacifist);
         text = Helper.replaceStringPlayer(text, self, player);
         Texter.write(text, player.socketId);
-        Texter.write('Fighting '+self.keyword+' is just no fun.', player.socketId);
+        Texter.write('Fighting the '+self.keyword+' is just no fun.', player.socketId);
     }   
 };
 
@@ -57,4 +77,24 @@ exports.eat = function(self, player, item){
         var text = Helper.getRandomIndex(eats);
         text = Helper.replaceStringItem(text, self, item);
         Texter.write(text, player.socketId);
+};
+
+exports.trade = function(self, player){    
+    var text = Helper.getRandomIndex(trades);
+    text = Helper.replaceStringItem(text, self, self.trade.has.keyword);
+    Texter.write(text, player.socketId);
+};
+
+exports.reject = function(self, player){
+    var text = Helper.getRandomIndex(rejects);
+    text = Helper.replaceStringItem(text, self, self.trade.wants);
+    Texter.write(text, player.socketId);
+};
+
+exports.chat = function(self, player){
+    var rand = Math.floor(Math.random()* self.actions['playerChat'].length);
+    var text = Helper.getRandomIndex(chats);
+    text += '\''+self.actions.playerChat[rand]+'\'';
+    text = Helper.replaceStringPlayer(text, self, player);
+    Texter.write(text, player.socketId);
 };

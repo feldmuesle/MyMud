@@ -71,7 +71,7 @@ module.exports = function(app, passport, game){
         RoomModel.find().populate('npcs inventory').exec(function(err, rooms){
             if(err){ console.log(err); return;}
             
-            NpcModel.find().populate('inventory').exec(function(err,npcs){
+            NpcModel.find().populate('inventory trade.has trade.wants').exec(function(err,npcs){
                 if(err){ console.log(err); return;}
                 
                 ItemModel.find(function(err, items){
@@ -213,6 +213,14 @@ module.exports = function(app, passport, game){
                 };                
                 var items = req.body.items;
                 
+                // check if npc wants to trade anything
+                if(req.body.has){
+                    npc.has = req.body.has;
+                    npc.wants = req.body.wants;
+                    npc.swap = req.body.swap;
+                    console.log(npc.has+', '+npc.wants+', '+npc.swap);
+                }
+                
                 // attach item-objectId-references properly
                 NpcModel.createNpcinDB(npc, items, function(err, npc){
                     if(err){ return console.log(err);}
@@ -229,7 +237,7 @@ module.exports = function(app, passport, game){
                             });
                         }else{
                             // get all the npcs including the new one    
-                            NpcModel.find().populate('inventory').exec(function(err,npcs){
+                            NpcModel.find().populate('inventory trade.has trade.wants').exec(function(err,npcs){
                                 if(err){ return console.log(err);}
 
                                 res.send({
@@ -381,6 +389,14 @@ module.exports = function(app, passport, game){
                 
             var items = req.body.items;
             
+            // check if npc wants to trade anything
+            if(req.body.has){
+                npc.has = req.body.has;
+                npc.wants = req.body.wants;
+                npc.swap = req.body.swap;
+                console.log(npc.has+', '+npc.wants+', '+npc.swap);
+            }
+            
             NpcModel.updateNpc(npc, items, function(err, npc){
                 if(err){ return console.log(err);}
                 console.log('hello from updateNpc-callback');
@@ -396,7 +412,7 @@ module.exports = function(app, passport, game){
                         });
                     }else{
                         // get all the npcs including the new one    
-                        NpcModel.find().populate('inventory').exec(function(err,npcs){
+                        NpcModel.find().populate('inventory trade.has trade.wants').exec(function(err,npcs){
                             if(err){ return console.log(err);}
 
                             res.send({

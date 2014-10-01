@@ -21,15 +21,20 @@ var NpcSchema = new Schema({
 //    location    :   {type: Schema.ObjectId, ref:'Room'},
     shortDesc    :   {type:String, trim:true, validate:valEmpty},
     description  :   {type:String, trim:true, validate:valEmpty},
-    gender      :   {type:String, trim:true, validate:valEmpty},
+    gender      :   {type:String, trim:true, default:'male'},
     attributes   : {
             health   :   {type : Number, min:50, max:100, required:true},
             hp      :   {type : Number, min: 1, max: 25, required:true},
             sp      :   {type : Number, min: 0, max: 25, required:true}
         },
     maxLoad     :   {type : Number, min: 1, required:true},
-    pacifist    :   { type:Boolean, required:true},
+    pacifist    :   { type:Boolean, default:true},
     inventory   :   [{type:Schema.ObjectId, ref:'Item', index:true}],
+    trade       :{
+            has: {type:Schema.ObjectId, ref:'Item'},
+            wants: {type:Schema.ObjectId, ref:'Item'},
+            swap: {type:String, trim:true, validate:valEmpty}        
+        },
     actions   :{
             playerEnters    :   {type:String, trim:true},
             playerDrops     :   {type:String, trim:true},
@@ -95,19 +100,43 @@ NpcSchema.statics.createNpcinDB = function(npcConf, items, cb){
     var NpcModel = this || mongoose.model('Npc');
     var npc = new NpcModel();
     npc.initialize(npcConf);
+    console.log('has '+npc.trade['has']);
+    console.log('wants '+npc.trade['wants']);
+    console.log('swap '+npc.trade['swap']);
     
-        if(items){
-            Item.find({'id' : {$in :items}},function(err,docs){
+    if(!items){
+      return cb(null, npc);   
+    }
+    Item.find({'id' : {$in :items}},function(err,docs){
 //                if(err){console.error(err); return;};             
 
-                    for (var i=0; i<docs.length; i++){
-                        npc.inventory.push(docs[i]._id);
-                        console.log('pushing '+docs[i]._id);
-                    }
-                    return cb(err, npc);
-            });            
+        if(npcConf.has== null){
+            // npc does not trade, so just push items and return cb
+            for (var i=0; i<docs.length; i++){
+                npc.inventory.push(docs[i]._id);
+                console.log('pushing '+docs[i]._id);
+            }
+            return cb(err, npc);
         }
-    cb(null, npc);    
+        
+        // otherwise the npc trades
+        for (var i=0; i<docs.length; i++){            
+            // insert selected item_id - its also in inventory, so must be in docs
+            if(docs[i].id == npcConf.has){ npc.trade['has'] = docs[i]._id;}
+            npc.inventory.push(docs[i]._id);
+            console.log('pushing '+docs[i]._id);
+        }
+        console.log('has: '+npcConf.has+' wants: '+npcConf.wants+' swap:'+npcConf.swap);
+        // find the item npc wants and add _id to trade
+        Item.findOne({'id':npcConf.wants}, function(err, item){
+            console.log(item);
+            npc.trade['wants']= item._id;
+            npc.trade['swap']= npcConf.swap;
+            cb(err, npc);
+        });
+        
+    });  
+       
 };
 
 
@@ -129,17 +158,40 @@ NpcSchema.statics.updateNpc = function(npcConfig, items, cb){
             Item.find({'id' : {$in :items}},function(err,docs){
 //                if(err){console.error(err); return;};             
 
+                if(npcConfig.has== null){
+                    // npc does not trade, so just push items and return cb
                     for (var i=0; i<docs.length; i++){
                         npc.inventory.push(docs[i]._id);
                         console.log('pushing '+docs[i]._id);
                     }
                     return cb(err, npc);
+                }
+
+                // otherwise the npc trades
+                for (var i=0; i<docs.length; i++){            
+                    // insert selected item_id - its also in inventory, so must be in docs
+                    if(docs[i].id == npcConfig.has){ npc.trade['has'] = docs[i]._id;}
+                    npc.inventory.push(docs[i]._id);
+                    console.log('pushing '+docs[i]._id);
+                }
+                console.log('has: '+npcConfig.has+' wants: '+npcConfig.wants+' swap:'+npcConfig.swap);
+                // find the item npc wants and add _id to trade
+                Item.findOne({'id':npcConfig.wants}, function(err, item){
+                    console.log(item);
+                    npc.trade['wants']= item._id;
+                    npc.trade['swap']= npcConfig.swap;
+                    cb(err, npc);
+                });
             });            
         }        
     }); 
 };
 
-
+// get Npc by name with all references populated
+NpcSchema.statics.getNpcByName = function(keyword){
+    var NpcModel = this || mongoose.model('Npc');
+    return NpcModel.findOne({'keyword':keyword}).populate('inventory trade.has trade.wants');
+};
 
 NpcSchema.statics.getInventory = function(objectId){
     var NpcModel = this || mongoose.model('Npc');
@@ -168,7 +220,6 @@ NpcSchema.methods.initialize = function(config){
     var self = this || mongoose.model('Npc');
     self.id = config.id;
     self.keyword = config.keyword;
-//    self.location = config.location; 
     self.attributes = {
         hp      : config.attributes['hp'],
         health  : config.attributes['health'],
@@ -186,29 +237,23 @@ NpcSchema.methods.initialize = function(config){
         playerChat      :   []
     };
     self.behaviours = [];
-    console.log('behaviours lengths in initialization: '+self.behaviours.length);
+    
+    
+    // check if there is a chat and if yes, push into array
     if(config.actions['playerChat']){
         for(var i = 0; i< config.actions['playerChat'].length; i++){
             self.actions['playerChat'].push(config.actions['playerChat'][i]);
         }
     }
     
+    // check if there is are behaviours and if yes, push into array
     if(config.behaviours){
         for(var i = 0; i< config.behaviours.length; i++){
-        self.behaviours.push(config.behaviours[i]);
-    }
-    }
-    
-    
+            self.behaviours.push(config.behaviours[i]);
+        }
+    }    
 };
 
-
-
-//NpcSchema.post('init', function(doc){
-//   console.log('post init'+doc.keyword);
-//   
-//      
-//});
 
 /******* Emitters ******************************************/
 NpcSchema.methods.playerEnters = function(player){
@@ -245,13 +290,13 @@ NpcSchema.methods.setListeners = function(){
         (function(){
             var j = i;
             var listener = self.behaviours[j];
-            console.log('loading listener '+listener);
+//            console.log('loading listener '+listener);
             
             self.on(listener, function(data){
                 data['npc'] = self;
-                console.log('triggered listener '+listener);
+//                console.log('triggered listener '+listener);
                 Listeners.listeners[self.behaviours[j]](data);
-                console.log('finished - get next');
+//                console.log('finished - get next');
             });
             
         })();        
@@ -315,6 +360,18 @@ NpcSchema.methods.setListeners = function(){
     
     self.on('pacifist', function(player){
         Behaviours.fight.pacifist(self, player); 
+    });
+    
+    self.on('trade', function(player){
+       Behaviours.trade(self, player); 
+    });
+    
+    self.on('reject', function(player){
+       Behaviours.reject(self, player); 
+    });
+    
+    self.on('chat', function(player){
+        Behaviours.chat(self, player);
     });
 };
 

@@ -1,4 +1,4 @@
-/* 
+ /* 
  * Functions used to handle commands
  */
 
@@ -130,6 +130,7 @@ exports.takeItem = function(item, player){
                 console.log('user with item has been saved.');
                 user.player[0].setListeners();
                 user.player[0].emit('take item', item);
+                console.log(player);
             });                
         } else {
             var msg = 'You got already a '+ item.keyword+' in your inventory.';  
@@ -145,7 +146,6 @@ exports.dropItem = function(item, player, room){
         if(err){console.error(err); return;}
         
         var player = user.player[0];
-
         // check if item already exist in players inventory
         var inventI =  Helper.getIndexByKeyValue(player.inventory, 'keyword', item);
 
@@ -165,17 +165,15 @@ exports.dropItem = function(item, player, room){
                 if(err){console.error(err); return;}
 
                 var npcs = room.npcs;
-
+                
                 // check if item is eatable and theres a npc with eat-behaviour
                 var eatI = droppedItem.behaviours.indexOf('eatable');
-
-                if(eatI > 0){
+                if(eatI > -1){
                     npcs.forEach(function(npc){  
+                        // check npc for eating-behaviour
                         var npcI = npc.behaviours.indexOf('eat');
                         npc.setListeners();
                         if(npcI > -1){
-                            console.log('npc going to eat');
-
                             npc.emit('eat', {
                                 'player': user.player[0],
                                 'item'  : droppedItem
@@ -197,4 +195,71 @@ exports.dropItem = function(item, player, room){
         } 
         
     });       
+};
+
+exports.tradeItem = function(player, room, what, reciever){
+  // get player from DB and check if item is in inventory
+    User.getPlayerByName(player.nickname).exec(function(err, user){
+        if(err){console.error(err); return;}
+        
+        var player = user.player[0];
+        
+        // check in inventory
+        var itemI = Helper.getIndexByKeyValue(player.inventory, 'keyword', what);
+        // if there is a match
+        if(itemI != null){
+
+           Room.getRoomWithNpcs(room.id).exec(function(err, room){
+               if(err){console.error(err); return;}                           
+
+               // check if there is an npc in the room
+               if(room.npcs.length > 0){
+
+                    room.npcs.forEach(function(npc){
+                        // if the name matches
+                        if(npc.keyword == reciever){
+                            
+                            // get npc from db and check if the item also matches the one he wants
+                            Npc.getNpcByName(npc.keyword).exec(function(err, npc){
+                                if(err){console.error(err); return;}
+
+                                if(npc && npc.trade.wants.keyword == what){
+                                    // remove item
+                                    player.inventory.splice(itemI);
+                                    
+                                    // add item player recieves from npc
+                                    player.inventory.push(npc.trade.has);
+                                    var msg= 'You take the '+what+' out of your backpack and give it to the '+reciever;
+                                    Texter.write(msg, player.socketId);
+                                    // save player
+                                    user.save(function(err, user){
+                                        if(err){console.error(err); return;} 
+                                        npc.setListeners();
+                                        npc.emit('trade', player);
+                                        var msg = npc.trade.swap;
+                                        Texter.write(msg, player.socketId);
+                                        return;
+                                     });
+                                    
+                                // the item doesn't match the item npc wants    
+                                }else{
+                                    npc.setListeners();
+                                    npc.emit('reject', player);
+                                }
+                            });                             
+                         }
+                    }); 
+               // there's no npc in the room     
+               }else{
+                    var msg= 'There\'s no '+reciever+' around to give a'+what+' to.';
+                    Texter.write(msg, player.socketId);
+               }
+           });
+        // item is not in inventory
+       }else{
+            var msg= 'You don\'t have a '+what+' to give away.';
+            Texter.write(msg, player.socketId);
+       }    
+    });
+    console.log('give '+what+' to '+reciever);  
 };

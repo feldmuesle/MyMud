@@ -30,6 +30,7 @@ exports.sanitizeString = function(string){
     }    
 };
 
+// strip everything thats not a number
 exports.sanitizeNumber = function (numb){
     console.log('number to sanitize: '+numb);
     return numb.replace(/[^0-9]/g, '');
@@ -37,6 +38,7 @@ exports.sanitizeNumber = function (numb){
 
 
 
+// get random index of array
 exports.getRandomIndex = function(array){
    
     var rand = Math.floor(Math.random()* array.length);
@@ -44,7 +46,7 @@ exports.getRandomIndex = function(array){
 };
 
 
-// check if the defender exists in room
+// get index of assoc-array by key and value
 exports.getIndexByKeyValue = function(array, key, value){
     
     for (var i = 0; i< array.length; i++){
@@ -53,6 +55,16 @@ exports.getIndexByKeyValue = function(array, key, value){
         }        
     }
     return null;
+}
+
+exports.glueMsg = function(msgArray){
+    var msg='';
+            for(var i=0; i<msgArray.length; i++ ){
+                msg += msgArray[i] + ' ';
+            }
+            
+            // strip all special-chars we don't want
+            return msg.replace(/[&<>${}\[\]/]/g,'');
 };
 
 //exports.countObjsInObject = function(object){
@@ -148,12 +160,12 @@ exports.calcDamage = function(attPoints){
                 damage = 1;
                 break;
             
-            case (attPoints >5 && attPoints < 10):
+            case (attPoints >5 && attPoints <=10):
                 impact = 'half-hearted';
                 damage = 2;
                 break;
             
-            case (attPoints >10 && attPoints < 15):
+            case (attPoints >10 && attPoints <= 15):
                 impact = 'properly';
                 damage = 3;
                 break;
@@ -173,3 +185,5 @@ function getPronoun(gender){
     }
     return 'her';
 }
+
+exports.getPronoun = getPronoun;

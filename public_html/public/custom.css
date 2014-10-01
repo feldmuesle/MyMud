@@ -163,3 +163,7 @@ li.exitDesc{
 .subfield{
     font-size:90%;
 }
+
+#swap{
+    display:none;
+}

@@ -23,6 +23,15 @@ function addListeners (socketId){
        socket.emit('output', {'message':welcome}); 
     });
     
+    texter.on('whisper', function(data){
+       socket.broadcast.to(data['reciever']).emit('output',{'message':data['message']});  
+    });
+    
+    texter.on('shout', function(data){
+        console.log('texter broadcast room');
+        socket.broadcast.emit('output', {'message':data['message']});    
+    });
+    
     texter.once('welcome again', function(data){
        var welcome = 'Welcome again '+data['nickname']+' - we missed you!';
        socket.emit('output', {'message':welcome}); 
@@ -68,6 +77,18 @@ exports.broadcastRoomies = function(msg, socketId, roomName){
         'socketId'  : socketId,
         'room'      : roomName        
     });
+};
+
+exports.whisper = function(msg, socketId, recieverSocketId){
+    texter.removeAllListeners();
+    addListeners(socketId);
+    texter.emit('whisper', {'message':msg, 'socketId':socketId, 'reciever':recieverSocketId});
+};
+
+exports.shout = function(msg, socketId){
+    texter.removeAllListeners();
+    addListeners(socketId);
+    texter.emit('shout', {'message': msg});
 };
 
 exports.write = function(msg, socketId){  

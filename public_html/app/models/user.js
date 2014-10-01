@@ -39,6 +39,11 @@ UserSchema.statics.getPlayerByName = function(playerName){
     return self.findOne().where({'player.nickname' : playerName}).populate('player.inventory');
 };
 
+UserSchema.statics.getPlayerByNameSimple = function(playerName){
+    var self = this || mongoose.model('User');
+    return self.findOne().where({'player.nickname' : playerName});
+};
+
 // save a player in DB
 UserSchema.statics.savePlayer = function(playerObj){
   

@@ -66,10 +66,7 @@ $(document).ready(function(){
                 // reset modal-button again
                 $('#createItems input[name=form]').val('createItem');
                 $('#btnCreateItem').text('create');
-                // empty error- alert and hide
-//                $('#alertItem').text('');
-//                $('#alertItem').hide();
-//                
+                
                 // show success-message
                 alertSuccess('#itemSuccess',data['msg']);
                 items = data['items'];
@@ -128,6 +125,7 @@ $(document).ready(function(){
             items.push($(this).val()); 
        });       
        
+              
         var npc = {
                 'form'       :   form,
                 'keyword'    :   name,
@@ -148,7 +146,16 @@ $(document).ready(function(){
             
         // add also Id if it's an update    
         if(form == 'updateNpc'){npc.id = npcId;}  
-              
+        
+        // if the npc wants to trade
+        if(items.length >0){
+            npc.has = $('#createNpc input[name=has]:radio:checked').val();
+            npc.wants = $('#createNpc input[name=wants]:radio:checked').val();
+            npc.swap = $('#createNpc input[name=swap]').val();
+            
+            console.log('npc has '+npc.has+', wants '+npc.wants+' and '+npc.swap);
+        }
+        
        console.log(npc);
         $.post('/crud',npc, function(data){
            console.log('hello back from server');
@@ -171,9 +178,6 @@ $(document).ready(function(){
                 // reset modal-button again
                 $('#createNpc input[name=form]').val('createNpc');
                 $('#btnCreateNpc').text('create');
-                // empty alert and hide
-//                $('#alertNpc').text('');
-//                $('#alertNpc').hide();
                 // show success-msg
                 alertSuccess('#npcSuccess', data['msg']);
                 npcs = data['npcs'];
@@ -284,7 +288,7 @@ $(document).ready(function(){
        console.dir(room);
     });
     
-    //create item
+    //create guild
     $('#btnCreateGuild').click(function(){
     
         //empty validation-alert
@@ -331,10 +335,7 @@ $(document).ready(function(){
                 // reset modal-button again
                 $('#createGuild input[name=form]').val('createGuild');
                 $('#btnCreateGuild').text('create');
-                // empty error- alert and hide
-//                $('#alertItem').text('');
-//                $('#alertItem').hide();
-//                
+                
                 // show success-message
                 alertSuccess('#guildSuccess',data['msg']);
                 guilds = data['guilds'];
@@ -364,8 +365,28 @@ $(document).ready(function(){
         $('#createNpc').trigger('reset');
         clearCheckboxes($('#createNpc'));
         removePlayerChat(countFields);
-        console.log('gender is: '+npc.gender);
+        // reset/hide swap-part
+        $('#hasItem').text('');
+        $('#hasItem').append('<label class="col-xs-12">swap item</label>');
+        $('#swap').hide();
         
+        // if npc wants to trade
+        if(npc.trade){
+            // set the radios according to inventory
+            for(var i=0; i<npc.inventory.length; i++){
+                var radio = '<div class="checkbox col-xs-6"><label>'+
+                            '<input type="radio" name="has" value="'+npc.inventory[i].id+'"> '+npc.inventory[i].keyword+
+                        '</label></div>';
+                $('#hasItem').append(radio);
+            }
+            // set swap-counter
+            swap = npc.inventory.length;
+            $('#createNpc input[name=has]:radio[value='+npc.trade.has.id+']').attr('checked',true);
+            $('#createNpc input[name=wants]:radio[value='+npc.trade.wants.id+']').attr('checked',true);
+            $('#createNpc input[name=swap]').val(npc.trade.swap);
+            $('#swap').show();
+            
+        };
         // populate npc in modal form        
         $('#createNpc input[name=keyword]').val(npc.keyword);
         $('#createNpc input[name=gender]:radio[value='+npc.gender+']').attr('checked',true);
@@ -391,6 +412,8 @@ $(document).ready(function(){
         for(var i=0; i<npc.inventory.length; i++){
             $('#createNpc input[name=items]:checkbox[value = '+npc.inventory[i].id+']').attr('checked', true);
         }
+        
+        
         
         //set checkboxes for behaviours
         for(var i=0; i<npc.behaviours.length; i++){
@@ -803,12 +826,18 @@ $(document).ready(function(){
         // make sure the form is clean
         $('#createNpc').trigger('reset');
         clearCheckboxes($('#createNpc'));
+        $('#createNpc input[name=form]').val('createNpc');
+        $('#btnCreateNpc').text('create');
+        // reset/hide swap-part
+        $('#hasItem').text('');
+        $('#hasItem').append('<label class="col-xs-12">swap item</label>');
+        $('#swap').hide();
         removePlayerChat(countFields-1);
-        
+
         // set radios to default
-        $('#createNpc input[name=gender]:radio[value = male]').attr('checked',true);
+       $('#createNpc input[name=gender]:radio[value = male]').attr('checked',true);
        $('#createNpc input[name=pacifist]:radio[value = true]').attr('checked','checked');
-        
+
        $("#createNpcs").modal('show'); 
        
     });
@@ -828,6 +857,35 @@ $(document).ready(function(){
         $('#alertGuild').hide();
         $("#createGuilds").modal('show'); 
     });
+    
+    
+    // append trading-part if something in inventory
+    var swap = 0;
+    $('#createNpc input[name=items]').click(function(){
+        var self = $(this);
+        if(self.is(':checked')){
+            console.log('you checked a checkbox'); 
+            var item = getRecordById(items, this.value);
+            var radio = '<div class="checkbox col-xs-6"><label>'+
+                            '<input type="radio" name="has" value="'+this.value+'"> '+item.keyword+
+                        '</label></div>';
+            $('#hasItem').append(radio);
+            $('#swap').show();
+            swap++
+        }else{
+            swap --;
+            if(swap == 0){
+                  $('#swap').hide();
+            }
+            console.log('you unchecked a checkbox'); 
+            $('#hasItem input[name=has]:radio[value='+this.value+']').parent('label').parent('div').remove();
+            console.log(radio);
+//            $('#hasItem').remove(radio);
+        }
+       
+    });
+    
+    
     
     // misc-functions for helping
     function getRecordById(recordArray, recordId){
@@ -874,6 +932,7 @@ $(document).ready(function(){
         countExits = 1;
         
     }
+   
     
     function updateRoomList(){
         var html='';

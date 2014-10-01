@@ -97,6 +97,24 @@
                             </div>
                         <%}%>
                     </div>
+                    <div id="swap" class="form-group">
+                        <div id="hasItem" class="form-group">
+                            <label class="col-xs-12">swap item</label>                            
+                        </div>  
+                        <div class="form-group">
+                            <label class="col-xs-12">with</label>
+                            <%for (var i=0; i<items.length; i++){%>
+                                <div class="checkbox col-xs-6">
+                                    <label><input type="radio" name="wants" value="<%=items[i].id%>"> <%=items[i].keyword%></label>
+                                </div>
+                            <%}%> 
+                        </div>                           
+                        <div>                        
+                            <label>Response when swapping:</label>
+                            <input type="text" class="form-control" name="swap">
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label class="col-xs-12">Behaviours</label>
                         <!--<%for (var key in npcListen){%>-->

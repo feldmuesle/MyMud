@@ -25,7 +25,7 @@
             <ul id="npcList" class="list-group list-unstyled">
                 <!--<%for(var i=0; i<npcs.length; i++){%>-->
                     <li class="list-group-item">
-                        <a id="room<%=npcs[i].id%>" class="showNpc" href="#"><%=npcs[i].keyword%></a>
+                        <a id="npc<%=npcs[i].id%>" class="showNpc" href="#"><%=npcs[i].keyword%></a>
                         <button class="deleteNpc pull-right btn btn-xs margin" id="npcBtnDel<%=npcs[i].id%>">Delete</button>
                         <button class="updateNpc pull-right btn btn-xs" id="npcBtn<%=npcs[i].id%>">Update</button>
                     </li>

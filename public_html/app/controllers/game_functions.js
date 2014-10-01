@@ -217,11 +217,12 @@ exports.removePlayer = function(socket, callback){
     }
 };
 
-exports.checkCommand = function(commands, playerObj, room, callback){
+exports.checkCommand = function(commands, player, room, callback){
     
+    console.log(player);
     // get the player as mongoose-doc and set listeners
-    var player = PlayerModel.getPlayer(playerObj);
-    player.setListeners();
+//    var player = UserModel.getPlayer(playerObj.nickname);
+//    player.setListeners();
     // if there's only one word
     if(commands.length < 2){
         console.log('hello from only one argument. '+commands[0]);
@@ -250,9 +251,11 @@ exports.checkCommand = function(commands, playerObj, room, callback){
     }    
     
     // if there are at least two commands
+    if(commands.length >= 2){
     switch(commands[0]){
 
         case 'look': 
+                console.log('command: look');
                 var who = commands[1];
                                 
                 // check if who matches a npc, item or other player in the arrays
@@ -261,14 +264,21 @@ exports.checkCommand = function(commands, playerObj, room, callback){
                 var playerI = users.indexOf(who);
                         
                 switch(true){
-                    case (who == room.name || who == room.name.toLowerCase()):
+                    case (who == 'room' || who == room.name):
                         
-                        player.emit('look', who);
-                        Room.getRoomWithNpcs(room.id).exec(function(err,room){
+                        User.getPlayerByName(player.nickname).exec(function(err, user){
                             if(err){console.error(err); return;}
-                            room.setListeners();
-                            room.look(player);                            
-                        });
+                            var player = user.player[0];
+                            player.setListeners();
+                            player.emit('look', who);
+                        }).then(function(){
+                                Room.getRoomWithNpcs(room.id).exec(function(err,room){
+                                    if(err){console.error(err); return;}
+                                    room.setListeners();
+                                    room.look(player);                            
+                                }); 
+                                
+                        });                        
                         break;
                     
                     case (npcI != null): // if it matched an npc
@@ -283,29 +293,48 @@ exports.checkCommand = function(commands, playerObj, room, callback){
                                
                                if(itemI != null){ // if an npc-item got matched
                                    
-                                   player.emit('look', what);
-                                   Item.findOne({'_id':room.npcs[npcI].inventory[itemI]['_id']}, function(err,item){
+                                   User.getPlayerByName(player.nickname).exec(function(err, user){
                                         if(err){console.error(err); return;}
-                                        item.setListeners();
-                                        item.emit('look', player);                            
-                                    });
+                                        var player = user.player[0];
+                                        player.setListeners();
+                                        player.emit('look', what);
+                                    }).then(function(){
+                                        Item.findOne({'_id':room.npcs[npcI].inventory[itemI]['_id']}, function(err,item){
+                                             if(err){console.error(err); return;}
+                                             item.setListeners();
+                                             item.emit('look', player);                            
+                                         });
+                                     });
                                }
                                
                             }else { 
-                                player.emit('look', who);
-                                npc.setListeners();
-                                npc.emit('look', player); 
+                                User.getPlayerByName(player.nickname).exec(function(err, user){
+                                    if(err){console.error(err); return;}
+                                    var player = user.player[0];
+                                    player.setListeners();
+                                    player.emit('look', who);
+                                    npc.setListeners();
+                                    npc.emit('look', player);
+                                });                                 
                             }                                                       
                         });
                         break;
                     
                     case (itemI != null):
-                        player.emit('look', who);
-                        //OBS! this should not come from db, since the room could have a droped item
-                        Item.findOne({'_id':room.inventory[itemI]['_id']}, function(err,item){
+                        
+                        User.getPlayerByName(player.nickname).exec(function(err, user){
                             if(err){console.error(err); return;}
-                            item.setListeners();
-                            item.emit('look', player);                            
+                            var player = user.player[0];
+                            player.setListeners();
+                            player.emit('look', who);
+                        }).then(function(){
+                        
+                            //OBS! this should not come from db, since the room could have a droped item
+                            Item.findOne({'_id':room.inventory[itemI]['_id']}, function(err,item){
+                                if(err){console.error(err); return;}
+                                item.setListeners();
+                                item.emit('look', player);                            
+                            });
                         });
                         break;
                     
@@ -324,7 +353,7 @@ exports.checkCommand = function(commands, playerObj, room, callback){
             
 
         case "attack":
-            var who = commands[1];
+            var who = Helper.sanitizeString(commands[1]);
             
             // check if there are any npcs and if there are any find the right one
             var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
@@ -377,34 +406,101 @@ exports.checkCommand = function(commands, playerObj, room, callback){
             
         case "drop":
             console.log('hello from drop');
-            var what = commands[1];
-            
+            var what = Helper.sanitizeString(commands[1]);            
             Command.dropItem(what, player, room);              
             break;
             
         case "say":
-            console.log('do you want to say something?');
-            var msg='';
-            for(var i=1; i<commands.length; i++ ){
-                msg += commands[i] + ' ';
-            }
-            msg = Helper.sanitizeString(msg);
+            
+            // get say out of commands-array
+            commands.splice(0,1);
+            // put words together and strip mal-chars
+            var msg = Helper.glueMsg (commands);
+            // emit to player itself
+            Texter.write('You say: \''+msg+'\'', player.socketId);
+            // emit to players in same room
             Texter.broadcastRoomies(player.nickname+' says: \''+msg+'\'', player.socketId, room.name);
-            console.log('say '+msg);
             break;
+            
+        case "whisper":
+            var reciever= Helper.sanitizeString(commands[1]);
+            var playerI = users.indexOf(reciever);
+            
+            if(playerI != null && reciever == users[playerI]){
+                
+                if(reciever == player.nickname){
+                    var msg = "Whispering to yourself? Maybe you hear voices in your head.";
+                    Texter.write(msg, player.socketId);
+                } else {
+                    
+                    // get whisper reciever out of commands-array
+                    commands.splice(0,2);
+                    // put words together and strip mal-chars
+                    var msg = Helper.glueMsg (commands);
+                    
+                    User.getPlayerByName(reciever).exec(function(err, user){
+                        if(err){console.error(err); return;}
+                        var recieverSocket = user.player[0].socketId;
+                        console.log('whisper from socketid: '+player.socketId+' to socketid: '+recieverSocket);
+                        Texter.whisper(player.nickname+' whispers: \''+msg+'\'', player.socketId, recieverSocket);
+                        Texter.write('You whisper \''+msg+'\' to '+reciever, player.socketId);
+                    });                    
+                }                        
+                
+            }else {
+                var msg = 'Can\'t whisper to '+reciever+' - maybe you mispelled the name.' ;
+                    Texter.write(msg, player.socketId);
+            }
+            break;
+        
+        case "shout":
+            // get 'shout' out of commands-array
+            commands.splice(0,1);
+            // put words together and strip mal-chars
+            var msg = Helper.glueMsg (commands);
+            Texter.write('You shout \''+msg+' \'', player.socketId);
+            Texter.shout(player.nickname+' shouts \''+msg+'\'',player.socketId);
+            break;
+            
+        case "give":
+            console.log('command: give');
+            var reciever = Helper.sanitizeString(commands[1]);
+            // check if there are three commands (give npc item)
+            if(commands.length >=3){
+                
+                var what = Helper.sanitizeString(commands[2]);
+                
+                Command.tradeItem(player, room, what, reciever);
+                
+            // there are only two commands, what is missing    
+            }else {
+                var msg= 'What do you want to give the '+reciever;
+                Texter.write(msg, player.socketId);
+            }
+            break;
+        
+            case "chat":
+                var who = Helper.sanitizeString(commands[1]);
+                // check if there are any npcs and if there are any find the right one
+                var npcI = Helper.getIndexByKeyValue(room.npcs, 'keyword', who);
+                if(npcI != null){
+                    Npc.getNpcByName(who).exec(function(err, npc){
+                       npc.setListeners();
+                       npc.emit('chat', player);
+                    });
+                }
+                break;
 
         // if command isn't found
         default:
-                var msg ='\'';
-                for(var i=0; i<commands.length; i++){
-                    msg += commands[i]+ ' ';
-                }
-
+                // put words together and strip mal-chars
+                var msg ='\''+ Helper.glueMsg (commands);
                 msg +='\' is not a valid command. Maybe you mispelled something?';
                 Texter.write(msg, player.socketId);
                 break;  
             }
-      
+        }// commands.length > 2 end
+        
 };
 
 exports.test = function(roomId) {
