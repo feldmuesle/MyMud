@@ -168,12 +168,12 @@ exports.calcDamage = function(attPoints){
             
             case (attPoints >10 && attPoints <= 12):
                 desc = 'some broken ribs';
-                damage = 30;
+                damage = 35;
                 break;
             
             case (attPoints >12):
                 desc = 'seriously beaten up and needs medical attention';
-                damage = 40;
+                damage = 50;
                 break;
         }
         
