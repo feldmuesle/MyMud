@@ -61,7 +61,7 @@ module.exports = function(app, passport, game){
         });
     });  
     
-    app.get('/crud', isLoggedIn, function (req, res){
+    app.get('/crud',isLoggedIn, isMe, function (req, res){
         
         console.log('hello from get/crud ');
         
@@ -97,7 +97,7 @@ module.exports = function(app, passport, game){
         });
     });  
     
-    app.post('/crud',isLoggedIn, function(req, res){
+    app.post('/crud',isLoggedIn, isMe, function(req, res){
         
         console.log('the form sent is: '+req.body.form);
         
@@ -549,63 +549,6 @@ module.exports = function(app, passport, game){
         
     });
     
-//    app.get('/start', isLoggedIn, function (req, res){
-//        var GuildModel = require('../models/guilds.js');
-//        console.log('hello from start-routes');
-//        GuildModel.find(function(err, guilds){
-//            if(err){ return console.log(err);}
-//            res.render('start.ejs', {
-//               guilds   :   guilds,
-//               user     :   req.user,
-//               message  :   ''
-//           }); 
-//        });
-//    });  
-//    
-//    app.post('/start', checkNickname, function(req, res){
-//        // check middleware to see whats going on :)        
-//    });
-    
-    
-    // if the user loads an existing game
-//    app.post('/game', isLoggedIn, function(req, res){
-//        
-//            
-//            console.log('routes: reloading existing game');
-//            res.render('game.ejs', {
-//                user : req.user
-//            });
-//    });
-    
-    
-    // show the game 
-    // want this protected so you have to be logged in to visit
-    // we will use route middleware to verify this (the isLoggedIn function)
-//    app.get('/game', isLoggedIn, function(req, res){
-//        var currentUser = req.user;
-//        console.log('hello from routes-get-game.js');
-//        //showGuilds(currentUser, res);
-//        var GuildModel = require('../models/guilds.js');
-//        var UserModel = require('../models/user.js');
-//        GuildModel.find(function(err, guilds){
-//            if(err){ return console.log(err);}
-//            UserModel.findOne({'_id' : currentUser._id}, function(err, user){
-//                if(err){ return console.log('currentUser somethings wrong: '+err);}
-//                if(user.nickname){
-//                    console.log('playerid on user exists: '+user.nickname);
-//                }else {
-//                    console.log('playerid on user does not exist.');
-//                }
-//                
-//               res.render('game.ejs', {
-//                    user        :   user, // get user out of session and into template
-//                    guilds      :   guilds
-//                }); 
-//            });
-//            
-//        });       
-//    });
-    
     // logout
     app.get('/logout', function(req, res){
         req.logOut();
@@ -702,3 +645,14 @@ function isLoggedIn(req, res, next){
     }
 }
 
+// route middleware to make sure the user is me
+function isMe(req, res, next){
+    console.log(req.user);
+    if(req.user.email == 'lisa'){
+        console.log('Yes you are me');
+        next();
+    }else{
+        console.log('you are not me');
+        res.redirect('/');
+    }
+}
