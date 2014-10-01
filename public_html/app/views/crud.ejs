@@ -59,9 +59,13 @@
             <h3>Guilds<button id="addGuild" class="margin btn btn-xs" type="button"><span class="glyphicon glyphicon-plus"></span> new</button></h3>
             
             <ul id="guildList" class="list-group list-unstyled">
-<!--
-                guilds here
-                -->
+                <%for(var i=0; i<guilds.length; i++){%>
+                    <li class="list-group-item">
+                        <a id="guild<%=guilds[i].id%>" class="showGuild" href="#"><%=guilds[i].name%></a>
+                        <button class="deleteGuild pull-right btn btn-xs margin" id="guildBtnDel<%=guilds[i].id%>">Delete</button>
+                        <button class="updateGuild pull-right btn btn-xs" id="guildBtn<%=guilds[i].id%>">Update</button>                       
+                    </li>
+                <%}%>
             </ul>
         </div>        
     </div><!-- guild-list end-->
@@ -106,7 +110,7 @@
     var locations = <%-JSON.stringify(locations)%>;
     var npcs = <%-JSON.stringify(npcs)%>;
     var items = <%-JSON.stringify(items)%>;
-   
+    var guilds = <%-JSON.stringify(guilds)%>;
     -->
 </script>
 <script src="crud_functions.js"></script>
