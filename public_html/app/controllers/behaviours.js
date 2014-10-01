@@ -24,6 +24,11 @@ var pacifist = [
         'The anti-violence-%npc cries "Ouuuuuouuuch" before you even touched him.'
     ];
     
+var surrenders = [
+        'The %npcs holds %ng bloody nose and says: \'Enough, I give you my %it if only you stop hitting me.\'',
+        'The %npc lower %ng head. \'You are a true master of the martials arts, I bow before you. Take this %it as token for my respect.\''
+    ];
+    
 var eats = [
         'The %npc snatches the %it and munches happily until no crumb is left.',
         'The %npc jumps across the room and catches the %it with %ng teeth before it hits the ground.',
@@ -73,10 +78,16 @@ exports.fight = {
 };
 
 exports.eat = function(self, player, item){
-        console.log('npc eats '+item.keyword);
-        var text = Helper.getRandomIndex(eats);
-        text = Helper.replaceStringItem(text, self, item);
-        Texter.write(text, player.socketId);
+    console.log('npc eats '+item.keyword);
+    var text = Helper.getRandomIndex(eats);
+    text = Helper.replaceStringItem(text, self, item);
+    Texter.write(text, player.socketId);
+};
+
+exports.surrender = function(self, player){
+    var text = Helper.getRandomIndex(surrenders);
+    text = Helper.replaceStringItem(text, self, self.trade.has);
+    Texter.write(text, player.socketId);
 };
 
 exports.trade = function(self, player){    

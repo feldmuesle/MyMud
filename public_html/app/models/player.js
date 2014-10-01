@@ -109,21 +109,7 @@ PlayerSchema.methods.write = function(message){
 PlayerSchema.statics.getPlayer = function (config){
     
     var PlayerModel = this || mongoose.model('Player');
-    var player = new PlayerModel();
-    player.nickname = config.nickname;
-    player.guild = config.guild;
-    player.location = config.location;
-    player.gender = config.gender;
-    player.inventory = [];
-    player.socketId = config.socketId;    
-    player.attributes['maxHealth'] = config.attributes.maxHealth;
-    player.attributes['health'] = config.attributes.health;
-    player.attributes['hp'] = config.attributes.hp;
-    player.attributes['sp'] = config.attributes.sp;
-//    console.log('hello from get player '+player);
-    for(var i=0; i<config.inventory.length; i++){
-        player.inventory.push(config.inventory);
-    }
+    var player = new PlayerModel(config);
     console.log('hello from Player.method.getPlayer');
     return player;
 };

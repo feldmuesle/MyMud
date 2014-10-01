@@ -152,31 +152,32 @@ exports.grammatize = function(oArray){
 exports.calcDamage = function(attPoints){
     
     var damage = 0;
+    var desc = '';
     console.log('att-points: '+attPoints);
     // define impact
         switch(true){
             case (attPoints <= 5):
-                impact = 'gimpy';
-                damage = 1;
+                desc = 'just a little scratch';
+                damage = 10;
                 break;
             
-            case (attPoints >5 && attPoints <=10):
-                impact = 'half-hearted';
-                damage = 2;
+            case (attPoints >5 && attPoints <=7):
+                desc = 'a bloody nose';
+                damage = 20;
                 break;
             
-            case (attPoints >10 && attPoints <= 15):
-                impact = 'properly';
-                damage = 3;
+            case (attPoints >10 && attPoints <= 12):
+                desc = 'some broken ribs';
+                damage = 30;
                 break;
             
-            case (attPoints >15):
-                impact = 'viciously';
-                damage = 4;
+            case (attPoints >12):
+                desc = 'seriously beaten up and needs medical attention';
+                damage = 40;
                 break;
         }
         
-        return damage;
+        return {'points':damage,'desc':desc};
 };
 
 function getPronoun(gender){
@@ -187,3 +188,10 @@ function getPronoun(gender){
 }
 
 exports.getPronoun = getPronoun;
+
+exports.highlight = function(word, string, callback) {
+        var rgxp = new RegExp(word, 'gi');
+        var repl = '*' + word + '*';
+        string = string.replace(rgxp, repl);    
+        callback(string);
+    };

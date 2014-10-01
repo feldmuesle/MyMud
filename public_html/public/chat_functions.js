@@ -91,24 +91,11 @@ function slideGameSignup(){
         console.log('somebody is trying to send a message');
         if($('#chatInput').val() !== ''){
             var msg = $('#chatInput').val();
-                checkCommand(msg, socket);
-            
-//                var data ={
-//                'action'  : 'says',  
-//                'msg'     :   msg,
-//                'username':   player.nickname   
-//                };
-//                console.log('somebody is trying to send a message.');
-                // send message to the server
-//                socket.emit('chat', data);
-//                // add message to screen
-//                addAction('say' ,msg, 'you');
-            
+                checkCommand(msg, socket);           
             
             // empty inputfield
             $('#chatInput').val('');
-        }
-        
+        }        
     }
 
     // add plain message to chat
@@ -137,7 +124,7 @@ function slideGameSignup(){
 
     function highlight(word, string, callback) {
         var rgxp = new RegExp(word, 'gi');
-        var repl = '>' + word + '<';
+        var repl = '*' + word + '*';
         string = string.replace(rgxp, repl);    
         callback(string);
     }
@@ -151,7 +138,6 @@ function slideGameSignup(){
         newMsg = true;
         type(msg, 0, currLi, index); 
         
-//        $('#chatEntries').slideUp();
     }    
     
     // typewriter-effect    
@@ -286,40 +272,4 @@ function slideGameSignup(){
             return null;
         }
     }
-    
-    
-    // get opposite direction 
-    function getOppDirection (direction){
-        console.log('Direction: '+direction);
-        var opp;
-        switch(direction){
-            case 'north': 
-                opp = 'south';
-                break;
-            case 'east': 
-                opp = 'west';
-                break;
-            case 'south': 
-                opp = 'north';
-                break;
-            case 'west': 
-                opp = 'east';
-                break;
-        }
-        console.log('turn around from '+direction+' to '+opp);
-        return opp;
-    }
-    
-    
-//    // get typewriter-effect
-//    function typewriter(el,text,pos,no){
-//        ctext=text.substring(0,pos)+(pos%2?'_':'<blink>_</blink>');
-//        $(el).html(ctext);
-//        if(pos==text.length){
-//         $(el).html(text+"<blink>_</blink>");
-//        } else {
-//         window.setTimeout('typwriter("'+el+'","'+text+'",'+(pos+1)+','+1+');',800);
-//        }
-//    }
 
-//});

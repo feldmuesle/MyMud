@@ -154,7 +154,7 @@ exports.startNewGame = function(userId, nickname, guild, gender, socket, callbac
 
                         
                     }
-                }).populate('npcs inventory').exec(function(err){if(err){console.error(err); return;};})
+                }).populate('npcs inventory npcs.inventory npcs.trade.has npcs.trade.wants').exec(function(err){if(err){console.error(err); return;};})
                     .then(function(room){
                     Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
                         if(err){console.error(err); return;}
@@ -534,7 +534,7 @@ exports.test = function(roomId) {
 exports.changeRoom = function(oldRoom, newRoomId, player, callback){
     
     Room.findOne({id: newRoomId})
-    .populate('npcs inventory')
+    .populate('npcs inventory npcs.inventory npcs.trade.has npcs.trade.wants')
     .exec(function(err) {
         if(err){console.error(err); return;}
       

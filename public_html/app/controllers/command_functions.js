@@ -12,12 +12,14 @@ var Texter = require('./texter.js');
 
 
 exports.battleNpc = function (action, npc, playerObj, room){
-    
+    console.log('lets battle');
     var player = Player.getPlayer(playerObj);
+//    console.log('new mongooseplayer '+player);
+    npc = new Npc(npc);
     
-    Npc.getInventory(npc['_id']).exec(function(err,npc){
+//    Npc.getInventory(npc['_id']).exec(function(err,npc){
     
-        if(err){console.error(err); return;}  
+//        if(err){console.error(err); return;}  
         
         player.setListeners();
         npc.setListeners();
@@ -49,11 +51,19 @@ exports.battleNpc = function (action, npc, playerObj, room){
 
             damage = Helper.calcDamage(attPoints);
             var health = npc.attributes['health'];
-            var newHealth = health - damage;
+            var newHealth = health - damage.points;
             npc.attributes['health']= newHealth; 
-            outcome = player.nickname +' wins the battle. '
-                +damage+' points of damage has been done to the '+npc.keyword+'.';
             
+            outcome = player.nickname +' wins the battle '
+                +'while the '+npc.keyword+' got '+damage.desc+'.';
+            Texter.write(outcome, player.socketId);
+            
+            console.log(player);
+            if(newHealth < 60){
+                console.log('you hit him bad');
+                Behaviours.surrender(npc, player);
+            }
+//            Texter.updateNpcHealth(JSON.parse(JSON.stringify(npc)), player); //THROWS ERROR, DISCONNECT, DONT KNOW WHY
         }else {
             damage = Helper.calcDamage(defPoints);
             var health = player.attributes['health'];
@@ -64,10 +74,10 @@ exports.battleNpc = function (action, npc, playerObj, room){
             player.emit('regen');                      
         }    
         
-        Texter.write(outcome, player.socketId); 
+         
         npc.emit('prompt', player);
         
-    });              
+//    });              
 };    
     
 exports.battlePlayer = function(attacker, defender, room){

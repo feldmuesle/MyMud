@@ -257,9 +257,13 @@ RoomSchema.methods.setListeners = function(){
         // write room-description
         Texter.write (self.description, data['socketId']);
         // write exits-description
-        for (var i=0; i< self.exits.length; i++){
-            Texter.write(self.exits[i].description, data['socketId']);
-        }
+        
+        for (var i=0; i<self.exits.length; i++){
+            var desc = self.exits[i].description;
+            Helper.highlight(self.exits[i].keyword, desc, function(string){
+                Texter.write(string, data['socketId']);
+            });                
+        }  
         
     });  
     

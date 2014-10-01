@@ -93,6 +93,16 @@ $(document).ready(function(){
        
     });
     
+    // update npc when in battle and lost health
+    socket.on('updateNpc', function(data){
+        console.log('update npc '+data);
+       var npc = data['npc'];
+       var npcI =  getIndexByKeyValue(npcs, 'keyword', npc.keyword);
+       npcs[npcI].attributes['health']= npc.attributes['health'];
+       console.log('updated npc '+npc);
+    });
+    
+    
     /********* code above worked through ********************/
     
     
