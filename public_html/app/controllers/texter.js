@@ -41,9 +41,9 @@ function addListeners (socketId){
        socket.emit('updatePlayer', data); 
     });
     
-    texter.once('updateNpc', function(data){
+    texter.once('updateRoom', function(data){
         console.log('texter.once update npc');
-       socket.emit('updateNpc', data); 
+       socket.emit('updateRoom'); 
     });
     
         
@@ -106,6 +106,12 @@ exports.updatePlayer = function(player, roomName){
     texter.removeAllListeners();
     addListeners(player.socketId);
     texter.emit('updatePlayer', {'player':player, 'room': roomName});
+};
+
+exports.updateRoom = function(player, room){
+    texter.removeAllListeners();
+    addListeners(player.socketId);
+    texter.emit('updateRoom', {'room':room});
 };
 
 exports.updateNpcHealth = function(npc, player){  

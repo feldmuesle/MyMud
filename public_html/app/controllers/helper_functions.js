@@ -108,8 +108,8 @@ exports.autoIncrementId = function(mongooseArray){
 };
 
 exports.replaceStringItem = function(string, npc, item){
-    string = string.replace('%it', item.keyword).replace('%npc', npc.keyword)
-                .replace('%ng', getPronoun(npc.gender));
+    string = string.replace('%it', item).replace('%npc', npc.keyword)
+                .replace('%ng', getPronoun(npc.gender)).replace('%npp', getPersPronoun(npc.gender));
     return string;
 };
 
@@ -118,6 +118,7 @@ exports.replaceStringPlayer = function(string, npc, player){
     
     string = string.replace('%npc', npc.keyword).replace('%pl', player.nickname);
     string = string.replace('%ng', getPronoun(npc.gender)).replace('%pg', getPronoun(player.gender));
+    string = string.replace('%npp', getPersPronoun(npc.gender)).replace('%ppp', getPersPronoun(npc.gender));
  
     return string;
 };
@@ -154,26 +155,31 @@ exports.calcDamage = function(attPoints){
     var damage = 0;
     var desc = '';
     console.log('att-points: '+attPoints);
-    // define impact
+    
         switch(true){
-            case (attPoints <= 5):
+            case (attPoints <= 3):
                 desc = 'just a little scratch';
                 damage = 10;
                 break;
             
-            case (attPoints >5 && attPoints <=7):
-                desc = 'a bloody nose';
+            case (attPoints >3 && attPoints <=5):
+                desc = 'a couple of bruises';
                 damage = 20;
                 break;
-            
-            case (attPoints >10 && attPoints <= 12):
-                desc = 'some broken ribs';
-                damage = 35;
+                
+            case (attPoints >5 && attPoints <=7):
+                desc = 'a bloody nose';
+                damage = 30;
                 break;
             
-            case (attPoints >12):
+            case (attPoints >7 && attPoints <= 8):
+                desc = 'some broken ribs';
+                damage = 45;
+                break;
+            
+            case (attPoints >8):
                 desc = 'seriously beaten up and needs medical attention';
-                damage = 50;
+                damage = 60;
                 break;
         }
         
@@ -187,7 +193,15 @@ function getPronoun(gender){
     return 'her';
 }
 
+function getPersPronoun(gender){
+    if(gender == 'male'){
+        return 'he';
+    }
+    return 'she';
+}
+
 exports.getPronoun = getPronoun;
+exports.getPersPronoun = getPersPronoun;
 
 exports.highlight = function(word, string, callback) {
         var rgxp = new RegExp(word, 'gi');

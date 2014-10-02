@@ -818,6 +818,8 @@ $(document).ready(function(){
         $('#createRoom').trigger('reset');
         clearCheckboxes($('#createRoom'));
         removeExitFields(countExits - (countExits-1));
+        $('#createRoom input[name=form]').val('createRoom');
+        $('#btnCreateRoom').text('create');
        $("#createRooms").modal('show'); 
     });
 
@@ -847,6 +849,8 @@ $(document).ready(function(){
         //make sure the form is cleaned up
         $('#createItem').trigger('reset');
         clearCheckboxes($('#createItem'));
+        $('#createItem input[name=form]').val('createItem');
+        $('#btnCreateItem').text('create');
        $("#createItems").modal('show'); 
     });
     

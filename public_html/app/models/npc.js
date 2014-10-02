@@ -23,7 +23,7 @@ var NpcSchema = new Schema({
     description  :   {type:String, trim:true, validate:valEmpty},
     gender      :   {type:String, trim:true, default:'male'},
     attributes   : {
-            health   :   {type : Number, min:50, max:100, required:true},
+            health   :   {type : Number, min:50, max:100, default:100},
             hp      :   {type : Number, min: 1, max: 25, required:true},
             sp      :   {type : Number, min: 0, max: 25, required:true}
         },
@@ -203,15 +203,20 @@ NpcSchema.statics.getInventory = function(objectId){
 NpcSchema.statics.getRoomWithNpcs = function(roomId){
     var RoomModel = this || mongoose.model('Room');
     return RoomModel.findOne({'id':roomId}, function(){
-    }).populate('npcs inventory');
+    }).populate('npcs inventory npcs.trade.has npcs.trade.wants');
 };
 
 NpcSchema.methods.getItems = function(){
     return this.model('Npc').findOne({'id': this.id})
-            .populate('inventory').exec(function(err, npc ){
+            .populate('inventory trade.has trade.wants').exec(function(err, npc ){
                 if(err){console.error(err); return;}
 //                console.log('item in '+ npc.keyword+'\'s inventory: '+npc.inventory);
             });
+};
+
+NpcSchema.methods.populate = function(){
+    return this.model('Npc').findOne({'id': this.id})
+            .populate('inventory trade.has trade.wants');
 };
 
 // initialize with config
@@ -277,15 +282,12 @@ NpcSchema.methods.prompt = function(player){
 /******* Listeners ********************************************/
 NpcSchema.methods.setListeners = function(){
     console.log('Listeners for npc set');
-    
-    this.getItems();
     var self = this || mongoose.model('Npc');
-    
-    // get custom listeners
+        // get custom listeners
     for(var i=0; i< self.behaviours.length; i++){
-        // because of the way js treats variables in loops, 
-        // we need to wrap it into a anonymous function
-        // otherwise the function will first execute after loop is done
+       /*because of the way js treats variables in loops, 
+        we need to wrap it into a anonymous function
+        otherwise the function will first execute after loop is done */
         
         (function(){
             var j = i;
@@ -302,15 +304,15 @@ NpcSchema.methods.setListeners = function(){
         })();        
         
     }
-    
-    
+    console.log('here we have all listeners');
+    // when player enters
     self.on('playerEnters', function(player){
         
         var rand = Math.floor(Math.random()* 4);
         if(rand == 2){
             console.log('you hit lucky '+rand); 
-            var msg = 'There is a '+ self.shortDesc +' in the room.';
-            msg = msg +'"'+self.actions['playerEnters']+'" says the '+self.keyword;
+            var msg = 'There is a '+ self.shortDesc +' around.';
+            msg = msg +self.actions['playerEnters'];
             Texter.write(msg, player.socketId);
         }        
     });
@@ -327,13 +329,14 @@ NpcSchema.methods.setListeners = function(){
         var rand = Math.floor(Math.random()* self.actions['playerChat'].length);
         Texter.write (self.description, data['socketId']);
         self.emit('prompt', data);
-        Texter.write('The ' + self.keyword +' says: "'
-                +self.actions['playerChat'][rand]+'"', data['socketId']);
+        Behaviours.chat(self, data);
         
         // populate also inventory if there is
         if(self.inventory.length > 0){
-            Texter.write('The ' + self.keyword +' has '
-                +Helper.grammatize(self.inventory)+' somewhere in his pockets.', data['socketId']);
+            var msg = 'The ' + self.keyword +' has '
+                +Helper.grammatize(self.inventory)+' somewhere in %ng pockets.';
+            msg = Helper.replaceStringPlayer(msg, self, data);
+            Texter.write(msg, data['socketId']);
         } 
     });  
     
@@ -350,8 +353,7 @@ NpcSchema.methods.setListeners = function(){
         // only non-pacifist attack a player
         if(!self.pacifist){
             Behaviours.fight.hit(self, player);
-        }
-        
+        }        
     });
     
     self.on('defend', function(player){
@@ -360,6 +362,16 @@ NpcSchema.methods.setListeners = function(){
     
     self.on('pacifist', function(player){
         Behaviours.fight.pacifist(self, player); 
+    });
+    
+    self.on('surrender', function(player){
+        self.populate().exec(function(err, npc){
+            if(err){console.error(err); return;}
+            Behaviours.surrender(npc, player);
+            // inform player.
+            var msg = ' A '+npc.trade.has.keyword+' has been added to your backpack';
+            Texter.write(msg, player.socketId);
+        });        
     });
     
     self.on('trade', function(player){
@@ -373,6 +385,7 @@ NpcSchema.methods.setListeners = function(){
     self.on('chat', function(player){
         Behaviours.chat(self, player);
     });
+    
 };
 
 

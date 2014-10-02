@@ -97,19 +97,10 @@ function slideGameSignup(){
             $('#chatInput').val('');
         }        
     }
-
-    // add plain message to chat
-    function addMessage(msg, nickname){
-        console.log('hello from addMessage');
-        var date = new Date();
-        var time = date.getHours()+':'+ date.getMinutes();
-        var message = '<i>' + time + '</i> '+ nickname +' '+ msg;
-        appendToChat('message', message);
-    }
     
     // append li på rigtig måde
     function appendToChat(cssClass, msg){
-        $('<li class="'+cssClass+'"><p>'+msg+'</p></li>').hide().appendTo('#chatEntries').slideDown('fast');
+        $('<li class="'+cssClass+'">'+msg+'</li>').hide().appendTo('#chatEntries').slideDown('fast');
     }
     
     //highlight keywords in exit-descriptions of rooms and add it to textStream

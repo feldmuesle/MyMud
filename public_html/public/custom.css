@@ -110,6 +110,11 @@ thumbnails = #F7EDBF;
     bottom: 0; 
 }*/
 
+#chatEntries li.help {
+    font-weight: bold;
+    
+}
+
 #chatControls { 
     position: absolute;
     bottom: -20px;

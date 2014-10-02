@@ -37,9 +37,9 @@ var eats = [
 
 var trades = [
         'The %npc reaches into %ng pocket and gives you %it while %ng eyes sparkle of joy',
-        'The %npc claps into %ng hands and gives you a hug. In return your new friend gives you a %it',
+        'The %npc claps into %ng hands and gives you a hug. In return %npp gives you a %it',
         'The %npc says \'coooool! - in return you get this %it. It was fun trading with you.\'',
-        'The %npc screams hysterically and throws a salto mortale and rewards you with a %it'
+        'The %npc screams hysterically and throws a salto mortale. Then %npp rummages in %ng pockets and gives you a %it'
     ];
 var chats = [
         'The %npc steps from one foot to the other and says: ',
@@ -48,12 +48,18 @@ var chats = [
         'The %npc makes an important face, clears %ng throat a couple of times and says: '
     ];
     
+var givesItem = [
+    'The %npc rummage in %ng pockets and gives you a %it',
+    'The %npc takes off %ng left shoe and pulls out a %it',
+    'The %npc pats %ng stomach and chokes up a %it'
+] 
+    
 var rejects = [
         '\'No way, you can give this to your granny\' says the %npc and shakes %ng head.',
         '\'Now that\'s really a lame offer. Maybe you should think a bit more into direction of a %it\' says the %npc',
         'The %npc wrinkles %ng forehead and mumbles:\'Sorry, I don\' have any use for this\'',
         'The %npc stamps with %ng foot on the ground and shouts: \'No, I want a %it\'',
-        'The %npc has a phobia for your offer and runs away'
+        'Unfortuanately, the poor %npc has a phobia of the item and runs away'
     ];
 exports.fight = {
     
@@ -80,13 +86,17 @@ exports.fight = {
 exports.eat = function(self, player, item){
     console.log('npc eats '+item.keyword);
     var text = Helper.getRandomIndex(eats);
-    text = Helper.replaceStringItem(text, self, item);
+    text = Helper.replaceStringItem(text, self, item.keyword);
     Texter.write(text, player.socketId);
 };
 
 exports.surrender = function(self, player){
-    var text = Helper.getRandomIndex(surrenders);
-    text = Helper.replaceStringItem(text, self, self.trade.has);
+    var rand = Helper.getRandomIndex(surrenders);
+    var text = Helper.replaceStringItem(rand, self, self.trade.has.keyword);
+    Texter.write(text, player.socketId);
+    // give item
+    rand = Helper.getRandomIndex(givesItem);
+    text = Helper.replaceStringItem(rand, self, self.trade.has.shortDesc);
     Texter.write(text, player.socketId);
 };
 
@@ -98,7 +108,7 @@ exports.trade = function(self, player){
 
 exports.reject = function(self, player){
     var text = Helper.getRandomIndex(rejects);
-    text = Helper.replaceStringItem(text, self, self.trade.wants);
+    text = Helper.replaceStringItem(text, self, self.trade.wants.keyword);
     Texter.write(text, player.socketId);
 };
 

@@ -44,6 +44,7 @@ UserSchema.statics.getPlayerByNameSimple = function(playerName){
     return self.findOne().where({'player.nickname' : playerName});
 };
 
+
 // save a player in DB
 UserSchema.statics.savePlayer = function(playerObj){
   

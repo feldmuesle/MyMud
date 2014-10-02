@@ -49,18 +49,41 @@ PlayerSchema.methods.setListeners = function(){
     // set up listener
     self.on('regen', function(){
         var self = this || mongoose.model('Player'); 
-        // get the room-name        
-        Room.getRoomById(self.location).exec(function(err, room){
-            Texter.updatePlayer(self, room.name);
-            setTimeout(function(){
-                self.attributes['health'] = self.attributes['maxHealth'];
+        
+        // check if there's any need for regenerating
+        if(self.attributes.health < 100){
+            // get the room-name 
+            Room.getRoomById(self.location).exec(function(err, room){
+                if(err){console.error(err); return;}
+                
                 Texter.updatePlayer(self, room.name);
-                Texter.write(self.nickname+' has regenerated.',self.socketId);
-
-            },15000);
-            console.log('player regenerating: '+self.attributes['health']);
-        });        
+                setTimeout(function(){
+                    self.attributes['health'] = self.attributes['maxHealth'];
+                    Texter.updatePlayer(self, room.name);
+                    Texter.write(self.nickname+' has regenerated.',self.socketId);
+                },25000);
+            });
+        }                
     }); 
+    
+    self.on('dead', function(){
+        self.emit('regen');
+        var msg = 'Oh no!! - You got yourself killed.....................';            
+        Texter.write(msg,self.socketId);
+        msg = '.............................................................';
+        Texter.write(msg,self.socketId);
+        msg = 'Instead of seeing a bright light you wake up by a butterfly tickling your nose.';
+        Texter.write(msg,self.socketId);
+        msg = 'You know this place! Ah, everything\'s fine although your inventory has been stolen.';
+        
+        // get the start room and send room-description
+        Room.getRoomById(0).exec(function(err, room){
+            if(err){console.error(err); return;}
+            
+            room.setListeners();
+            room.announce(self); // writes description to player
+        });
+    });
     
     self.on('look', function(data){
        var msg = 'You take a good look at the '+data;
@@ -95,10 +118,6 @@ PlayerSchema.methods.setListeners = function(){
     });
 };
 
-PlayerSchema.methods.tellInventory = function(){
-    
-};
-
 PlayerSchema.methods.write = function(message){
     console.log('hello from methods.write: '+message);
     
@@ -120,85 +139,24 @@ PlayerSchema.statics.getInventory = function(player){
     return self.findOne({'_id':player._id}).populate('inventory');
 };
 
+//reset all
+PlayerSchema.methods.die = function(){
+    var self = this || mongoose.model('Player');
+    self.inventory = [];
+    self.location = 0;
+    return self;
+};
+
+// cast javascript-obj to mongoose objectid for proper saving
+PlayerSchema.methods.addItem = function(itemObjId){
+    var self = this || mongoose.model('Player');
+    // cast itemId to mongoose type objectId
+    var itemId = mongoose.Types.ObjectId(itemObjId);
+    self.inventory.push(itemId);
+};
+
 var Player = module.exports = mongoose.model('Player', PlayerSchema);
 
-
-//
-//PlayerSchema.methods.savePlayer = function(playerObj){
-//    
-//    User.findOne().where({'player.nickname' : playerObj.nickname}, function(err, user){
-//        if(err){console.error(err); return;}
-//        user.player[0].attributes['health'] = playerObj.attributes['health'];
-//        user.save(function(err){
-//           if(err){console.error(err); return;} 
-//           console.log('player has been saved');
-//        });
-//    });   
-//};
-
-//PlayerSchema.methods.setAttribute = function (attr,val){
-//    var self = this;
-//    console.log('hello from setAttribute');
-//    self.attributes[attr] = val;
-//};
-//
-//PlayerSchema.methods.getAttribute = function(attr) {
-//        var self = this;
-//        console.log('hello from getAttribute');
-//        return typeof self.attributes[attr] != "undefinded" ? self.attributes[attr]:false;
-//};
-
-
-
-
-
-//PlayerSchema.statics.savePlayer = function (player, callback){
-//    console.log('hello from savePlayer');
-//    var PlayerModel = this || mongoose.model('Player');
-//    var pl = new PlayerModel();
-//    pl.nickname = player.nickname;
-//    pl.guild = player.guild;
-//    pl.location = player.location;
-//    pl.gender = player.gender;
-//    pl.inventory = player.inventory;
-//    pl.socketId = player.socketId;    
-//    pl.attributes.maxHealth = player.attributes.maxHealth;
-//    pl.attributes.health = player.attributes.health;
-//    pl.attributes.hp = player.attributes.hp;
-//    pl.attributes.sp = player.attributes.sp;
-//    
-//    pl.save(function(err){
-//        if(err){
-//            console.log('something went wrong when saving a player.');
-//            return null; 
-//        }
-//        return callback(Room._id);
-//    });    
-//};
-//
-//PlayerSchema.statics.insertSkills = function (playerId, skills, callback){
-//    var PlayerModel = this || mongoose.model('Player');
-//    PlayerModel.findOne({_id : playerId}, function(err, player){
-//        if(err){
-//            console.log(err);
-//            return; 
-//        }      
-//
-//        console.log('PlayerId = '+ player._id);
-//        console.log('The Skills-array-length id: '+ skills.length);
-//        for(var i=0; i< skills.length; i++){
-//            player.skillIds.push[skills._id];
-//        }
-//
-//        player.save(function(err2){
-//            if(err2){
-//                console.log(err2);
-//                return;
-//            }
-//            return callback();
-//        });
-//    });   
-//};
 
 
 

@@ -56,9 +56,9 @@ exports.loadGame = function(userId, socket, callback){
                         
                         RoomManager.addPlayerToRoom(room.id, player);                        
                     }
-                }).populate('npcs inventory').exec(function(err){if(err){console.error(err); return;};})
+                }).populate('npcs inventory npcs.trade.has npcs.trade.wants').exec(function(err){if(err){console.error(err); return;};})
                     .then(function(room){
-                    Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+                    Item.populate(room.npcs, {path : 'inventory trade.has trade.wants ', model:'Item'}, function(err, npcs){
                         if(err){console.error(err); return;}
                         
                         // now that we got all stuff, let room and npc handle it
@@ -252,6 +252,23 @@ exports.checkCommand = function(commands, player, room, callback){
                     player.emit('inventory');                    
                 });
                 break;
+                
+            case 'look':
+                User.getPlayerByName(player.nickname).exec(function(err, user){
+                    if(err){console.error(err); return;}
+                    var player = user.player[0];
+                    player.setListeners();
+                    player.emit('look', room.name);
+                }).then(function(user){
+                        Room.getRoomWithNpcs(room.id).exec(function(err,room){
+                            if(err){console.error(err); return;}
+                            
+                            room.setListeners();
+                            room.look(user.player[0]);                            
+                        }); 
+
+                }); 
+                break;
             
             case 'help':
                 //TODO: show help-info
@@ -329,7 +346,7 @@ exports.checkCommand = function(commands, player, room, callback){
                                     player.setListeners();
                                     player.emit('look', who);
                                     npc.setListeners();
-                                    npc.emit('look', player);
+                                    npc.emit('look', user.player[0]);
                                 });                                 
                             }                                                       
                         });
@@ -377,6 +394,7 @@ exports.checkCommand = function(commands, player, room, callback){
             switch(true){
                     case (npcI != null):
                         console.log('attack '+who);
+                        console.log(room.npcs[npcI]);
                         Command.battleNpc('attack',room.npcs[npcI], player, room);
                         //TODO: attack-function, where all the stuff happens
                         
@@ -557,7 +575,7 @@ exports.changeRoom = function(oldRoom, newRoomId, player, callback){
         
         newRoom.setListeners();
         newRoom.announce(player);
-        Item.populate(newRoom.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+        Item.populate(newRoom.npcs, {path : 'inventory trade.has trade.wants ', model:'Item'}, function(err, npcs){
             if(err){console.error(err); return;}
             
             npcs.forEach(function(npc){
