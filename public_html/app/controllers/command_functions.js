@@ -280,12 +280,8 @@ exports.tradeItem = function(player, room, what, reciever){
                                     if( npc.trade.wants.keyword == what){
                                         // remove item
                                         player.inventory.splice(itemI);
-                                        var msg= 'You take the '+what+' out of your backpack and give it to the '+reciever;
-                                        Texter.write(msg, player.socketId);
-
+                                        
                                         var hasI = Helper.getIndexByKeyValue(player.inventory, 'keyword', npc.trade.has.keyword);
-                                        console.log('player inventory:' +player.inventory);
-                                        console.log('hasI '+hasI);
 
                                         if (hasI == null){
                                             // add item player recieves from npc
@@ -301,8 +297,11 @@ exports.tradeItem = function(player, room, what, reciever){
                                                 return;
                                              });
                                         } else {
-                                           var msg= 'The '+reciever+' says:\'A gift! Thank you.\' and turns away.';
-                                           Texter.write(msg, player.socketId);
+                                            var msg= 'You take the '+what+' out of your backpack and give it to the '+reciever;
+                                            Texter.write(msg, player.socketId); 
+                                            
+                                            var msg= 'The '+reciever+' says:\'No thank you, I have nothing to trade that you don\'t have already.';
+                                            Texter.write(msg, player.socketId);
                                         }
                                     // the item doesn't match the item npc wants    
                                     }else{
