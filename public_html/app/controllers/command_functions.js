@@ -293,7 +293,7 @@ exports.tradeItem = function(player, room, what, reciever){
                                             return;
                                          });
                                      } else {
-                                        var msg= 'The '+reciever+' says:\'Thank you!\' and turns away.';
+                                        var msg= 'The '+reciever+' says:\'A gift! Thank you.\' and turns away.';
                                         Texter.write(msg, player.socketId);
                                      }
                                 // the item doesn't match the item npc wants    
