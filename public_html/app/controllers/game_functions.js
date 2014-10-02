@@ -156,7 +156,7 @@ exports.startNewGame = function(userId, nickname, guild, gender, socket, callbac
                     }
                 }).populate('npcs inventory npcs.inventory npcs.trade.has npcs.trade.wants').exec(function(err){if(err){console.error(err); return;};})
                     .then(function(room){
-                    Item.populate(room.npcs, {path : 'inventory ', model:'Item'}, function(err, npcs){
+                    Item.populate(room.npcs, {path : 'inventory trade.has trade.was ', model:'Item'}, function(err, npcs){
                         if(err){console.error(err); return;}
 
                         if(npcs.length >0){
@@ -271,7 +271,7 @@ exports.checkCommand = function(commands, player, room, callback){
                 break;
             
             case 'help':
-                //TODO: show help-info
+                //happens clientside
                 break;
             
             default:

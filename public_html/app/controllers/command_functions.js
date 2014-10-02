@@ -264,45 +264,60 @@ exports.tradeItem = function(player, room, what, reciever){
                     room.npcs.forEach(function(npc){
                         // if the name matches
                         if(npc.keyword == reciever){
+                            console.log(npc.keyword);
+                            
+                            var msg = 'You take out your '+what+' out of your backpack and offer it to the '+npc.keyword;
+                            Texter.write(msg, player.socketId);
                             
                             // get npc from db and check if the item also matches the one he wants
                             Npc.getNpcByName(npc.keyword).exec(function(err, npc){
                                 if(err){console.error(err); return;}
-
-                                if(npc && npc.trade.wants.keyword == what){
-                                    // remove item
-                                    player.inventory.splice(itemI);
-                                    var msg= 'You take the '+what+' out of your backpack and give it to the '+reciever;
-                                    Texter.write(msg, player.socketId);
+                                console.log('npc wants '+npc.trade.wants);
+                                // check if npc want to trade at all
+                                if(npc.trade.wants){
                                     
-                                    var hasI = Helper.getIndexByKeyValue(player.inventory, 'keyword', npc.trade.has.keyword);
-                                    console.log('player inventory:' +player.inventory);
-                                    console.log('hasI '+hasI);
-                                    
-                                    if (hasI == null){
-                                        // add item player recieves from npc
-                                        player.inventory.push(npc.trade.has);
-                                        
-                                        // save player
-                                        user.save(function(err, user){
-                                            if(err){console.error(err); return;} 
-                                            npc.setListeners();
-                                            npc.emit('trade', player);
-                                            var msg = npc.trade.swap;
-                                            Texter.write(msg, player.socketId);
-                                            return;
-                                         });
-                                     } else {
-                                        var msg= 'The '+reciever+' says:\'A gift! Thank you.\' and turns away.';
+                                    // check if player matches what it wants
+                                    if( npc.trade.wants.keyword == what){
+                                        // remove item
+                                        player.inventory.splice(itemI);
+                                        var msg= 'You take the '+what+' out of your backpack and give it to the '+reciever;
                                         Texter.write(msg, player.socketId);
-                                     }
-                                // the item doesn't match the item npc wants    
+
+                                        var hasI = Helper.getIndexByKeyValue(player.inventory, 'keyword', npc.trade.has.keyword);
+                                        console.log('player inventory:' +player.inventory);
+                                        console.log('hasI '+hasI);
+
+                                        if (hasI == null){
+                                            // add item player recieves from npc
+                                            player.inventory.push(npc.trade.has);
+
+                                            // save player
+                                            user.save(function(err, user){
+                                                if(err){console.error(err); return;} 
+                                                npc.setListeners();
+                                                npc.emit('trade', player);
+                                                var msg = npc.trade.swap;
+                                                Texter.write(msg, player.socketId);
+                                                return;
+                                             });
+                                        } else {
+                                           var msg= 'The '+reciever+' says:\'A gift! Thank you.\' and turns away.';
+                                           Texter.write(msg, player.socketId);
+                                        }
+                                    // the item doesn't match the item npc wants    
+                                    }else{
+                                        npc.setListeners();
+                                        npc.emit('reject', player);
+                                    }
+                                // the npc doesn't want to trade    
                                 }else{
-                                    npc.setListeners();
-                                    npc.emit('reject', player);
-                                }
+                                    var msg = 'The '+npc.keyword+' doesn\'nt want to trade.';
+                                    Texter.write(msg, player.socketId);
+                                }                             
+                                
                             });                             
                          }
+                         return; // break the loop!
                     }); 
                // there's no npc in the room     
                }else{
