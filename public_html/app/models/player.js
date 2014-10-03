@@ -92,7 +92,7 @@ PlayerSchema.methods.setListeners = function(){
     });
     
     self.on('take item', function(item){
-        var msg = 'You pick up the '+item.shortDesc +' and stuff it into your backpack.';
+        var msg = 'You pick up the '+item.keyword +' and stuff it into your backpack.';
         Texter.write(msg, self.socketId);
         self.emit('inventory');
     });

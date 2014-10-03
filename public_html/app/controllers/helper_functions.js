@@ -130,15 +130,15 @@ exports.grammatize = function(oArray){
     
     switch(true){
         case(length == 2):{
-                string = 'a '+oArray[0].keyword+' and a '+oArray[1].keyword;
+                string = 'a '+oArray[0].shortDesc+' and a '+oArray[1].shortDesc;
                 break;  
             }
         case(length >2):{
                 for(var i=0; i<length; i++){
                    if(i == length-1){
-                       string = string +' and a'+oArray[i].keyword;
+                       string = string +' and a'+oArray[i].shortDesc;
                    }else {
-                       string = string +'a '+ oArray[i].keyword +', ';
+                       string = string +'a '+ oArray[i].shortDesc +', ';
                    } 
                 }
             }
