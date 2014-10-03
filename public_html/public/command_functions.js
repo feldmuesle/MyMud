@@ -49,9 +49,12 @@
             var npcChat = '\'chat npc \' e.g. \'chat panda\' to chat with the npc.';
             var attackNpc = '\'attack npc \' e.g. \'attack panda\' to attack the npc.';
             var attackPlayer = '\'attack playername \' e.g. \'attack thurax\' to attack the player thurax.';
+            var say = '\'say message \' e.g. \'say hello\' to say something to all the players in the same room.';
+            var whisper = '\'whisper playername message \' e.g. \'whisper john hello\' to whisper something to only one player.';
+            var shout = '\'shout message \' e.g. \'shout hello\' to say something all players online will hear.';
             
             var help = [title, move, desc, look, lookNpc, lookItem, lookNpcItem, takeItem, 
-                dropItem, giveItem, npcChat, attackNpc, attackPlayer];
+                dropItem, giveItem, npcChat, attackNpc, attackPlayer, say, whisper, shout];
             
             help.forEach(function(record){
                 appendToChat('help', record);
