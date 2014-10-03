@@ -41,7 +41,7 @@ var eats = [
     ];
 
 var trades = [
-        'The %npc jumps up and down for sheer joy and won\'t stop. Finally you have to remind %npg of the %it.',
+        'The %npc jumps up and down for sheer joy and won\'t stop. Finally you have to remind %ng of the %it.',
         'The %npc claps into %ng hands and gives you a hug. \'Now you shall get your %it\' %npp says.',
         'The %npc says \'coooool! - in return you\'ll get my %it. This was fun.\'',
         'The %npc screams hysterically and throws a salto mortale. \'This is great, I will reward you with a %it.\''
