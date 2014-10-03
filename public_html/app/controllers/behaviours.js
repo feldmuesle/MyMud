@@ -13,10 +13,11 @@ var hits = [
 
 
 var parrys = [
-        'The %npc parries and slaps %pl right on %pg the nose',
-        'The %npc parries %pls strike and stretches gracefully %ng back.',
-        'The %npc parries and tries to kick %pls butt',
-        'The %npc tries to duck, but was unfortunately to slow'
+        'The %npc parries and slaps you right on the nose.',
+        'The %npc parries your strike and stretches gracefully %ng back.',
+        'The %npc parries and tries to kick your butt.',
+        'The %npc tries to duck, but was unfortunately to slow.',
+        'The %npc parries and answers your strike with a fast fist-combo.'
     ];
     
 var pacifist = [
@@ -28,7 +29,8 @@ var pacifist = [
     
 var surrenders = [
         'The %npcs holds %ng bloody nose and says: \'Enough, I give you my %it if only you stop hitting me.\'',
-        'The %npc lower %ng head. \'You are a true master of the martials arts, I bow before you. Take this %it as token for my respect.\''
+        'The %npc lower %ng head. \'You are a true master of the martials arts, I bow before you. Take this %it as token for my respect.\'',
+        'The %npc cries:\'Enough, please stop this brutality. You\'ll get my %it in return.\''
     ];
     
 var eats = [
@@ -63,7 +65,7 @@ var rejects = [
         '\'Now that\'s really a lame offer. Maybe you should think a bit more into direction of a %it\' says the %npc',
         'The %npc wrinkles %ng forehead and mumbles:\'Sorry, I don\' have any use for this\'',
         'The %npc stamps with %ng foot on the ground and shouts: \'No, I want a %it\'',
-        'Unfortuanately, the poor %npc has a phobia of the item and runs away'
+        'Unfortuanately, the poor %npc has a phobia of this particular thing and runs away'
     ];
 exports.fight = {
     
