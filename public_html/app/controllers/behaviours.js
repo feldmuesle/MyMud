@@ -14,14 +14,16 @@ var hits = [
 
 var parrys = [
         'The %npc parries and slaps %pl right on %pg the nose',
-        'The %npc parries %pls strike and then stretches gracefully %ng back.'
+        'The %npc parries %pls strike and stretches gracefully %ng back.',
+        'The %npc parries and tries to kick %pls butt',
+        'The %npc tries to duck, but was unfortunately to slow'
     ];
     
 var pacifist = [
         'The %npc is a pacifist and ducks every time you try to hit %ng.',
         'The %npc is against violence and won\'t battle with you.',
         'The %npc does not like to fight and throws a kiss at you instead while running away from you.',
-        'The anti-violence-%npc cries "Ouuuuuouuuch" before you even touched him.'
+        'The anti-violence-%npc cries "Ouuuuuouuuch" before you even touched %ng.'
     ];
     
 var surrenders = [
@@ -32,14 +34,15 @@ var surrenders = [
 var eats = [
         'The %npc snatches the %it and munches happily until no crumb is left.',
         'The %npc jumps across the room and catches the %it with %ng teeth before it hits the ground.',
-        'The %npc picks up the %it and starts mannerly eating it with a huge fork'
+        'The %npc picks up the %it and starts mannerly eating it with a huge fork',
+        'The %npc takes out a huge napking, lights a candle and turns on some soft dinnermusic before scoffing the %it.'
     ];
 
 var trades = [
-        'The %npc reaches into %ng pocket and gives you %it while %ng eyes sparkle of joy',
-        'The %npc claps into %ng hands and gives you a hug. In return %npp gives you a %it',
-        'The %npc says \'coooool! - in return you get this %it. It was fun trading with you.\'',
-        'The %npc screams hysterically and throws a salto mortale. Then %npp rummages in %ng pockets and gives you a %it'
+        'The %npc jumps up and down for sheer joy and won\'t stop. Finally you have to remind %npg of the %it',
+        'The %npc claps into %ng hands and gives you a hug. \'Now you shall get your %it\' %npp says.',
+        'The %npc says \'coooool! - in return you\'ll get my %it. This was fun.\'',
+        'The %npc screams hysterically and throws a salto mortale. \'This is great, I will reward you with a %it\''
     ];
 var chats = [
         'The %npc steps from one foot to the other and says: ',
@@ -49,10 +52,11 @@ var chats = [
     ];
     
 var givesItem = [
-    'The %npc rummage in %ng pockets and gives you a %it',
+    'The %npc rummages in %ng pockets and gives you a %it',
     'The %npc takes off %ng left shoe and pulls out a %it',
-    'The %npc pats %ng stomach and chokes up a %it'
-] 
+    'The %npc pats %ng stomach and chokes up a %it', 
+    'The %npc lifts %ng toupee and gives you the %it hidden there.'
+]; 
     
 var rejects = [
         '\'No way, you can give this to your granny\' says the %npc and shakes %ng head.',
@@ -103,6 +107,10 @@ exports.surrender = function(self, player){
 exports.trade = function(self, player){    
     var text = Helper.getRandomIndex(trades);
     text = Helper.replaceStringItem(text, self, self.trade.has.keyword);
+    Texter.write(text, player.socketId);
+    // give item
+    rand = Helper.getRandomIndex(givesItem);
+    text = Helper.replaceStringItem(rand, self, self.trade.has.shortDesc);
     Texter.write(text, player.socketId);
 };
 

@@ -42,6 +42,7 @@ exports.battleNpc = function (action, npcObj, playerObj, room){
     var defPoints = Math.floor(Math.random()* npc.attributes['hp'] +1);        
     var damage;
     var outcome;
+    var attOutcome;
 
     if(attPoints > defPoints){
         var diff = attPoints-defPoints;
@@ -49,10 +50,11 @@ exports.battleNpc = function (action, npcObj, playerObj, room){
         var health = npc.attributes['health'];
         var newHealth = health - damage.points;
         npc.attributes['health']= newHealth; 
-        console.log('player inventory: '+player.inventory);
+        
         outcome = player.nickname +' wins the battle '
             +'while the '+npc.keyword+' got '+damage.desc+'.';
-        Texter.write(outcome, player.socketId);
+        attOutcome = 'you win the battle while the '+npc.keyword+' got '+damage.desc+'.';
+        Texter.write(attOutcome, player.socketId);
 
         // let npc surrender if damage too big and player doesn't have item in inventory yet
         if(newHealth < 70){
@@ -74,9 +76,8 @@ exports.battleNpc = function (action, npcObj, playerObj, room){
                     
                 } else {
                     
-                    var msg = 'The %npc cries:\' You got already a %it and I have nothing else to give.'
-                        +'You are an evil person!\' '
-                        +'The %npc gets up and flees. Shame on you for being so brutal.';
+                    var msg = 'The %npc cries:\' You got already a %it and I have nothing else to give.';
+                    msg += 'You are an evil person!\' Then %npp gets up on %ng feet and flees. Shame on you for being so brutal.';
                     msg = Helper.replaceStringItem(msg, npc, npcObj.trade.has.keyword);
                     Texter.write(msg, player.socketId);
                 } 
@@ -92,13 +93,13 @@ exports.battleNpc = function (action, npcObj, playerObj, room){
         if(newHealth >= 0){
             player.attributes['health']= newHealth;
             //outcome = 'The '+npc.keyword +' wins the battle while '+player.nickname+' got '+damage.desc +'.';
-            outcome = 'The '+npc.keyword +' wins the battle while you loose '+damage.points+'% of your health.';
-            
+            outcome = 'The '+npc.keyword +' wins the battle while '+player.nickname+' looses '+damage.points+'% health.';
+            attOutcome = 'The '+npc.keyword +' wins the battle while you loose '+damage.points+'% of your health.';
             // give a warning if health is very low
             if(newHealth < 40){
-                outcome += 'Another hard strike from '+npc.keyword+' can be lethal in your condition. Maybe you should leave.';
+                attOutcome += ' Another hard strike from '+npc.keyword+' can be lethal in your condition. Maybe you should leave.';
             }            
-            Texter.write(outcome, player.socketId);
+            Texter.write(attOutcome, player.socketId);
         
             player.emit('regen');  
             
@@ -113,7 +114,7 @@ exports.battleNpc = function (action, npcObj, playerObj, room){
         
                             
     }    
-//    npc.emit('prompt', player);      
+    Texter.broadcastRoomies(outcome, player.socketId, room.name);
 };    
     
 exports.battlePlayer = function(attacker, defender, room){
@@ -123,11 +124,14 @@ exports.battlePlayer = function(attacker, defender, room){
         defender.write('we are batteling');
         
         Texter.write('You attack '+defender.nickname, attacker.socketId);
-        Texter.broadcastRoomies(attacker.nickname +' attacks '+defender.nickname, attacker.socketId, room.name);
+        Texter.write(attacker.nickname+' that crazy '+attacker.guild+' attacks you.',defender.socketId);
+//        Texter.broadcastRoomies(attacker.nickname +' attacks '+defender.nickname, attacker.socketId, room.name);
         var attPoints = Math.floor(Math.random()* attacker.attributes.hp +1);
         var defPoints = Math.floor(Math.random()* defender.attributes.hp +1);
         var damage;
         var outcome;
+        var attOutcome;
+        var defOutcome;
         
         if(attPoints > defPoints){
 
@@ -135,9 +139,10 @@ exports.battlePlayer = function(attacker, defender, room){
             var health = defender.attributes['health'];
             var newHealth = health - damage;
             defender.attributes['health']= newHealth; 
-            outcome = attacker.nickname +' wins the battle. '
-                +damage+' points of damage has been done to '+defender.nickname+'.';
-            if(damage > 0){
+            attOutcome = 'You win the battle while '+defender.nickname+' got '+damage.desc+'.';
+            defOutcome = attacker.nickname + ' wins the battle while you got '+damage.desc+'.';
+            outcome = attacker.nickname +' wins the battle while '+defender.nickname+' got '+damage.desc+'.';
+            if(damage.points > 0){
                 defender.emit('regen');
             }
             
@@ -147,15 +152,17 @@ exports.battlePlayer = function(attacker, defender, room){
             var health = attacker.attributes['health'];
             var newHealth = health - damage;
             attacker.attributes['health']= newHealth;
-            outcome = defender.nickname +' wins the battle. '
-                +damage+' points of damage has been done to '+attacker.nickname+'.';
+            attOutcome = defender.nickname +' wins the battle while you loose '+damage.points+'% of your health.';
+            defOutcome = 'You win the battle while '+attacker.nickname+' got '+damage.desc+'.';
+            outcome = 'The '+defender.nickname +' wins the battle while '+attacker.nickname+' looses '+damage.points+'% health.';
                 
-            if(damage > 0){
+            if(damage.points > 0){
                 attacker.emit('regen');
             }
         }            
-        Texter.write(outcome, attacker.socketId); 
-        Texter.broadcastRoomies(outcome, attacker.socketId, room.name); 
+        Texter.write(attOutcome, attacker.socketId); 
+        Texter.write(defOutcome, defender.socketId); 
+//        Texter.broadcastRoomies(outcome, attacker.socketId, room.name); 
     };
     
 exports.takeItem = function(item, player){
@@ -288,7 +295,7 @@ exports.tradeItem = function(player, room, what, reciever){
                                             player.inventory.push(npc.trade.has);
 
                                             // save player
-                                            user.save(function(err, user){
+                                            user.save(function(err){
                                                 if(err){console.error(err); return;} 
                                                 npc.setListeners();
                                                 npc.emit('trade', player);
@@ -297,8 +304,6 @@ exports.tradeItem = function(player, room, what, reciever){
                                                 return;
                                              });
                                         } else {
-                                            var msg= 'You take the '+what+' out of your backpack and give it to the '+reciever;
-                                            Texter.write(msg, player.socketId); 
                                             
                                             var msg= 'The '+reciever+' says:\'No thank you, I have nothing to trade that you don\'t have already.';
                                             Texter.write(msg, player.socketId);

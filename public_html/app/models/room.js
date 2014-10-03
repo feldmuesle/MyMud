@@ -253,7 +253,6 @@ RoomSchema.methods.setListeners = function(){
     
     // set up listeners
     self.on('playerEnters', function(data){
-        console.log(data['nickname'] +' enters '+self.name);
         // write room-description
         Texter.write (self.description, data['socketId']);
         // write exits-description

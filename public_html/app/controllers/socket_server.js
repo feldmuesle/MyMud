@@ -51,7 +51,6 @@ module.exports.response = function(socket){
             }else{
                 // fire up a new game
                 Game.startNewGame(userId, nickname, guild, gender, socket, function(game){
-                    
                     // configure socket 
                     socket.pseudo = game['player'].nickname;
                     socket.room = game['room'].name;
@@ -218,14 +217,18 @@ module.exports.response = function(socket){
            
            // get needed data for broadcasting to players in old room
            var goodbye = player.nickname +' '+oldRoom.exits[index].goodbye
-                            + ' and leaves the room.';
+                            + ' and leaves the '+oldRoom.name+'.';
+            
+            // get needed data for broadcasting arrival to players in new room
+           var hello = player.nickname +' '+oldRoom.exits[index].hello
+                            + ' and enters the '+room.name+'.';
            
            var broadcast = {
                'oldRoom'    : oldRoom.name,   
                'goodbye'    : goodbye,
                'oldRoomies' : oldRoomies,
                'newRoom'    : room.name,
-               'hello'      : player.nickname +' arrives in room.',               
+               'hello'      : hello,               
                'newRoomies' : newRoomies
            };
            

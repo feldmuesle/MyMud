@@ -49,13 +49,11 @@ UserSchema.statics.getPlayerByNameSimple = function(playerName){
 UserSchema.statics.savePlayer = function(playerObj){
   
   var self = this || mongoose.model('User');
-  var player = Player.getPlayer(playerObj);
   
   self.findOne().where({'player.nickname' : playerObj.nickname}).exec(function(err, user){
       if(err){console.error(err); return;}  
       //replace player with new playerObject
-      user.player = [];
-      user.player.push(player); // [0] because there is always only one player 
+      user.player[0].location = playerObj.location; // [0] because there is always only one player 
       user.save(function(err, doc){
          if(err){console.error(err); return;} 
          console.log('player has been saved' +doc);

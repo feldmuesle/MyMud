@@ -28,8 +28,6 @@ exports.getNumUsers = function(){ return numUsers;};
 exports.loadGame = function(userId, socket, callback){
     
     clients.push(socket);
-    console.log('clients when starting game: ');
-    console.dir(clients);
     Texter.updateSockets(clients);
     
     
@@ -92,10 +90,9 @@ exports.loadGame = function(userId, socket, callback){
 
 // load a entire new game by det given userinput
 exports.startNewGame = function(userId, nickname, guild, gender, socket, callback){
-        
+    
+    // add socket to texter-socketsarray
     clients.push(socket);
-    console.log('clients when starting game: ');
-    console.dir(clients);
     Texter.updateSockets(clients);
     Texter.addListeners();
     
@@ -133,7 +130,8 @@ exports.startNewGame = function(userId, nickname, guild, gender, socket, callbac
         User.findOne({_id : userId}, function(err, user){
             if(err){console.error(err); return;}  
             if(user){
-                //console.log('yes we have found an user to save at player in');
+                //to make sure there will always be only one player, empty the players array
+                user.player = [];
                 user.player.push(newPlayer);
                 user.save(function(err){
                     if(err){ console.error(err); return;}
@@ -301,8 +299,8 @@ exports.checkCommand = function(commands, player, room, callback){
                         User.getPlayerByName(player.nickname).exec(function(err, user){
                             if(err){console.error(err); return;}
                             var player = user.player[0];
-                            player.setListeners();
-                            player.emit('look', who);
+                            user.player[0].setListeners();
+                            user.player[0].emit('look', who);
                         }).then(function(){
                                 Room.getRoomWithNpcs(room.id).exec(function(err,room){
                                     if(err){console.error(err); return;}
@@ -407,13 +405,22 @@ exports.checkCommand = function(commands, player, room, callback){
                     
                     case (playerI != null && who == users[playerI]):
                         
-                        User.getPlayerByName(who).exec(function(err, user){
-                            if(err){console.error(err); return;}
-                            var attacker = PlayerModel.getPlayer(player);
-                            var defender = PlayerModel.getPlayer(user.player[0]);
-                            Command.battlePlayer(attacker, defender, room);
-                        });
-                        
+                        // check if they are in the same room
+                        var roomies = RoomManager.getPlayersInRoom(player.location);
+                        var loco = Helper.getIndexByKeyValue(roomies,'nickname',who);
+                        if(loco != null){    
+                            User.getPlayerByName(who).exec(function(err, user){
+                                if(err){console.error(err); return;}
+                                
+                                var attacker = PlayerModel.getPlayer(player);
+                                var defender = PlayerModel.getPlayer(user.player[0]);
+                                Command.battlePlayer(attacker, defender, room);
+                                
+                            });
+                        }else{
+                            var msg = who+ ' is\'t around here to beat up.';
+                            Texter.write(msg, player.socketId);
+                        }                 
                         break;
                 
                     default:

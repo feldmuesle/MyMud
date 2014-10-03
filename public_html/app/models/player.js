@@ -86,6 +86,7 @@ PlayerSchema.methods.setListeners = function(){
     });
     
     self.on('look', function(data){
+        console.log(self.socketId);
        var msg = 'You take a good look at the '+data;
        Texter.write(msg, self.socketId);
     });
