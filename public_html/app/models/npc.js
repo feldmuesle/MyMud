@@ -317,9 +317,8 @@ NpcSchema.methods.setListeners = function(){
         }        
     });
     
-    self.on('playerDrops', function(player){       
-        var msg = 'The '+self.keyword +' says "'+self.actions['playerDrops']+'"';
-        Texter.write(msg, player.socketId);
+    self.on('playerDrops', function(player){
+        Texter.write(self.actions['playerDrops'], player.socketId);
    
     });
 
