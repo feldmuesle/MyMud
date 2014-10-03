@@ -53,7 +53,7 @@ exports.battleNpc = function (action, npcObj, playerObj, room){
         
         outcome = player.nickname +' wins the battle '
             +'while the '+npc.keyword+' got '+damage.desc+'.';
-        attOutcome = 'you win the battle while the '+npc.keyword+' got '+damage.desc+'.';
+        attOutcome = 'You win the battle while the '+npc.keyword+' got '+damage.desc+'.';
         Texter.write(attOutcome, player.socketId);
 
         // let npc surrender if damage too big and player doesn't have item in inventory yet

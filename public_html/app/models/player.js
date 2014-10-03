@@ -60,7 +60,7 @@ PlayerSchema.methods.setListeners = function(){
                 setTimeout(function(){
                     self.attributes['health'] = self.attributes['maxHealth'];
                     Texter.updatePlayer(self, room.name);
-                    Texter.write(self.nickname+' has regenerated.',self.socketId);
+                    Texter.write('You have regenerated.',self.socketId);
                 },25000);
             });
         }                

@@ -7,7 +7,7 @@ var Helper = require('./helper_functions.js');
 
 var hits = [
         '%pl hits the %npc on %ng nose.',
-        'The %npc hits %pl with a fast fist-combo',
+        'The %npc hits %pl with a fast fist-combo.',
         'Impressingly enough the %npc kicks %pls ass while whisteling a tune.'
     ];
 
@@ -36,15 +36,15 @@ var surrenders = [
 var eats = [
         'The %npc snatches the %it and munches happily until no crumb is left.',
         'The %npc jumps across the room and catches the %it with %ng teeth before it hits the ground.',
-        'The %npc picks up the %it and starts mannerly eating it with a huge fork',
+        'The %npc picks up the %it and starts mannerly eating it with a huge fork.',
         'The %npc takes out a huge napking, lights a candle and turns on some soft dinnermusic before scoffing the %it.'
     ];
 
 var trades = [
-        'The %npc jumps up and down for sheer joy and won\'t stop. Finally you have to remind %npg of the %it',
+        'The %npc jumps up and down for sheer joy and won\'t stop. Finally you have to remind %npg of the %it.',
         'The %npc claps into %ng hands and gives you a hug. \'Now you shall get your %it\' %npp says.',
         'The %npc says \'coooool! - in return you\'ll get my %it. This was fun.\'',
-        'The %npc screams hysterically and throws a salto mortale. \'This is great, I will reward you with a %it\''
+        'The %npc screams hysterically and throws a salto mortale. \'This is great, I will reward you with a %it.\''
     ];
 var chats = [
         'The %npc steps from one foot to the other and says: ',
@@ -54,18 +54,18 @@ var chats = [
     ];
     
 var givesItem = [
-    'The %npc rummages in %ng pockets and gives you a %it',
-    'The %npc takes off %ng left shoe and pulls out a %it',
-    'The %npc pats %ng stomach and chokes up a %it', 
+    'The %npc rummages in %ng pockets and gives you a %it.',
+    'The %npc takes off %ng left shoe and pulls out a %it.',
+    'The %npc pats %ng stomach and chokes up a %it.', 
     'The %npc lifts %ng toupee and gives you the %it hidden there.'
 ]; 
     
 var rejects = [
         '\'No way, you can give this to your granny\' says the %npc and shakes %ng head.',
-        '\'Now that\'s really a lame offer. Maybe you should think a bit more into direction of a %it\' says the %npc',
-        'The %npc wrinkles %ng forehead and mumbles:\'Sorry, I don\' have any use for this\'',
-        'The %npc stamps with %ng foot on the ground and shouts: \'No, I want a %it\'',
-        'Unfortuanately, the poor %npc has a phobia of this particular thing and runs away'
+        '\'Now that\'s really a lame offer. Maybe you should think a bit more into direction of a %it\' says the %npc.',
+        'The %npc wrinkles %ng forehead and mumbles:\'Sorry, I don\' have any use for this.\'',
+        'The %npc stamps with %ng foot on the ground and shouts: \'No, I want a %it.\'',
+        'Unfortuanately, the poor %npc has a phobia of this particular thing and runs away.'
     ];
 exports.fight = {
     
