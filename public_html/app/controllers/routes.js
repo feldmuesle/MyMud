@@ -42,7 +42,7 @@ module.exports = function(app, passport, game){
     // process the signup form
     app.post('/signup',passport.authenticate('local-signup',{
         successRedirect: '/game', // if everything worked redirect to user-profile
-        failureRedirect: '/index', // if something went wrong, redirect to singup
+        failureRedirect: '/signup', // if something went wrong, redirect to singup
         failureFlash: true // allow flash-messages
     }));
     
