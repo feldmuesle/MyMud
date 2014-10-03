@@ -308,8 +308,8 @@ NpcSchema.methods.setListeners = function(){
     // when player enters
     self.on('playerEnters', function(player){
         
-        var rand = Math.floor(Math.random()* 3);
-        if(rand == 2){
+        var rand = Math.floor(Math.random()* 4);
+        if(rand == 2 || rand == 3){
             console.log('you hit lucky '+rand); 
             var msg = 'There is a '+ self.shortDesc +' around.';
             msg = msg +self.actions['playerEnters'];
