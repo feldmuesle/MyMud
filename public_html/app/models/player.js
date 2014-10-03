@@ -108,9 +108,9 @@ PlayerSchema.methods.setListeners = function(){
             var msg;
             
             if(items.length > 0){
-                 var msg = 'Your backpack holds: '+Helper.grammatize(items);
+                 msg = 'Your backpack holds: '+Helper.grammatize(items);
             }else{
-                var msg = 'Your backpack is empty.';
+                msg = 'Your backpack is empty.';
             }
            
             Texter.write(msg, self.socketId);   

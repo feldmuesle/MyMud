@@ -143,7 +143,7 @@ exports.grammatize = function(oArray){
                 }
             }
         case(length == 1):{
-                string = 'a '+oArray[0].keyword;
+                string = 'a '+oArray[0].shortDesc;
                 break;
         }
     }
